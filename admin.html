@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天給你抽 - 管理者後台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { clay: '#D0826C', forest: '#2E4A3F', sand: '#FAF8F5' }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-sand min-h-screen p-6 font-sans">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-forest">「今天給你抽」管理者後台</h1>
+                <p class="text-xs text-gray-500 mt-1">在這裡一鍵上架精油盲盒，前台將會即時同步！</p>
+            </div>
+            <a href="home.html" class="text-sm text-clay hover:underline">返回首頁 ➔</a>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-md border border-gray-100 h-fit">
+                <h3 class="text-lg font-bold text-forest mb-4">✨ 新品上架</h3>
+                <form id="uploadForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">精油名稱 (中文)</label>
+                        <input type="text" id="oilName" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-clay outline-none text-sm" placeholder="例如：大馬士革玫瑰">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">精油代號 (英文/學名)</label>
+                        <input type="text" id="oilId" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-clay outline-none text-sm" placeholder="例如：Rose">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">卡片代表圖示 (Emoji)</label>
+                        <input type="text" id="oilEmoji" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-clay outline-none text-sm" placeholder="例如：🌹">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">心靈指引與功效描述</label>
+                        <textarea id="oilDesc" required rows="5" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-clay outline-none text-sm leading-relaxed" placeholder="請填寫當客人抽中這款精油時，會看到的解析語錄..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-forest text-white py-2.5 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md text-sm">
+                        確認上架至盲盒庫
+                    </button>
+                </form>
+            </div>
+
+            <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+                <h3 class="text-lg font-bold text-forest mb-4">📦 目前盲盒庫內精油 (<span id="totalCount">0</span>)</h3>
+                <div id="productsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                    <p class="text-sm text-gray-400 text-center py-8">正在連線雲端資料庫...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // 🔥 沿用你的專屬金鑰
+        const firebaseConfig = {
+            apiKey: "AIzaSyAq5b6zOX6Czu88eCTWHitKSu7mLnqyxbY",
+            authDomain: "today-draw-365ed.firebaseapp.com",
+            projectId: "today-draw-365ed",
+            storageBucket: "today-draw-365ed.firebasestorage.app",
+            messagingSenderId: "118558159958",
+            appId: "1:118558159958:web:11f552d3a454128f1837f7",
+            measurementId: "G-H37FG8S08X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 撈取資料庫現有商品並渲染出來
+        async function loadProducts() {
+            const listContainer = document.getElementById('productsList');
+            listContainer.innerHTML = `<p class="text-sm text-gray-400 text-center py-8">正在更新列表中...</p>`;
+            
+            try {
+                // 照建立時間排序
+                const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                listContainer.innerHTML = '';
+                document.getElementById('totalCount').innerText = querySnapshot.size;
+
+                if(querySnapshot.empty) {
+                    listContainer.innerHTML = `<p class="text-sm text-gray-400 text-center py-8">目前盲盒庫空空如也，快從左側上架新品吧！</p>`;
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const card = document.createElement('div');
+                    card.className = "p-4 border border-gray-100 bg-sand/40 rounded-xl flex items-start gap-4 shadow-sm";
+                    card.innerHTML = `
+                        <div class="text-3xl bg-white p-3 rounded-xl shadow-inner">${data.emoji || '✨'}</div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-gray-800 text-base">${data.name}</h4>
+                                <span class="text-xs text-clay font-medium">${data.codeName}</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 leading-relaxed">${data.description}</p>
+                        </div>
+                    `;
+                    listContainer.appendChild(card);
+                });
+            } catch (error) {
+                console.error("讀取失敗:", error);
+                listContainer.innerHTML = `<p class="text-sm text-red-400 text-center py-8">資料加載失敗：${error.message}</p>`;
+            }
+        }
+
+        // 監聽商品上架送出
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('oilName').value;
+            const codeName = document.getElementById('oilId').value;
+            const emoji = document.getElementById('oilEmoji').value;
+            const description = document.getElementById('oilDesc').value;
+
+            try {
+                await addDoc(collection(db, "products"), {
+                    name: name,
+                    codeName: codeName,
+                    emoji: emoji,
+                    description: description,
+                    createdAt: new Date().toISOString()
+                });
+
+                alert(`🎉 【${name}】上架成功！前台已同步！`);
+                document.getElementById('uploadForm').reset();
+                loadProducts(); // 重新整理列表
+            } catch (error) {
+                alert("❌ 上架失敗：" + error.message);
+            }
+        });
+
+        // 首次載入執行
+        loadProducts();
+    </script>
+</body>
+</html>
