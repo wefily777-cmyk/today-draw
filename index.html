@@ -113,6 +113,9 @@
                 alert('🎉 註冊成功！歡迎加入「今天給你抽」！');
                 document.getElementById('registerForm').reset(); // 清空表單
 
+                // 🚀 【升級功能】註冊成功並按下確定後，自動無縫跳轉到首頁
+                window.location.href = 'home.html';
+
             } catch (error) {
                 console.error("錯誤細節:", error);
                 alert('❌ 註冊失敗：' + error.message);
