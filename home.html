@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>今天給你抽 - 尋找你的專專屬香氣</title>
+    <title>今天給你抽 - 尋找你的專屬香氣</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { clay: '#D0826C', forest: '#2E4A3F', sand: '#FAF8F5' }
+                    colors: {
+                        clay: '#D0826C',   /* 落日陶土橘 */
+                        forest: '#2E4A3F', /* 森林深綠 */
+                        sand: '#FAF8F5',   /* 大地奶色 */
+                    }
                 }
             }
         }
@@ -31,13 +35,13 @@
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-4 py-12">
+    <main class="max-w-5xl mx-auto px-4 py-12 text-center">
         
-        <section class="mb-20 text-center">
+        <section class="mb-20">
             <header class="mb-10">
                 <span class="text-xs font-bold uppercase tracking-widest bg-forest/10 text-forest px-3 py-1 rounded-full">Aroma Showcase</span>
                 <h2 class="text-3xl font-bold text-forest mt-3 mb-2">本季精選單品</h2>
-                <p class="text-gray-500 text-sm">主理人嚴選純淨植物精油，為生活注入天然療癒能量</p>
+                <p class="text-gray-500 text-sm">主理人後台即時上架商品展示，為生活注入天然療癒能量</p>
             </header>
             
             <div id="showcaseContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
@@ -47,18 +51,49 @@
 
         <hr class="border-gray-200 my-16 max-w-2xl mx-auto">
 
-        <section class="text-center">
+        <section>
             <header class="mb-12">
                 <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">Interactive Game</span>
-                <h2 class="text-3xl font-bold text-forest mt-3 mb-2">今天，想抽什麼精油？</h2>
-                <p class="text-gray-500 max-w-md mx-auto text-sm">靜下心來，深呼吸三次，憑直覺挑選一張香氣盲盒卡片。</p>
+                <h2 class="text-3xl font-bold text-forest mb-3">今天，想抽什麼精油？</h2>
+                <p class="text-gray-500 max-w-md mx-auto text-sm">靜下心來，深呼吸三次，憑直覺挑選一張香氣卡片。</p>
             </header>
 
-            <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-16 card-perspective">
-                <p class="text-sm text-gray-400 text-center py-8 col-span-full">正在備妥神祕植感盲盒...</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-16 card-perspective">
+                <div class="w-full h-72 cursor-pointer" onclick="drawCard(0, this)">
+                    <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
+                        <div class="card-front absolute inset-0 flex flex-col items-center justify-center bg-forest rounded-2xl text-sand p-6">
+                            <div class="text-4xl mb-4">✨</div><h3 class="text-lg font-medium tracking-widest">植感卡片 一</h3>
+                        </div>
+                        <div class="card-back absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl p-6 border-2 border-clay">
+                            <span class="text-4xl mb-3">🪻</span><h4 class="text-xl font-bold text-gray-800 mb-1">真正薰衣草</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full h-72 cursor-pointer" onclick="drawCard(1, this)">
+                    <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
+                        <div class="card-front absolute inset-0 flex flex-col items-center justify-center bg-forest rounded-2xl text-sand p-6">
+                            <div class="text-4xl mb-4">✨</div><h3 class="text-lg font-medium tracking-widest">植感卡片 二</h3>
+                        </div>
+                        <div class="card-back absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl p-6 border-2 border-clay">
+                            <span class="text-4xl mb-3">🌿</span><h4 class="text-xl font-bold text-gray-800 mb-1">澳洲茶樹</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full h-72 cursor-pointer" onclick="drawCard(2, this)">
+                    <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
+                        <div class="card-front absolute inset-0 flex flex-col items-center justify-center bg-forest rounded-2xl text-sand p-6">
+                            <div class="text-4xl mb-4">✨</div><h3 class="text-lg font-medium tracking-widest">植感卡片 三</h3>
+                        </div>
+                        <div class="card-back absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl p-6 border-2 border-clay">
+                            <span class="text-4xl mb-3">🍊</span><h4 class="text-xl font-bold text-gray-800 mb-1">甜橙</h4>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div id="resultSection" class="hidden bg-white rounded-2xl p-8 shadow-lg max-w-xl mx-auto border border-gray-100 transition-all">
+            <div id="resultSection" class="hidden bg-white rounded-2xl p-8 shadow-lg max-w-xl mx-auto border border-gray-100">
                 <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">今日命定香氣</span>
                 <h3 id="resultTitle" class="text-2xl font-bold text-forest mt-4 mb-2">精油名稱</h3>
                 <p id="resultDesc" class="text-gray-600 text-sm leading-relaxed mb-8">精油功效...</p>
@@ -74,16 +109,18 @@
     <div id="bookingModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-2xl">
             <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            
             <h3 class="text-2xl font-bold text-forest mb-2">預約調香體驗課</h3>
             <p class="text-xs text-gray-400 mb-6">抽中命定香，來親手調配一瓶屬於你的精油吧！</p>
+            
             <form id="bookingForm" class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">預約會員姓名</label>
-                    <input type="text" id="bookName" readonly class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 text-sm outline-none">
+                    <input type="text" id="bookName" readonly class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 text-sm outline-none" placeholder="載入中...">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">聯絡電話</label>
-                    <input type="tel" id="bookPhone" readonly class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 text-sm outline-none">
+                    <input type="tel" id="bookPhone" readonly class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 text-sm outline-none" placeholder="載入中...">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">選擇體驗日期</label>
@@ -106,6 +143,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        // 🚀 引入 getDocs 用於加載展示商品
         import { getFirestore, collection, addDoc, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -123,41 +161,22 @@
         const db = getFirestore(app);
 
         let currentUserData = null;
-        let oilData = [];
-        let hasDrawn = false;
 
-        // 🌟 同時抓取資料，生成「商品展示」與「抽獎卡片」
-        async function fetchProducts() {
+        // 🛍️ 【新增函式】專門用來從 Firebase 撈取資料並放入上方櫥窗
+        async function fetchShowcaseProducts() {
             const showcaseContainer = document.getElementById('showcaseContainer');
-            const cardsContainer = document.getElementById('cardsContainer');
-            
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
                 showcaseContainer.innerHTML = '';
-                cardsContainer.innerHTML = '';
-                oilData = []; // 清空
 
                 if (querySnapshot.empty) {
-                    const noDataHTML = `<p class="text-sm text-gray-400 text-center py-8 col-span-full">主理人正在籌備商品中，敬請期待！</p>`;
-                    showcaseContainer.innerHTML = noDataHTML;
-                    cardsContainer.innerHTML = noDataHTML;
+                    showcaseContainer.innerHTML = `<p class="text-sm text-gray-400 text-center py-8 col-span-full">主理人正在籌備新商品，敬請期待！</p>`;
                     return;
                 }
 
-                let index = 0;
                 let showcaseHTML = '';
-                let cardsHTML = '';
-
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    
-                    // 儲存抽籤對應的資料
-                    oilData.push({
-                        name: `${data.name} (${data.codeName})`,
-                        desc: data.description
-                    });
-
-                    // 1️⃣ 累積上方「商品展示櫥窗」HTML
                     showcaseHTML += `
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
                             <div class="text-4xl bg-sand p-4 rounded-full mb-4">${data.emoji || '🌿'}</div>
@@ -169,72 +188,45 @@
                             </button>
                         </div>
                     `;
-
-                    // 2️⃣ 累積下方「盲盒抽籤卡片」HTML
-                    cardsHTML += `
-                        <div class="w-full h-72 cursor-pointer" onclick="drawCard(${index}, this)">
-                            <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
-                                <div class="card-front absolute inset-0 flex flex-col items-center justify-center bg-forest rounded-2xl text-sand p-6">
-                                    <div class="text-4xl mb-4">✨</div>
-                                    <h3 class="text-lg font-medium tracking-widest">植感盲盒 ${index + 1}</h3>
-                                </div>
-                                <div class="card-back absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl p-6 border-2 border-clay">
-                                    <span class="text-4xl mb-3">${data.emoji || '🌿'}</span>
-                                    <h4 class="text-xl font-bold text-gray-800 mb-1">${data.name}</h4>
-                                    <p class="text-xs text-clay font-medium">${data.codeName}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    index++;
                 });
-
-                // 一口氣倒進畫面，確保渲染完全同步不丟失
                 showcaseContainer.innerHTML = showcaseHTML;
-                cardsContainer.innerHTML = cardsHTML;
-
             } catch (error) {
-                console.error("加載失敗:", error);
-                cardsContainer.innerHTML = `<p class="text-sm text-red-400 text-center py-8 col-span-full">盲盒調度失敗：${error.message}</p>`;
+                console.error("加載櫥窗失敗:", error);
+                showcaseContainer.innerHTML = `<p class="text-sm text-red-400 text-center py-8 col-span-full">櫥窗加載失敗：${error.message}</p>`;
             }
         }
 
-        // 監聽翻牌抽卡
-        window.drawCard = function(index, cardElement) {
-            if (hasDrawn) return;
-            hasDrawn = true;
-            cardElement.querySelector('.card-inner').classList.add('card-flipped');
-            setTimeout(() => {
-                const resultSection = document.getElementById('resultSection');
-                document.getElementById('resultTitle').innerText = oilData[index].name;
-                document.getElementById('resultDesc').innerText = oilData[index].desc;
-                resultSection.classList.remove('hidden');
-                resultSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 400);
-        }
-
-        // 監聽登入狀態
+        // 監聽登入狀態切換
         onAuthStateChanged(auth, async (user) => {
             const navStatus = document.getElementById('navUserStatus');
             if (user) {
                 const docRef = doc(db, "members", user.uid);
                 const docSnap = await getDoc(docRef);
+                
                 if (docSnap.exists()) {
                     currentUserData = docSnap.data();
-                    let adminLink = currentUserData.role === 'admin' ? `<a href="admin.html" class="text-clay hover:underline mr-2">⚙️ 後台管理</a>` : '';
+                    
+                    // 🔒 權限檢查：如果是管理員，就在導覽列塞入「後台管理」的祕密傳送門
+                    let adminLink = currentUserData.role === 'admin' ? `<a href="admin.html" class="text-clay hover:underline mr-4">⚙️ 後台管理</a>` : '';
                     
                     navStatus.innerHTML = `
                         ${adminLink}
                         <span class="text-forest font-bold">🌟 你好，${currentUserData.fullName}</span>
                         <button id="logoutBtn" class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">登出</button>
                     `;
+                    
                     document.getElementById('bookName').value = currentUserData.fullName;
                     document.getElementById('bookPhone').value = currentUserData.phone;
                 }
+                
                 if (localStorage.getItem('pendingAction') === 'book') {
                     localStorage.removeItem('pendingAction');
                     openBookingModal();
+                } else if (localStorage.getItem('pendingAction') === 'buy') {
+                    localStorage.removeItem('pendingAction');
+                    alert('🎉 感謝加入！即將帶您前往結帳（金流整合中）！');
                 }
+
                 document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
             } else {
                 currentUserData = null;
@@ -242,19 +234,22 @@
             }
         });
 
-        // 動線判斷
+        // 核心動線判斷
         window.handleAction = function(actionType) {
             if (!auth.currentUser) {
                 alert('為了記錄您的預約與配送資料，請先填寫會員資料唷！');
                 localStorage.setItem('pendingAction', actionType);
                 window.location.href = 'index.html';
             } else {
-                if (actionType === 'book') { openBookingModal(); }
-                else { alert('🛍️ 進入購買流程（串接金流中！）'); }
+                if (actionType === 'book') {
+                    openBookingModal();
+                } else {
+                    alert('🛍️ 進入購買流程（串接金流中！）');
+                }
             }
         }
 
-        // 預約送出
+        // 預約表單送出
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const date = document.getElementById('bookDate').value;
@@ -272,7 +267,7 @@
                     status: "已預約",
                     createdAt: new Date().toISOString()
                 });
-                alert(`🎉 預約成功！`);
+                alert(`🎉 預約成功！\n期待在 ${date} 一起體驗 ${currentOil} 的調香魅力！`);
                 closeBookingModal();
                 document.getElementById('bookingForm').reset();
             } catch (error) {
@@ -280,11 +275,31 @@
             }
         });
 
-        // 初始化
-        fetchProducts();
+        // 🌟 初始化加載動態櫥窗
+        fetchShowcaseProducts();
     </script>
 
     <script>
+        const oilData = [
+            { name: "真正薰衣草 (Lavender)", desc: "【心靈指引】你最近可能有些疲憊。薰衣草溫柔的香氣提醒你：『是時候放下掌控，好好睡一覺了。』" },
+            { name: "澳洲茶樹 (Tea Tree)", desc: "【心靈指引】你正處於需要釐清思緒的階段。茶樹強勁的潔淨能量能幫你阻絕外在的負面干擾。" },
+            { name: "甜橙 (Sweet Orange)", desc: "【心靈指引】生活需要一點純粹的快樂！甜橙就像陽光一樣，能融化內心的冰冷與嚴肅。" }
+        ];
+
+        let hasDrawn = false;
+        function drawCard(index, cardElement) {
+            if (hasDrawn) return;
+            hasDrawn = true;
+            cardElement.querySelector('.card-inner').classList.add('card-flipped');
+            setTimeout(() => {
+                const resultSection = document.getElementById('resultSection');
+                document.getElementById('resultTitle').innerText = oilData[index].name;
+                document.getElementById('resultDesc').innerText = oilData[index].desc;
+                resultSection.classList.remove('hidden');
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 400);
+        }
+
         function openBookingModal() { document.getElementById('bookingModal').classList.remove('hidden'); }
         function closeBookingModal() { document.getElementById('bookingModal').classList.add('hidden'); }
     </script>
