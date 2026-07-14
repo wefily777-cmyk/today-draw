@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>今天給你抽 - 尋找你的專屬香氣</title>
+    <title>今天給你抽 - 尋找你的專專屬香氣</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -135,7 +135,7 @@
                 const querySnapshot = await getDocs(collection(db, "products"));
                 showcaseContainer.innerHTML = '';
                 cardsContainer.innerHTML = '';
-                oilData = [];
+                oilData = []; // 清空
 
                 if (querySnapshot.empty) {
                     const noDataHTML = `<p class="text-sm text-gray-400 text-center py-8 col-span-full">主理人正在籌備商品中，敬請期待！</p>`;
@@ -145,6 +145,9 @@
                 }
 
                 let index = 0;
+                let showcaseHTML = '';
+                let cardsHTML = '';
+
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     
@@ -154,8 +157,8 @@
                         desc: data.description
                     });
 
-                    // 1️⃣ 生成上方「商品展示櫥窗」HTML
-                    const itemHTML = `
+                    // 1️⃣ 累積上方「商品展示櫥窗」HTML
+                    showcaseHTML += `
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
                             <div class="text-4xl bg-sand p-4 rounded-full mb-4">${data.emoji || '🌿'}</div>
                             <h4 class="text-lg font-bold text-gray-800">${data.name}</h4>
@@ -166,10 +169,9 @@
                             </button>
                         </div>
                     `;
-                    showcaseContainer.insertAdjacentHTML('beforeend', itemHTML);
 
-                    // 2️⃣ 生成下方「盲盒抽籤卡片」HTML
-                    const cardMarkup = `
+                    // 2️⃣ 累積下方「盲盒抽籤卡片」HTML
+                    cardsHTML += `
                         <div class="w-full h-72 cursor-pointer" onclick="drawCard(${index}, this)">
                             <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
                                 <div class="card-front absolute inset-0 flex flex-col items-center justify-center bg-forest rounded-2xl text-sand p-6">
@@ -184,12 +186,16 @@
                             </div>
                         </div>
                     `;
-                    cardsContainer.insertAdjacentHTML('beforeend', cardMarkup);
                     index++;
                 });
 
+                // 一口氣倒進畫面，確保渲染完全同步不丟失
+                showcaseContainer.innerHTML = showcaseHTML;
+                cardsContainer.innerHTML = cardsHTML;
+
             } catch (error) {
                 console.error("加載失敗:", error);
+                cardsContainer.innerHTML = `<p class="text-sm text-red-400 text-center py-8 col-span-full">盲盒調度失敗：${error.message}</p>`;
             }
         }
 
