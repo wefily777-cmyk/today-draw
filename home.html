@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>今天給你抽 - 尋找你的專專屬香氣</title>
+    <title>今天給你抽 - 尋找你的專屬香氣</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -24,33 +24,51 @@
 </head>
 <body class="bg-sand min-h-screen font-sans">
 
-    <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-gray-100">
+    <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-gray-100 sticky top-0 z-40">
         <div class="text-xl font-bold text-forest tracking-wider">今天給你抽</div>
         <div id="navUserStatus" class="space-x-6 text-sm font-medium text-gray-600">
             <span class="text-gray-400">正在檢查登入狀態...</span>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-4 py-12 text-center">
-        <header class="mb-12">
-            <h2 class="text-3xl font-bold text-forest mb-3">今天，想抽什麼精油？</h2>
-            <p class="text-gray-500 max-w-md mx-auto text-sm">靜下心來，深呼吸三次，憑直覺挑選一張香氣卡片。</p>
-        </header>
-
-        <div id="cardsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-16 card-perspective">
-            <p class="text-sm text-gray-400 text-center py-8 col-span-full">正在從雲端盲盒庫調度精油中...</p>
-        </div>
-
-        <div id="resultSection" class="hidden bg-white rounded-2xl p-8 shadow-lg max-w-xl mx-auto border border-gray-100">
-            <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">今日命定香氣</span>
-            <h3 id="resultTitle" class="text-2xl font-bold text-forest mt-4 mb-2">精油名稱</h3>
-            <p id="resultDesc" class="text-gray-600 text-sm leading-relaxed mb-8">精油功效...</p>
+    <main class="max-w-5xl mx-auto px-4 py-12">
+        
+        <section class="mb-20 text-center">
+            <header class="mb-10">
+                <span class="text-xs font-bold uppercase tracking-widest bg-forest/10 text-forest px-3 py-1 rounded-full">Aroma Showcase</span>
+                <h2 class="text-3xl font-bold text-forest mt-3 mb-2">本季精選單品</h2>
+                <p class="text-gray-500 text-sm">主理人嚴選純淨植物精油，為生活注入天然療癒能量</p>
+            </header>
             
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onclick="handleAction('buy')" class="bg-clay text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">🛍️ 購買這款精油 ($580 起)</button>
-                <button onclick="handleAction('book')" class="bg-forest text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">📅 報名近期精油體驗課</button>
+            <div id="showcaseContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                <p class="text-sm text-gray-400 text-center py-8 col-span-full">正在從雲端櫥窗調度商品中...</p>
             </div>
-        </div>
+        </section>
+
+        <hr class="border-gray-200 my-16 max-w-2xl mx-auto">
+
+        <section class="text-center">
+            <header class="mb-12">
+                <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">Interactive Game</span>
+                <h2 class="text-3xl font-bold text-forest mt-3 mb-2">今天，想抽什麼精油？</h2>
+                <p class="text-gray-500 max-w-md mx-auto text-sm">靜下心來，深呼吸三次，憑直覺挑選一張香氣盲盒卡片。</p>
+            </header>
+
+            <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-16 card-perspective">
+                <p class="text-sm text-gray-400 text-center py-8 col-span-full">正在備妥神祕植感盲盒...</p>
+            </div>
+
+            <div id="resultSection" class="hidden bg-white rounded-2xl p-8 shadow-lg max-w-xl mx-auto border border-gray-100 transition-all">
+                <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">今日命定香氣</span>
+                <h3 id="resultTitle" class="text-2xl font-bold text-forest mt-4 mb-2">精油名稱</h3>
+                <p id="resultDesc" class="text-gray-600 text-sm leading-relaxed mb-8">精油功效...</p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="handleAction('buy')" class="bg-clay text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">🛍️ 購買這款精油 ($580 起)</button>
+                    <button onclick="handleAction('book')" class="bg-forest text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">📅 報名近期精油體驗課</button>
+                </div>
+            </div>
+        </section>
     </main>
 
     <div id="bookingModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
@@ -105,31 +123,52 @@
         const db = getFirestore(app);
 
         let currentUserData = null;
-        let oilData = []; // 用來存放從 Firebase 撈出來的商品陣列
+        let oilData = [];
         let hasDrawn = false;
 
-        // 1. 動態加載雲端上架商品
+        // 🌟 同時抓取資料，生成「商品展示」與「抽獎卡片」
         async function fetchProducts() {
-            const container = document.getElementById('cardsContainer');
+            const showcaseContainer = document.getElementById('showcaseContainer');
+            const cardsContainer = document.getElementById('cardsContainer');
+            
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
-                container.innerHTML = '';
+                showcaseContainer.innerHTML = '';
+                cardsContainer.innerHTML = '';
                 oilData = [];
 
                 if (querySnapshot.empty) {
-                    container.innerHTML = `<p class="text-sm text-gray-400 text-center py-8 col-span-full">主理人還沒有上架商品唷！</p>`;
+                    const noDataHTML = `<p class="text-sm text-gray-400 text-center py-8 col-span-full">主理人正在籌備商品中，敬請期待！</p>`;
+                    showcaseContainer.innerHTML = noDataHTML;
+                    cardsContainer.innerHTML = noDataHTML;
                     return;
                 }
 
                 let index = 0;
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
+                    
+                    // 儲存抽籤對應的資料
                     oilData.push({
                         name: `${data.name} (${data.codeName})`,
                         desc: data.description
                     });
 
-                    // 動態產生前端卡片 HTML
+                    // 1️⃣ 生成上方「商品展示櫥窗」HTML
+                    const itemHTML = `
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
+                            <div class="text-4xl bg-sand p-4 rounded-full mb-4">${data.emoji || '🌿'}</div>
+                            <h4 class="text-lg font-bold text-gray-800">${data.name}</h4>
+                            <p class="text-xs text-clay font-medium mb-3">${data.codeName}</p>
+                            <p class="text-xs text-gray-500 text-center leading-relaxed mb-5 flex-1 line-clamp-3">${data.description}</p>
+                            <button onclick="handleAction('buy')" class="w-full py-2 bg-forest text-white text-xs font-medium rounded-lg hover:bg-opacity-95 transition">
+                                了解更多商品詳情
+                            </button>
+                        </div>
+                    `;
+                    showcaseContainer.insertAdjacentHTML('beforeend', itemHTML);
+
+                    // 2️⃣ 生成下方「盲盒抽籤卡片」HTML
                     const cardMarkup = `
                         <div class="w-full h-72 cursor-pointer" onclick="drawCard(${index}, this)">
                             <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
@@ -145,16 +184,16 @@
                             </div>
                         </div>
                     `;
-                    container.insertAdjacentHTML('beforeend', cardMarkup);
+                    cardsContainer.insertAdjacentHTML('beforeend', cardMarkup);
                     index++;
                 });
 
             } catch (error) {
-                container.innerHTML = `<p class="text-sm text-red-400 text-center py-8 col-span-full">盲盒調度失敗：${error.message}</p>`;
+                console.error("加載失敗:", error);
             }
         }
 
-        // 2. 監聽翻牌抽卡
+        // 監聽翻牌抽卡
         window.drawCard = function(index, cardElement) {
             if (hasDrawn) return;
             hasDrawn = true;
@@ -168,7 +207,7 @@
             }, 400);
         }
 
-        // 3. 監聽登入狀態切換
+        // 監聽登入狀態
         onAuthStateChanged(auth, async (user) => {
             const navStatus = document.getElementById('navUserStatus');
             if (user) {
@@ -197,7 +236,7 @@
             }
         });
 
-        // 核心動線判斷
+        // 動線判斷
         window.handleAction = function(actionType) {
             if (!auth.currentUser) {
                 alert('為了記錄您的預約與配送資料，請先填寫會員資料唷！');
@@ -209,7 +248,7 @@
             }
         }
 
-        // 預約表單送出
+        // 預約送出
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const date = document.getElementById('bookDate').value;
@@ -235,7 +274,7 @@
             }
         });
 
-        // 初始化加載
+        // 初始化
         fetchProducts();
     </script>
 
