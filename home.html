@@ -27,13 +27,48 @@
     <!-- 導覽列 -->
     <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-gray-100 sticky top-0 z-40">
         <div class="text-xl font-bold text-forest tracking-wider">玥石之溫</div>
-        <div id="navUserStatus" class="space-x-6 text-sm font-medium text-gray-600">
+        <div id="navUserStatus" class="space-x-6 text-sm font-medium text-gray-600 flex items-center">
             <span class="text-gray-400">正在檢查登入狀態...</span>
         </div>
     </nav>
 
     <!-- 主要內容區 -->
     <main class="max-w-5xl mx-auto px-4 py-12 text-center">
+
+        <!-- 🌐 生態圈快捷傳送入口 (Dashboard) -->
+        <section class="max-w-4xl mx-auto mb-12 text-left">
+            <span class="text-[10px] uppercase font-bold tracking-widest text-gray-400 block mb-2">療癒生活生態圈儀表板</span>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                <a href="#" class="bg-forest text-white p-3 rounded-xl shadow-sm text-center border border-forest transition flex flex-col items-center justify-center">
+                    <span class="text-lg">🌿</span>
+                    <span class="text-xs font-bold mt-1">玥石之溫</span>
+                </a>
+                <a href="https://starjhan.github.io/blood-pressure-tracker/" target="_blank" class="bg-white hover:bg-gray-50 p-3 rounded-xl shadow-sm text-center border border-gray-100 transition flex flex-col items-center justify-center">
+                    <span class="text-lg">🩺</span>
+                    <span class="text-xs font-medium text-gray-700 mt-1">血壓日記</span>
+                </a>
+                <a href="https://wefily777-cmyk.github.io/365-savings/" target="_blank" class="bg-white hover:bg-gray-50 p-3 rounded-xl shadow-sm text-center border border-gray-100 transition flex flex-col items-center justify-center">
+                    <span class="text-lg">💰</span>
+                    <span class="text-xs font-medium text-gray-700 mt-1">365存錢</span>
+                </a>
+                <a href="https://astrofortune-star.firebaseapp.com" target="_blank" class="bg-white hover:bg-gray-50 p-3 rounded-xl shadow-sm text-center border border-gray-100 transition flex flex-col items-center justify-center">
+                    <span class="text-lg">🔮</span>
+                    <span class="text-xs font-medium text-gray-700 mt-1">五行算命</span>
+                </a>
+                <!-- 🀄 預留麻將區 -->
+                <div class="bg-gray-100/70 p-3 rounded-xl text-center border border-gray-200/50 flex flex-col items-center justify-center opacity-60 relative group">
+                    <span class="text-lg">🀄</span>
+                    <span class="text-xs font-medium text-gray-500 mt-1">麻將揪團</span>
+                    <span class="absolute -top-2 bg-clay text-white text-[8px] px-1 rounded-full scale-90">預留</span>
+                </div>
+                <!-- 💬 預留交友區 -->
+                <div class="bg-gray-100/70 p-3 rounded-xl text-center border border-gray-200/50 flex flex-col items-center justify-center opacity-60 relative group">
+                    <span class="text-lg">💬</span>
+                    <span class="text-xs font-medium text-gray-500 mt-1">交友空間</span>
+                    <span class="absolute -top-2 bg-clay text-white text-[8px] px-1 rounded-full scale-90">預留</span>
+                </div>
+            </div>
+        </section>
 
         <!-- 🌱 細胞擴散意向展示中心 (登入後動態秀出) -->
         <div id="referralCenter" class="hidden bg-white max-w-4xl mx-auto mb-12 p-6 rounded-2xl shadow-sm border border-gray-150 text-left grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
@@ -116,12 +151,51 @@
                 <p id="resultDesc" class="text-gray-600 text-sm leading-relaxed mb-8">精油功效...</p>
                 
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button onclick="handleAction('buy')" class="bg-clay text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">🛍️ 購買這款精油 ($580 起)</button>
+                    <button onclick="handleAction('buy')" class="bg-clay text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">🛍️ 購買這款精油 ($580)</button>
                     <button onclick="handleAction('book')" class="bg-forest text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">📅 報名玥石之溫體驗課</button>
                 </div>
             </div>
         </section>
     </main>
+
+    <!-- 💳 旗艦級雙軌結帳彈出視窗 -->
+    <div id="paymentModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl text-center border border-gray-100">
+            <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">Checkout</span>
+            <h3 class="text-xl font-bold text-forest mt-3">選擇付款方式</h3>
+            <p class="text-xs text-gray-400 mt-1">選定您的專屬香氣：<span id="payOilName" class="font-bold text-clay">精油</span></p>
+            <p class="text-2xl font-black text-forest mt-2 mb-6">$580 <span class="text-xs font-normal text-gray-400">TWD</span></p>
+
+            <div class="space-y-3">
+                <!-- 💳 Stripe 快速付款 -->
+                <a id="stripeLink" href="https://buy.stripe.com/test_XXXXXX" target="_blank" onclick="alert('💡 這裡未來將無縫導向您的 Stripe Payment Links 一鍵刷卡/Apple Pay 頁面唷！')" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-95 transition shadow-sm text-sm">
+                    💳 信用卡 / Apple Pay 快速刷卡
+                </a>
+                
+                <div class="text-gray-300 text-xs my-2">— 或者使用本土轉帳免手續費 —</div>
+
+                <!-- 📱 街口 / LINE Pay 轉帳引導 -->
+                <div class="bg-sand/60 p-4 rounded-2xl border text-left space-y-3">
+                    <p class="text-xs font-bold text-forest text-center bg-white py-1 rounded-lg shadow-2xs border">📱 手機掃碼 / 銀行轉帳對帳</p>
+                    <div class="text-xs text-gray-600 space-y-1 bg-white p-3 rounded-xl border border-gray-100">
+                        <p>🔹 <span class="font-bold text-gray-800">街口支付：</span>請掃主理人收款碼轉帳</p>
+                        <p>🔹 <span class="font-bold text-gray-800">LINE Pay：</span>請點轉帳並輸入金額</p>
+                        <p class="text-[10px] text-gray-400 border-t pt-1 mt-1">（邱小姐的永久有效收款 QR 碼將同步顯示於此處）</p>
+                    </div>
+                    
+                    <!-- 轉帳通知表單：直接寫入資料庫 -->
+                    <form id="orderReportForm" class="space-y-2 pt-1">
+                        <label class="block text-[11px] font-bold text-gray-700">👇 轉帳完成後，請在此填寫帳號後五碼對帳：</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="payFiveCode" required maxlength="5" class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如: 12345">
+                            <button type="submit" id="reportBtn" class="bg-forest text-white px-4 py-1.5 rounded-xl text-xs font-medium hover:bg-opacity-95 transition whitespace-nowrap shadow-xs">送出對帳</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- 課程預約視窗 -->
     <div id="bookingModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
@@ -162,7 +236,7 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 🎯 修正版付費專案金鑰 (使用詹先生大寫 O 認證版)
+        // 🎯 修正版專案官方認證金鑰（大寫 O 正確版）
         const firebaseConfig = {
             apiKey: "AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c",
             authDomain: "poetry-ai-5dd52.firebaseapp.com",
@@ -178,8 +252,6 @@
         const db = getFirestore(app);
 
         let currentUserData = null;
-        
-        // 👑 預設最高主理人帳號
         const ADMIN_EMAIL = "qoojude@hotmail.com";
 
         async function fetchShowcaseProducts() {
@@ -224,12 +296,11 @@
                 const docRef = doc(db, "members", user.uid);
                 const docSnap = await getDoc(docRef);
                 
-                // 👑 安全鎖修正：只要登入帳號是您，不論資料庫欄位是什麼，直接給予最高管理權限！
                 let isAdmin = (user.email === ADMIN_EMAIL);
                 
                 if (docSnap.exists()) {
                     currentUserData = docSnap.data();
-                    if (currentUserData.role === 'admin') isAdmin = true; // 雙重保險
+                    if (currentUserData.role === 'admin') isAdmin = true;
                     
                     let adminLink = isAdmin ? `<a href="admin.html" class="text-clay hover:underline mr-4 font-bold">⚙️ 後台管理</a>` : '';
                     
@@ -246,7 +317,6 @@
                     document.getElementById('bookName').value = currentUserData.fullName || currentUserData.name;
                     document.getElementById('bookPhone').value = currentUserData.phone;
                 } else {
-                    // 如果資料庫文件遺失，但 Auth 登入成功（常見於純測試帳號）
                     let adminLink = isAdmin ? `<a href="admin.html" class="text-clay hover:underline mr-4 font-bold">⚙️ 後台管理</a>` : '';
                     navStatus.innerHTML = `
                         ${adminLink}
@@ -260,12 +330,11 @@
                     openBookingModal();
                 } else if (localStorage.getItem('pendingAction') === 'buy') {
                     localStorage.removeItem('pendingAction');
-                    alert('🎉 感謝加入玥石之溫！即將帶您前往結帳（金流整合中）！');
+                    openPaymentModal();
                 }
                 
                 document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => { window.location.href = 'login.html'; }));
             } else {
-                // 🛡️ 沒登入就直接踢回登入頁
                 currentUserData = null;
                 refCenter.classList.add('hidden');
                 navStatus.innerHTML = `<a href="login.html" class="bg-forest text-white px-4 py-2 rounded-lg text-xs">加入會員 / 登入</a>`;
@@ -280,10 +349,44 @@
                 window.location.href = 'login.html';
             } else {
                 if (actionType === 'book') openBookingModal();
-                else alert('🛍️ 進入購買流程（串接金流中！）');
+                else openPaymentModal();
             }
         }
 
+        // 📝 處理轉帳後五碼即時回報系統
+        document.getElementById('orderReportForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const reportBtn = document.getElementById('reportBtn');
+            const fiveCode = document.getElementById('payFiveCode').value;
+            const targetOil = document.getElementById('payOilName').innerText;
+
+            reportBtn.disabled = true;
+            reportBtn.innerText = "⏳ 回報中...";
+
+            try {
+                await addDoc(collection(db, "order_reports"), {
+                    uid: auth.currentUser.uid,
+                    customerName: currentUserData ? (currentUserData.fullName || currentUserData.name) : "生態圈會員",
+                    phone: currentUserData ? currentUserData.phone : "未填電話",
+                    productName: targetOil,
+                    price: 580,
+                    paymentMethod: "行動支付/轉帳",
+                    lastFiveDigits: fiveCode,
+                    status: "待核對",
+                    createdAt: new Date().toISOString()
+                });
+                alert(`🎉 後五碼【${fiveCode}】回報成功！\n主理人邱小姐將在核對帳款後為您火速出貨！`);
+                closePaymentModal();
+                document.getElementById('orderReportForm').reset();
+            } catch (error) {
+                alert("❌ 回報失敗：" + error.message);
+            } finally {
+                reportBtn.disabled = false;
+                reportBtn.innerText = "送出對帳";
+            }
+        });
+
+        // 體驗課預約
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const date = document.getElementById('bookDate').value;
@@ -315,7 +418,7 @@
     <script>
         const oilData = [
             { name: "真正薰衣草 (Lavender)", desc: "【心靈指引】你最近可能有些疲憊。薰衣草溫柔的香氣提醒你：『是時候放下掌控，好好睡一覺了。』" },
-            { name: "澳洲茶樹 (Tea Tree)", desc: "【心靈指引】你正處於需要釐清思緒的階段。茶樹強勁的潔淨能量能幫你阻絕外在的負面干擾。" },
+            { name: "澳洲茶樹 (Tea Tree)", desc: "【心靈指引】你正處於需要釐清思緒的階段。茶樹強勁的潔淨能量能幫情阻絕外在的負面干擾。" },
             { name: "甜橙 (Sweet Orange)", desc: "【心靈指引】生活需要一點純粹的快樂！甜橙就像陽光一樣，能融化內心的冰冷與嚴肅。" }
         ];
         let hasDrawn = false;
@@ -333,6 +436,14 @@
         }
         function openBookingModal() { document.getElementById('bookingModal').classList.remove('hidden'); }
         function closeBookingModal() { document.getElementById('bookingModal').classList.add('hidden'); }
+        
+        // 💳 結帳視窗控制
+        function openPaymentModal() {
+            const drawnOilName = document.getElementById('resultTitle').innerText;
+            document.getElementById('payOilName').innerText = drawnOilName || "本季嚴選療癒精油";
+            document.getElementById('paymentModal').classList.remove('hidden');
+        }
+        function closePaymentModal() { document.getElementById('paymentModal').classList.add('hidden'); }
     </script>
 </body>
 </html>
