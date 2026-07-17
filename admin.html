@@ -15,49 +15,50 @@
         }
     </script>
 </head>
-<body id="adminBody" class="bg-sand min-h-screen p-6 font-sans hidden">
+<body class="bg-sand min-h-screen p-4 font-sans text-gray-800">
 
     <div class="max-w-4xl mx-auto">
-        <header class="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
+        <!-- 標頭 -->
+        <div class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm mb-6 border border-gray-100">
             <div>
-                <h1 class="text-3xl font-bold text-forest tracking-wider">玥石之溫 最高後台</h1>
-                <p class="text-xs text-gray-500 mt-1">🔒 頂級付費機房維護中。支援實體照片檔案直傳！</p>
+                <h1 class="text-2xl font-bold text-forest">👑 玥石之溫・主理人後台</h1>
+                <p class="text-xs text-gray-400 mt-1">即時管理盲盒商品庫與上傳實體精油相簿</p>
             </div>
-            <a href="home.html" class="text-sm text-clay hover:underline">返回首頁 ➔</a>
-        </header>
+            <a href="home.html" class="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-200 transition">返回前台首頁</a>
+        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- 新品上架 -->
-            <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-md border border-gray-100 h-fit">
-                <h3 class="text-lg font-bold text-forest mb-4">✨ 新品上架</h3>
-                <form id="uploadForm" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- 左側：上架表單 -->
+            <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
+                <h3 class="text-sm font-bold text-forest mb-4 border-b pb-2">✨ 新品上架至櫥窗</h3>
+                <form id="uploadForm" class="space-y-4 text-left">
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">精油名稱 (中文)</label>
-                        <input type="text" id="oilName" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-clay outline-none text-sm" placeholder="例如：大馬士革玫瑰">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">精油名稱</label>
+                        <input type="text" id="pName" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如：大馬士革玫瑰">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">精油代號 (英文/學名)</label>
-                        <input type="text" id="oilId" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-clay outline-none text-sm" placeholder="例如：Rose">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">商品英文/代號</label>
+                        <input type="text" id="pCode" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如：Rose">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">上傳商品照片</label>
-                        <input type="file" id="oilImageFile" accept="image/*" required class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-clay/10 file:text-clay hover:file:bg-clay/20 cursor-pointer">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">香氣心靈描述</label>
+                        <textarea id="pDesc" required rows="3" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="輸入抽中時顯示的心靈指引文字..."></textarea>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">心靈指引與功效描述</label>
-                        <textarea id="oilDesc" required rows="5" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-clay outline-none text-sm leading-relaxed" placeholder="請填寫精油介紹與語錄..."></textarea>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">商品實體照片 (支援手機相機拍照)</label>
+                        <input type="file" id="pKeyImage" accept="image/*" required class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-clay/10 file:text-clay hover:file:bg-clay/20">
                     </div>
-                    <button type="submit" id="submitBtn" class="w-full bg-forest text-white py-2.5 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md text-sm flex justify-center items-center">
-                        <span>確認上架至盲盒庫</span>
+                    <button type="submit" id="submitBtn" class="w-full bg-forest text-white py-2.5 rounded-xl text-xs font-medium hover:bg-opacity-95 transition shadow-sm">
+                        🚀 確認上架至雲端櫥窗
                     </button>
                 </form>
             </div>
 
-            <!-- 目前清單 -->
-            <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-                <h3 class="text-lg font-bold text-forest mb-4">📦 目前盲盒庫內精油 (<span id="totalCount">0</span>)</h3>
-                <div id="productsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                    <p class="text-sm text-gray-400 text-center py-8">正在驗證您的管理者權限...</p>
+            <!-- 右側：現有盲盒清單 -->
+            <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="text-sm font-bold text-forest mb-4 border-b pb-2">📦 目前雲端盲盒庫商品</h3>
+                <div id="adminProductList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <p class="text-xs text-gray-400 py-8 col-span-full text-center">正在同步雲端照片清單...</p>
                 </div>
             </div>
         </div>
@@ -66,12 +67,12 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-        // 🎯 修正版付費專案金鑰 (apiKey 已修正為數字 0)
+        // 🎯 玥石之溫付費專案金鑰 (大寫 O 正確官方版)
         const firebaseConfig = {
-            apiKey: "AIzaSyD03zBEE275PfxNash3-HsjPRWXGYluI-c",
+            apiKey: "AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c",
             authDomain: "poetry-ai-5dd52.firebaseapp.com",
             projectId: "poetry-ai-5dd52",
             storageBucket: "poetry-ai-5dd52.firebasestorage.app",
@@ -85,106 +86,108 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                alert("🔒 本頁面為管理者專區，請先登入您的主理人帳號唷！");
-                window.location.href = 'login.html';
+        // 👑 綁定詹先生最高權限信箱
+        const ADMIN_EMAIL = "qoojude@hotmail.com";
+
+        // 🛡️ 後台權限守衛
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== ADMIN_EMAIL) {
+                alert("🔒 抱歉，本頁面為玥石之溫主理人專屬。已為您跳轉回首頁。");
+                window.location.href = 'home.html';
                 return;
             }
-            try {
-                const userDocRef = doc(db, "members", user.uid);
-                const userSnap = await getDoc(userDocRef);
-                if (userSnap.exists() && userSnap.data().role === 'admin') {
-                    document.getElementById('adminBody').classList.remove('hidden');
-                    loadProducts();
-                } else {
-                    alert("❌ 抱歉！您的帳號未具備管理者權限，將為您導向回首頁。");
-                    window.location.href = 'home.html';
-                }
-            } catch (error) {
-                window.location.href = 'home.html';
-            }
+            // 權限通過，加載清單
+            loadAdminProducts();
         });
 
-        async function loadProducts() {
-            const listContainer = document.getElementById('productsList');
-            listContainer.innerHTML = '';
-            try {
-                const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-                document.getElementById('totalCount').innerText = querySnapshot.size;
-
-                if(querySnapshot.empty) {
-                    listContainer.innerHTML = `<p class="text-sm text-gray-400 text-center py-8">目前盲盒庫空空如也，快從左側上架商品照片吧！</p>`;
-                    return;
-                }
-
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const card = document.createElement('div');
-                    card.className = "p-4 border border-gray-100 bg-sand/40 rounded-xl flex items-start gap-4 shadow-sm";
-                    const imageHTML = data.imageUrl 
-                        ? `<img src="${data.imageUrl}" class="w-16 h-16 object-cover rounded-xl shadow-inner bg-white border border-gray-100">`
-                        : `<div class="text-3xl bg-white p-3 rounded-xl shadow-inner">🌿</div>`;
-
-                    card.innerHTML = `
-                        ${imageHTML}
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-bold text-gray-800 text-base">${data.name}</h4>
-                                <span class="text-xs text-clay font-medium">${data.codeName}</span>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2">${data.description}</p>
-                        </div>
-                    `;
-                    listContainer.appendChild(card);
-                });
-            } catch (error) {
-                listContainer.innerHTML = `<p class="text-sm text-red-400 text-center py-8">資料加載失敗</p>`;
-            }
-        }
-
+        // 🖼️ 處理表單提交（拍照上傳 Storage + 寫入 Firestore）
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
-            const fileInput = document.getElementById('oilImageFile');
-            const file = fileInput.files[0];
+            const fileInput = document.getElementById('pKeyImage');
+            const name = document.getElementById('pName').value;
+            const code = document.getElementById('pCode').value;
+            const desc = document.getElementById('pDesc').value;
 
-            if (!file) {
-                alert("請先選擇一張商品照片唷！");
+            if (fileInput.files.length === 0) {
+                alert("請上傳或拍攝一張商品實體照片唷！");
                 return;
             }
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<span>⏳ 圖片檔案上傳中...</span>`;
-
-            const name = document.getElementById('oilName').value;
-            const codeName = document.getElementById('oilId').value;
-            const description = document.getElementById('oilDesc').value;
+            submitBtn.innerText = "⏳ 正在將相簿同步至美國雲端保險箱...";
 
             try {
-                const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+                const file = fileInput.files[0];
+                // 1. 上傳照片到 Firebase Storage
+                const storageRef = ref(storage, 'products/' + Date.now() + '_' + file.name);
                 const snapshot = await uploadBytes(storageRef, file);
-                const imageUrl = await getDownloadURL(snapshot.ref);
+                const downloadUrl = await getDownloadURL(snapshot.ref);
 
+                // 2. 將包含照片網址的資料寫入 Firestore Database
                 await addDoc(collection(db, "products"), {
                     name: name,
-                    codeName: codeName,
-                    imageUrl: imageUrl,
-                    description: description,
+                    codeName: code, // 相容原欄位
+                    code: code,
+                    description: desc,
+                    imageUrl: downloadUrl,
                     createdAt: new Date().toISOString()
                 });
 
-                alert(`🎉 【${name}】照片與商品已成功上架！`);
+                alert("🎉 商品實體照成功同步至雲端櫥窗！");
                 document.getElementById('uploadForm').reset();
-                loadProducts();
+                loadAdminProducts(); // 刷新清單
             } catch (error) {
                 alert("❌ 上架失敗：" + error.message);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = `<span>確認上架至盲盒庫</span>`;
+                submitBtn.innerText = "🚀 確認上架至雲端櫥窗";
             }
         });
+
+        // 📦 加載後台商品清單
+        async function loadAdminProducts() {
+            const listContainer = document.getElementById('adminProductList');
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                listContainer.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    listContainer.innerHTML = `<p class="text-xs text-gray-400 py-8 col-span-full text-center">目前保險箱內空空如也，快拍下第一款精油商品吧！</p>`;
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    const p = docSnap.data();
+                    listContainer.innerHTML += `
+                        <div class="bg-sand/50 p-4 rounded-xl flex items-center justify-between border border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=100'}" class="w-12 h-12 object-cover rounded-lg bg-white border">
+                                <div class="text-left">
+                                    <p class="text-xs font-bold text-gray-800">${p.name}</p>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">代號: ${p.codeName || p.code || '---'}</p>
+                                </div>
+                            </div>
+                            <button onclick="deleteProduct('${docSnap.id}')" class="text-[10px] bg-red-50 text-red-500 px-2 py-1 rounded hover:bg-red-100 transition">刪除</button>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                listContainer.innerHTML = `<p class="text-xs text-red-400 py-8 col-span-full text-center">加載失敗，請檢查網路狀態。</p>`;
+            }
+        }
+
+        // 🗑️ 刪除商品功能
+        window.deleteProduct = async function(id) {
+            if (!confirm("確定要將這款精油從雲端櫥窗下架嗎？")) return;
+            try {
+                await deleteDoc(doc(db, "products", id));
+                alert("已成功下架！");
+                loadAdminProducts();
+            } catch (e) {
+                alert("下架失敗：" + e.message);
+            }
+        }
     </script>
 </body>
 </html>
