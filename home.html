@@ -34,8 +34,25 @@
 
     <!-- 主要內容區 -->
     <main class="max-w-5xl mx-auto px-4 py-12 text-center">
+
+        <!-- 👑 【新增】細胞擴散意向展示中心 (僅在登入後動態秀出) -->
+        <div id="referralCenter" class="hidden bg-white max-w-4xl mx-auto mb-12 p-6 rounded-2xl shadow-sm border border-gray-150 text-left grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
+            <div class="sm:col-span-1 border-r border-gray-100 pr-4">
+                <span class="text-[10px] uppercase font-bold tracking-widest text-clay">Referral Center</span>
+                <h4 class="text-base font-bold text-forest mt-1">🌱 您的推廣中心</h4>
+                <p class="text-xs text-gray-400 mt-1">分享您的專屬編號給朋友註冊，即可啟動裂變擴散獎勵！</p>
+            </div>
+            <div class="bg-sand/60 p-4 rounded-xl text-center">
+                <p class="text-xs text-gray-500 font-medium">您的推廣碼</p>
+                <p id="displayMemberCode" class="text-2xl font-black text-forest mt-1 tracking-wider">------</p>
+            </div>
+            <div class="bg-clay/10 p-4 rounded-xl text-center">
+                <p class="text-xs text-clay font-medium">目前累積療癒點數</p>
+                <p id="displayPoints" class="text-2xl font-black text-clay mt-1">0 點</p>
+            </div>
+        </div>
         
-        <!-- 🛍️ 商品展示區 (動態抓取 Firebase 後台上傳的實體照片) -->
+        <!-- 🛍自後台動態抓取的商品展示區 -->
         <section class="mb-20">
             <header class="mb-10">
                 <span class="text-xs font-bold uppercase tracking-widest bg-forest/10 text-forest px-3 py-1 rounded-full">Aroma Showcase</span>
@@ -50,7 +67,7 @@
 
         <hr class="border-gray-200 my-16 max-w-2xl mx-auto">
 
-        <!-- 🔮 原汁原味經典抽籤三選一區 -->
+        <!-- 🔮 抽籤三選一盲盒區 -->
         <section>
             <header class="mb-12">
                 <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">Interactive Game</span>
@@ -106,7 +123,7 @@
         </section>
     </main>
 
-    <!-- 課程預約彈出視窗 -->
+    <!-- 課程預約視窗 -->
     <div id="bookingModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-2xl">
             <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
@@ -145,7 +162,6 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 🎯 付費版新金鑰
         const firebaseConfig = {
             apiKey: "AIzaSyD03zBEE275PfxNash3-HsjPRWXGYluI-c",
             authDomain: "poetry-ai-5dd52.firebaseapp.com",
@@ -162,18 +178,15 @@
 
         let currentUserData = null;
 
-        // 從 Firebase Firestore 動態撈取上架商品，秀出實體照路徑
         async function fetchShowcaseProducts() {
             const showcaseContainer = document.getElementById('showcaseContainer');
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
                 showcaseContainer.innerHTML = '';
-
                 if (querySnapshot.empty) {
                     showcaseContainer.innerHTML = `<p class="text-sm text-gray-400 text-center py-8 col-span-full">主理人正在籌備新商品，敬請期待！</p>`;
                     return;
                 }
-
                 let showcaseHTML = '';
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
@@ -195,13 +208,13 @@
                 });
                 showcaseContainer.innerHTML = showcaseHTML;
             } catch (error) {
-                console.error(error);
                 showcaseContainer.innerHTML = `<p class="text-sm text-red-400 text-center py-8 col-span-full">櫥窗加載失敗</p>`;
             }
         }
 
         onAuthStateChanged(auth, async (user) => {
             const navStatus = document.getElementById('navUserStatus');
+            const refCenter = document.getElementById('referralCenter');
             if (user) {
                 const docRef = doc(db, "members", user.uid);
                 const docSnap = await getDoc(docRef);
@@ -213,6 +226,12 @@
                         <span class="text-forest font-bold">🌟 你好，${currentUserData.fullName}</span>
                         <button id="logoutBtn" class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">登出</button>
                     `;
+                    
+                    // 🎯 動態在畫面上渲染個人的推廣中心資訊
+                    refCenter.classList.remove('hidden');
+                    document.getElementById('displayMemberCode').innerText = currentUserData.memberCode || "未生成";
+                    document.getElementById('displayPoints').innerText = `${currentUserData.points || 0} 點`;
+
                     document.getElementById('bookName').value = currentUserData.fullName;
                     document.getElementById('bookPhone').value = currentUserData.phone;
                 }
@@ -226,6 +245,7 @@
                 document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
             } else {
                 currentUserData = null;
+                refCenter.classList.add('hidden');
                 navStatus.innerHTML = `<a href="index.html" class="bg-forest text-white px-4 py-2 rounded-lg text-xs">加入會員 / 登入</a>`;
             }
         });
