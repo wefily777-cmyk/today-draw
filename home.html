@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>今天給你抽 - 尋找你的專屬香氣</title>
+    <title>玥石之溫 - 尋找你的專屬香氣</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        clay: '#D0826C',   /* 落日陶土橘 */
-                        forest: '#2E4A3F', /* 森林深綠 */
-                        sand: '#FAF8F5',   /* 大地奶色 */
-                    }
+                    colors: { clay: '#D0826C', forest: '#2E4A3F', sand: '#FAF8F5' }
                 }
             }
         }
@@ -28,20 +24,23 @@
 </head>
 <body class="bg-sand min-h-screen font-sans">
 
+    <!-- 導覽列 -->
     <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-gray-100 sticky top-0 z-40">
-        <div class="text-xl font-bold text-forest tracking-wider">今天給你抽</div>
+        <div class="text-xl font-bold text-forest tracking-wider">玥石之溫</div>
         <div id="navUserStatus" class="space-x-6 text-sm font-medium text-gray-600">
             <span class="text-gray-400">正在檢查登入狀態...</span>
         </div>
     </nav>
 
+    <!-- 主要內容區 -->
     <main class="max-w-5xl mx-auto px-4 py-12 text-center">
         
+        <!-- 🛍️ 商品展示區 (動態抓取 Firebase 後台上傳的實體照片) -->
         <section class="mb-20">
             <header class="mb-10">
                 <span class="text-xs font-bold uppercase tracking-widest bg-forest/10 text-forest px-3 py-1 rounded-full">Aroma Showcase</span>
                 <h2 class="text-3xl font-bold text-forest mt-3 mb-2">本季精選單品</h2>
-                <p class="text-gray-500 text-sm">主理人後台即時上架商品展示，為生活注入天然療癒能量</p>
+                <p class="text-gray-500 text-sm">玥石之溫嚴選天然植萃，為生活點燃溫潤的療癒能量</p>
             </header>
             
             <div id="showcaseContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
@@ -51,6 +50,7 @@
 
         <hr class="border-gray-200 my-16 max-w-2xl mx-auto">
 
+        <!-- 🔮 原汁原味經典抽籤三選一區 -->
         <section>
             <header class="mb-12">
                 <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">Interactive Game</span>
@@ -100,18 +100,18 @@
                 
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <button onclick="handleAction('buy')" class="bg-clay text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">🛍️ 購買這款精油 ($580 起)</button>
-                    <button onclick="handleAction('book')" class="bg-forest text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">📅 報名近期精油體驗課</button>
+                    <button onclick="handleAction('book')" class="bg-forest text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">📅 報名玥石之溫體驗課</button>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- 課程預約彈出視窗 -->
     <div id="bookingModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-2xl">
             <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-            
-            <h3 class="text-2xl font-bold text-forest mb-2">預約調香體驗課</h3>
-            <p class="text-xs text-gray-400 mb-6">抽中命定香，來親手調配一瓶屬於你的精油吧！</p>
+            <h3 class="text-2xl font-bold text-forest mb-2">預約玥石之溫・調香體驗課</h3>
+            <p class="text-xs text-gray-400 mb-6">抽中命定香，來親手調配一瓶屬於你的專屬香氣吧！</p>
             
             <form id="bookingForm" class="space-y-4 text-left">
                 <div>
@@ -143,17 +143,17 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        // 🚀 引入 getDocs 用於加載展示商品
         import { getFirestore, collection, addDoc, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // 🎯 付費版新金鑰
         const firebaseConfig = {
-            apiKey: "AIzaSyAq5b6zOX6Czu88eCTWHitKSu7mLnqyxbY",
-            authDomain: "today-draw-365ed.firebaseapp.com",
-            projectId: "today-draw-365ed",
-            storageBucket: "today-draw-365ed.firebasestorage.app",
-            messagingSenderId: "118558159958",
-            appId: "1:118558159958:web:11f552d3a454128f1837f7",
-            measurementId: "G-H37FG8S08X"
+            apiKey: "AIzaSyD03zBEE275PfxNash3-HsjPRWXGYluI-c",
+            authDomain: "poetry-ai-5dd52.firebaseapp.com",
+            projectId: "poetry-ai-5dd52",
+            storageBucket: "poetry-ai-5dd52.firebasestorage.app",
+            messagingSenderId: "433041548580",
+            appId: "1:433041548580:web:43808e3a99ea9fbd123fb1",
+            measurementId: "G-D3LY5HJLZG"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -162,7 +162,7 @@
 
         let currentUserData = null;
 
-        // 🛍️ 【新增函式】專門用來從 Firebase 撈取資料並放入上方櫥窗
+        // 從 Firebase Firestore 動態撈取上架商品，秀出實體照路徑
         async function fetchShowcaseProducts() {
             const showcaseContainer = document.getElementById('showcaseContainer');
             try {
@@ -177,9 +177,13 @@
                 let showcaseHTML = '';
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
+                    const imageMarkup = data.imageUrl 
+                        ? `<img src="${data.imageUrl}" class="w-24 h-24 object-cover rounded-2xl shadow-md mb-4 bg-white border border-gray-100">`
+                        : `<div class="text-4xl bg-sand p-4 rounded-full mb-4">🌿</div>`;
+
                     showcaseHTML += `
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
-                            <div class="text-4xl bg-sand p-4 rounded-full mb-4">${data.emoji || '🌿'}</div>
+                            ${imageMarkup}
                             <h4 class="text-lg font-bold text-gray-800">${data.name}</h4>
                             <p class="text-xs text-clay font-medium mb-3">${data.codeName}</p>
                             <p class="text-xs text-gray-500 text-center leading-relaxed mb-5 flex-1 line-clamp-3">${data.description}</p>
@@ -191,42 +195,34 @@
                 });
                 showcaseContainer.innerHTML = showcaseHTML;
             } catch (error) {
-                console.error("加載櫥窗失敗:", error);
-                showcaseContainer.innerHTML = `<p class="text-sm text-red-400 text-center py-8 col-span-full">櫥窗加載失敗：${error.message}</p>`;
+                console.error(error);
+                showcaseContainer.innerHTML = `<p class="text-sm text-red-400 text-center py-8 col-span-full">櫥窗加載失敗</p>`;
             }
         }
 
-        // 監聽登入狀態切換
         onAuthStateChanged(auth, async (user) => {
             const navStatus = document.getElementById('navUserStatus');
             if (user) {
                 const docRef = doc(db, "members", user.uid);
                 const docSnap = await getDoc(docRef);
-                
                 if (docSnap.exists()) {
                     currentUserData = docSnap.data();
-                    
-                    // 🔒 權限檢查：如果是管理員，就在導覽列塞入「後台管理」的祕密傳送門
                     let adminLink = currentUserData.role === 'admin' ? `<a href="admin.html" class="text-clay hover:underline mr-4">⚙️ 後台管理</a>` : '';
-                    
                     navStatus.innerHTML = `
                         ${adminLink}
                         <span class="text-forest font-bold">🌟 你好，${currentUserData.fullName}</span>
                         <button id="logoutBtn" class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">登出</button>
                     `;
-                    
                     document.getElementById('bookName').value = currentUserData.fullName;
                     document.getElementById('bookPhone').value = currentUserData.phone;
                 }
-                
                 if (localStorage.getItem('pendingAction') === 'book') {
                     localStorage.removeItem('pendingAction');
                     openBookingModal();
                 } else if (localStorage.getItem('pendingAction') === 'buy') {
                     localStorage.removeItem('pendingAction');
-                    alert('🎉 感謝加入！即將帶您前往結帳（金流整合中）！');
+                    alert('🎉 感謝加入玥石之溫！即將帶您前往結帳（金流整合中）！');
                 }
-
                 document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
             } else {
                 currentUserData = null;
@@ -234,22 +230,17 @@
             }
         });
 
-        // 核心動線判斷
         window.handleAction = function(actionType) {
             if (!auth.currentUser) {
                 alert('為了記錄您的預約與配送資料，請先填寫會員資料唷！');
                 localStorage.setItem('pendingAction', actionType);
                 window.location.href = 'index.html';
             } else {
-                if (actionType === 'book') {
-                    openBookingModal();
-                } else {
-                    alert('🛍️ 進入購買流程（串接金流中！）');
-                }
+                if (actionType === 'book') openBookingModal();
+                else alert('🛍️ 進入購買流程（串接金流中！）');
             }
         }
 
-        // 預約表單送出
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const date = document.getElementById('bookDate').value;
@@ -267,7 +258,7 @@
                     status: "已預約",
                     createdAt: new Date().toISOString()
                 });
-                alert(`🎉 預約成功！\n期待在 ${date} 一起體驗 ${currentOil} 的調香魅力！`);
+                alert(`🎉 預約成功！\n期待在 ${date} 一起在玥石之溫體驗 ${currentOil} 的調香魅力！`);
                 closeBookingModal();
                 document.getElementById('bookingForm').reset();
             } catch (error) {
@@ -275,7 +266,6 @@
             }
         });
 
-        // 🌟 初始化加載動態櫥窗
         fetchShowcaseProducts();
     </script>
 
@@ -285,7 +275,6 @@
             { name: "澳洲茶樹 (Tea Tree)", desc: "【心靈指引】你正處於需要釐清思緒的階段。茶樹強勁的潔淨能量能幫你阻絕外在的負面干擾。" },
             { name: "甜橙 (Sweet Orange)", desc: "【心靈指引】生活需要一點純粹的快樂！甜橙就像陽光一樣，能融化內心的冰冷與嚴肅。" }
         ];
-
         let hasDrawn = false;
         function drawCard(index, cardElement) {
             if (hasDrawn) return;
@@ -299,7 +288,6 @@
                 resultSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 400);
         }
-
         function openBookingModal() { document.getElementById('bookingModal').classList.remove('hidden'); }
         function closeBookingModal() { document.getElementById('bookingModal').classList.add('hidden'); }
     </script>
