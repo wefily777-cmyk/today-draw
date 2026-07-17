@@ -162,9 +162,9 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 🎯 修正版付費專案金鑰 (apiKey 已修正為數字 0)
+        // 🎯 修正版付費專案金鑰 (使用詹先生大寫 O 認證版)
         const firebaseConfig = {
-            apiKey: "AIzaSyD03zBEE275PfxNash3-HsjPRWXGYluI-c",
+            apiKey: "AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c",
             authDomain: "poetry-ai-5dd52.firebaseapp.com",
             projectId: "poetry-ai-5dd52",
             storageBucket: "poetry-ai-5dd52.firebasestorage.app",
@@ -178,6 +178,9 @@
         const db = getFirestore(app);
 
         let currentUserData = null;
+        
+        // 👑 預設最高主理人帳號
+        const ADMIN_EMAIL = "qoojude@hotmail.com";
 
         async function fetchShowcaseProducts() {
             const showcaseContainer = document.getElementById('showcaseContainer');
@@ -192,15 +195,15 @@
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const imageMarkup = data.imageUrl 
-                        ? `<img src="${data.imageUrl}" class="w-24 h-24 object-cover rounded-2xl shadow-md mb-4 bg-white border border-gray-100">`
+                        ? `<img src="${data.imageUrl}" class="w-full h-48 object-cover rounded-2xl shadow-md mb-4 bg-white border border-gray-100">`
                         : `<div class="text-4xl bg-sand p-4 rounded-full mb-4">🌿</div>`;
 
                     showcaseHTML += `
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
                             ${imageMarkup}
                             <h4 class="text-lg font-bold text-gray-800">${data.name}</h4>
-                            <p class="text-xs text-clay font-medium mb-3">${data.codeName}</p>
-                            <p class="text-xs text-gray-500 text-center leading-relaxed mb-5 flex-1 line-clamp-3">${data.description}</p>
+                            <p class="text-xs text-clay font-medium mb-3">${data.codeName || data.code || '---'}</p>
+                            <p class="text-xs text-gray-500 text-center leading-relaxed mb-5 flex-1 line-clamp-3">${data.description || '無商品描述'}</p>
                             <button onclick="handleAction('buy')" class="w-full py-2 bg-forest text-white text-xs font-medium rounded-lg hover:bg-opacity-95 transition">
                                 了解更多商品詳情
                             </button>
@@ -216,25 +219,42 @@
         onAuthStateChanged(auth, async (user) => {
             const navStatus = document.getElementById('navUserStatus');
             const refCenter = document.getElementById('referralCenter');
+            
             if (user) {
                 const docRef = doc(db, "members", user.uid);
                 const docSnap = await getDoc(docRef);
+                
+                // 👑 安全鎖修正：只要登入帳號是您，不論資料庫欄位是什麼，直接給予最高管理權限！
+                let isAdmin = (user.email === ADMIN_EMAIL);
+                
                 if (docSnap.exists()) {
                     currentUserData = docSnap.data();
-                    let adminLink = currentUserData.role === 'admin' ? `<a href="admin.html" class="text-clay hover:underline mr-4">⚙️ 後台管理</a>` : '';
+                    if (currentUserData.role === 'admin') isAdmin = true; // 雙重保險
+                    
+                    let adminLink = isAdmin ? `<a href="admin.html" class="text-clay hover:underline mr-4 font-bold">⚙️ 後台管理</a>` : '';
+                    
                     navStatus.innerHTML = `
                         ${adminLink}
-                        <span class="text-forest font-bold">🌟 你好，${currentUserData.fullName}</span>
-                        <button id="logoutBtn" class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">登出</button>
+                        <span class="text-forest font-bold">🌟 你好，${currentUserData.fullName || currentUserData.name}</span>
+                        <button id="logoutBtn" class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded ml-4">登出</button>
                     `;
                     
                     refCenter.classList.remove('hidden');
-                    document.getElementById('displayMemberCode').innerText = currentUserData.memberCode || "未生成";
+                    document.getElementById('displayMemberCode').innerText = currentUserData.memberCode || currentUserData.inviteCode || "未生成";
                     document.getElementById('displayPoints').innerText = `${currentUserData.points || 0} 點`;
 
-                    document.getElementById('bookName').value = currentUserData.fullName;
+                    document.getElementById('bookName').value = currentUserData.fullName || currentUserData.name;
                     document.getElementById('bookPhone').value = currentUserData.phone;
+                } else {
+                    // 如果資料庫文件遺失，但 Auth 登入成功（常見於純測試帳號）
+                    let adminLink = isAdmin ? `<a href="admin.html" class="text-clay hover:underline mr-4 font-bold">⚙️ 後台管理</a>` : '';
+                    navStatus.innerHTML = `
+                        ${adminLink}
+                        <span class="text-forest font-bold">🌟 測試主理人 (${user.email})</span>
+                        <button id="logoutBtn" class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded ml-4">登出</button>
+                    `;
                 }
+
                 if (localStorage.getItem('pendingAction') === 'book') {
                     localStorage.removeItem('pendingAction');
                     openBookingModal();
@@ -242,11 +262,14 @@
                     localStorage.removeItem('pendingAction');
                     alert('🎉 感謝加入玥石之溫！即將帶您前往結帳（金流整合中）！');
                 }
-                document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+                
+                document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => { window.location.href = 'login.html'; }));
             } else {
+                // 🛡️ 沒登入就直接踢回登入頁
                 currentUserData = null;
                 refCenter.classList.add('hidden');
-                navStatus.innerHTML = `<a href="index.html" class="bg-forest text-white px-4 py-2 rounded-lg text-xs">加入會員 / 登入</a>`;
+                navStatus.innerHTML = `<a href="login.html" class="bg-forest text-white px-4 py-2 rounded-lg text-xs">加入會員 / 登入</a>`;
+                window.location.href = 'login.html';
             }
         });
 
@@ -254,7 +277,7 @@
             if (!auth.currentUser) {
                 alert('為了記錄您的預約與配送資料，請先填寫會員資料唷！');
                 localStorage.setItem('pendingAction', actionType);
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             } else {
                 if (actionType === 'book') openBookingModal();
                 else alert('🛍️ 進入購買流程（串接金流中！）');
@@ -270,8 +293,8 @@
             try {
                 await addDoc(collection(db, "course_bookings"), {
                     uid: auth.currentUser.uid,
-                    customerName: currentUserData.fullName,
-                    phone: currentUserData.phone,
+                    customerName: currentUserData ? (currentUserData.fullName || currentUserData.name) : "測試會員",
+                    phone: currentUserData ? currentUserData.phone : "無電話",
                     bookingDate: date,
                     peopleCount: parseInt(count),
                     drawnOil: currentOil,
