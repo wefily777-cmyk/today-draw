@@ -32,7 +32,7 @@
                 <label class="block text-xs font-medium text-gray-700 mb-1">設定密碼</label>
                 <input type="password" id="password" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-clay outline-none text-sm bg-gray-50/50" placeholder="至少 6 位數">
             </div>
-            <hr class="border-gray-100 my-2">
+            <hr class="border-gray-100 My-2">
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">真實姓名</label>
                 <input type="text" id="fullName" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-clay outline-none text-sm">
@@ -45,14 +45,15 @@
                 <label class="block text-xs font-medium text-gray-700 mb-1">寄送地址</label>
                 <input type="text" id="address" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-clay outline-none text-sm" placeholder="填寫完整收件地址">
             </div>
-            <!-- 🔗 新增裂變功能：介紹人填寫欄位 -->
+            
+            <!-- 🔗 實體裂變：介紹人填寫欄位 -->
             <div class="bg-sand/40 p-3 rounded-xl border border-dashed border-clay/30">
-                <label class="block text-xs font-bold text-clay mb-1">✨ 推薦人編號 / 介紹人電話 (選填)</label>
-                <input type="text" id="referrer" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-clay outline-none text-sm bg-white" placeholder="若有介紹人，請輸入其編號或手機">
-                <p class="text-[10px] text-gray-400 mt-1">建立樹狀關聯後，未來的互動將為您的介紹人累積獎勵點數唷！</p>
+                <label class="block text-xs font-bold text-clay mb-1">✨ 推薦人編號 (選填)</label>
+                <input type="text" id="referrer" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-clay outline-none text-sm bg-white" placeholder="例如：YR1234">
+                <p class="text-[10px] text-gray-400 mt-1">填寫推薦碼註冊即贈 50 點！也為您的介紹人贏得 100 點獎勵！</p>
             </div>
 
-            <button type="submit" class="w-full bg-forest text-white py-3 rounded-xl font-medium hover:bg-opacity-95 transition shadow-md text-sm mt-4">
+            <button type="submit" id="regBtn" class="w-full bg-forest text-white py-3 rounded-xl font-medium hover:bg-opacity-95 transition shadow-md text-sm mt-4">
                 加入會員，返回體驗
             </button>
         </form>
@@ -65,7 +66,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        // 🚀 引入 Firestore 所需的進階查詢套件
+        import { getFirestore, doc, setDoc, updateDoc, collection, query, where, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD03zBEE275PfxNash3-HsjPRWXGYluI-c",
@@ -83,37 +85,79 @@
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const regBtn = document.getElementById('regBtn');
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const fullName = document.getElementById('fullName').value;
             const phone = document.getElementById('phone').value;
             const address = document.getElementById('address').value;
-            const referrer = document.getElementById('referrer').value.trim();
+            const referrerInput = document.getElementById('referrer').value.trim().toUpperCase(); // 強制轉大寫比對
+
+            regBtn.disabled = true;
+            regBtn.innerText = "⏳ 正在規劃您的療癒帳戶...";
 
             try {
+                let myInitialPoints = 0; // 預設初始點數
+                let targetReferrerUid = "none"; // 預設沒有介紹人真實UID
+                let referrerDocRef = null;
+
+                // 🔍 如果有填推薦碼，先去資料庫撈人檢查
+                if (referrerInput !== "") {
+                    const q = query(collection(db, "members"), where("memberCode", "==", referrerInput));
+                    const querySnapshot = await getDocs(q);
+
+                    if (querySnapshot.empty) {
+                        alert(`❌ 找不到推薦碼 【${referrerInput}】，請檢查是否輸入正確，或先留空註冊唷！`);
+                        regBtn.disabled = false;
+                        regBtn.innerText = "加入會員，返回體驗";
+                        return;
+                    } else {
+                        // 🎯 找到了！抓出介紹人的資料文件
+                        const referrerDoc = querySnapshot.docs[0];
+                        targetReferrerUid = referrerDoc.id; // 拿到了介紹人的真實 UID (用於想法三消費裂變)
+                        referrerDocRef = doc(db, "members", targetReferrerUid);
+                        
+                        // 觸發想法一：新人自己平白獲得 50 點
+                        myInitialPoints = 50;
+                    }
+                }
+
+                // 1. 建立 Auth 帳號
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // 🎲 隨機自動產生專屬 6 碼會員推廣編號 (例如 YR5821)
+                // 2. 隨機產生自己的 6 碼推廣代碼
                 const randomCode = Math.floor(1000 + Math.random() * 9000);
-                const memberCode = `YR${randomCode}`;
+                const myMemberCode = `YR${randomCode}`;
 
+                // 3. 寫入自己的會員文件
                 await setDoc(doc(db, "members", user.uid), {
                     uid: user.uid,
                     email: email,
                     fullName: fullName,
                     phone: phone,
                     address: address,
-                    memberCode: memberCode, // 個人推廣碼
-                    referrerCode: referrer || "none", // 介紹人資訊
-                    points: 0, // 初始點數為 0
+                    memberCode: myMemberCode,
+                    referrerCode: referrerInput || "none",
+                    referrerUid: targetReferrerUid, // 🔥 關鍵：綁定介紹人真實UID，供未來消費裂變5%使用
+                    points: myInitialPoints, // 寫入拿到的見面禮點數 (50 或 0)
                     createdAt: new Date().toISOString()
                 });
 
-                alert(`🎉 註冊成功！您的玥石之溫專屬會員編號為：【${memberCode}】`);
+                // 4. 🚀 觸發想法二：如果剛剛有成功綁定介紹人，用「原子級運算」幫介紹人隔空加 100 點！
+                if (referrerDocRef) {
+                    await updateDoc(referrerDocRef, {
+                        points: increment(100) // 資料庫原有點數直接 +100
+                    });
+                }
+
+                alert(`🎉 註冊成功！已啟動裂變獎勵！\n您的專屬推廣碼為：【${myMemberCode}】\n獲得註冊見面禮：${myInitialPoints} 點！`);
                 window.location.href = 'home.html';
+
             } catch (error) {
                 alert("❌ 註冊失敗：" + error.message);
+                regBtn.disabled = false;
+                regBtn.innerText = "加入會員，返回體驗";
             }
         });
     </script>
