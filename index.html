@@ -68,6 +68,7 @@
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, updateDoc, collection, query, where, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // 🎯 修正版付費專案金鑰 (apiKey 已修正為數字 0)
         const firebaseConfig = {
             apiKey: "AIzaSyD03zBEE275PfxNash3-HsjPRWXGYluI-c",
             authDomain: "poetry-ai-5dd52.firebaseapp.com",
@@ -96,7 +97,7 @@
             regBtn.innerText = "⏳ 正在驗證並規劃您的療癒帳戶...";
 
             try {
-                // 🛡️ 【關鍵防刷護盾一】手機號碼查重機制
+                // 🛡️ 【防刷護盾】手機號碼查重
                 const phoneCheckQuery = query(collection(db, "members"), where("phone", "==", phone));
                 const phoneCheckSnapshot = await getDocs(phoneCheckQuery);
 
@@ -125,7 +126,7 @@
                         const referrerDoc = querySnapshot.docs[0];
                         targetReferrerUid = referrerDoc.id;
                         referrerDocRef = doc(db, "members", targetReferrerUid);
-                        myInitialPoints = 50; // 觸發想法一：新人得 50 點
+                        myInitialPoints = 50; // 新人得 50 點
                     }
                 }
 
@@ -151,7 +152,7 @@
                     createdAt: new Date().toISOString()
                 });
 
-                // 4. 觸發想法二：幫介紹人加 100 點
+                // 4. 幫介紹人加 100 點
                 if (referrerDocRef) {
                     await updateDoc(referrerDocRef, {
                         points: increment(100)
