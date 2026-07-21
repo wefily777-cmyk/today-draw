@@ -168,7 +168,6 @@
                     <span class="text-lg">🔮</span>
                     <span class="text-xs font-medium text-gray-700 mt-1">五行算命</span>
                 </a>
-                <!-- 💬 預留交友區 -->
                 <div class="bg-gray-100/50 p-3 rounded-xl text-center border border-gray-200/50 flex flex-col items-center justify-center opacity-60 relative">
                     <span class="text-lg">💬</span>
                     <span class="text-xs font-medium text-gray-500 mt-1">交友空間</span>
@@ -222,10 +221,9 @@
                     <p class="text-xs font-bold text-forest text-center bg-white py-1.5 rounded-lg shadow-2xs border">📮 匯款 / 掃碼轉帳資訊</p>
                     
                     <div class="text-xs text-gray-700 space-y-2 bg-white p-3.5 rounded-xl border border-gray-100 shadow-2xs">
-                        <!-- 📮 郵局帳號資訊 (可自由替換) -->
                         <div class="border-b pb-2">
                             <p class="font-bold text-forest flex items-center gap-1">🏦 中華郵政 (700)</p>
-                            <p class="mt-0.5 font-mono text-gray-800">03110490859611<span class="font-bold text-clay select-all">0001234-0987654</span></p>
+                            <p class="mt-0.5 font-mono text-gray-800">局號帳號：<span class="font-bold text-clay select-all">03110490859611</span></p>
                             <p class="text-[11px] text-gray-500">戶名：邱佳祈</p>
                         </div>
                         
@@ -304,7 +302,12 @@
         let currentProductPrice = 580;
         let finalPayPrice = 580;
         let activeDiscount = 0;
-        const ADMIN_EMAIL = "qoojude@hotmail.com";
+
+        // 👑 雙主理人最高權限白名單
+        const ADMIN_EMAILS = [
+            "qoojude@hotmail.com",
+            "a0937034596@gmail.com"
+        ];
 
         async function fetchShowcaseProducts() {
             const showcaseContainer = document.getElementById('showcaseContainer');
@@ -351,7 +354,8 @@
                 const docRef = doc(db, "members", user.uid);
                 const docSnap = await getDoc(docRef);
                 
-                let isAdmin = (user.email === ADMIN_EMAIL);
+                // 👑 比對雙主理人權限
+                let isAdmin = ADMIN_EMAILS.includes(user.email);
                 
                 if (docSnap.exists()) {
                     currentUserData = docSnap.data();
