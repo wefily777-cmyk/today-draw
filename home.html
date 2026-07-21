@@ -63,7 +63,7 @@
             </div>
         </div>
         
-        <!-- 🛍️ 商品展示區 (動態抓取實體照片與價格) -->
+        <!-- 🛍️ 商品展示區 -->
         <section class="mb-20">
             <header class="mb-10">
                 <span class="text-xs font-bold uppercase tracking-widest bg-forest/10 text-forest px-3 py-1 rounded-full">Aroma Showcase</span>
@@ -151,7 +151,7 @@
         </section>
     </main>
 
-    <!-- 🌐 生態圈快捷選單（移至網頁最下方） -->
+    <!-- 🌐 生態圈快捷選單（網頁最下方） -->
     <footer class="bg-white border-t border-gray-200 pt-10 pb-12 mt-20 text-center">
         <div class="max-w-4xl mx-auto px-4">
             <span class="text-[10px] uppercase font-bold tracking-widest text-gray-400 block mb-4">療癒生活生態圈探索</span>
@@ -178,12 +178,12 @@
         </div>
     </footer>
 
-    <!-- 💳 雙軌結帳與郵局/行動支付對帳視窗 -->
+    <!-- 💳 雙軌結帳與完整配送位址對帳視窗 -->
     <div id="paymentModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl text-center border border-gray-100 max-h-[90vh] overflow-y-auto">
             <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
             <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">Checkout</span>
-            <h3 class="text-xl font-bold text-forest mt-3" id="modalTitle">選擇付款方式</h3>
+            <h3 class="text-xl font-bold text-forest mt-3" id="modalTitle">選擇付款與配送方式</h3>
             <p class="text-xs text-gray-400 mt-1">品項：<span id="payOilName" class="font-bold text-clay">精油</span></p>
             
             <!-- 價格顯示 -->
@@ -218,7 +218,7 @@
 
                 <!-- 📮 郵局與行動支付轉帳資訊卡 -->
                 <div class="bg-sand/60 p-4 rounded-2xl border text-left space-y-3">
-                    <p class="text-xs font-bold text-forest text-center bg-white py-1.5 rounded-lg shadow-2xs border">📮 匯款 / 掃碼轉帳資訊</p>
+                    <p class="text-xs font-bold text-forest text-center bg-white py-1.5 rounded-lg shadow-2xs border">📮 1. 匯款 / 轉帳帳號資訊</p>
                     
                     <div class="text-xs text-gray-700 space-y-2 bg-white p-3.5 rounded-xl border border-gray-100 shadow-2xs">
                         <div class="border-b pb-2">
@@ -226,19 +226,49 @@
                             <p class="mt-0.5 font-mono text-gray-800">局號帳號：<span class="font-bold text-clay select-all">03110490859611</span></p>
                             <p class="text-[11px] text-gray-500">戶名：邱佳祈</p>
                         </div>
-                        
                         <div>
-                            <p class="font-bold text-gray-800">📱 行動支付轉帳：</p>
-                            <p class="text-[11px] text-gray-500">可使用街口支付 / LINE Pay 掃瞄主理人專屬收款碼轉帳。</p>
+                            <p class="font-bold text-gray-800">📱 行動支付：</p>
+                            <p class="text-[11px] text-gray-500">街口 / LINE Pay 轉帳至主理人專屬帳號。</p>
                         </div>
                     </div>
                     
-                    <form id="orderReportForm" class="space-y-2 pt-1">
-                        <label class="block text-[11px] font-bold text-gray-700">👇 匯款完成後，請填寫帳號後五碼對帳：</label>
-                        <div class="flex gap-2">
+                    <!-- 📦 2. 轉帳後五碼與完整配送資料表單 -->
+                    <form id="orderReportForm" class="space-y-3 pt-2 border-t border-gray-200">
+                        <p class="text-xs font-bold text-forest">📦 2. 填寫對帳與收件配送資訊：</p>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 mb-1">轉帳帳號後五碼</label>
                             <input type="text" id="payFiveCode" required maxlength="5" class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如: 12345">
-                            <button type="submit" id="reportBtn" class="bg-forest text-white px-4 py-1.5 rounded-xl text-xs font-medium hover:bg-opacity-95 transition whitespace-nowrap shadow-xs">送出對帳</button>
                         </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-700 mb-1">收件人姓名</label>
+                                <input type="text" id="shipName" required class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="王小明">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-700 mb-1">聯絡電話</label>
+                                <input type="tel" id="shipPhone" required class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="0912345678">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 mb-1">配送方式</label>
+                            <select id="shipMethod" onchange="toggleShipInput()" class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white">
+                                <option value="7-11取貨">🏪 7-11 超商取貨</option>
+                                <option value="全家取貨">🏪 全家 超商取貨</option>
+                                <option value="宅配到府">🚚 宅配到府 (郵局/黑貓)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label id="shipAddressLabel" class="block text-[11px] font-bold text-gray-700 mb-1">取件超商門市名稱與店號</label>
+                            <input type="text" id="shipAddress" required class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="請填寫：7-11 玥石門市 (店號: 123456)">
+                        </div>
+
+                        <button type="submit" id="reportBtn" class="w-full bg-forest text-white py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition shadow-md mt-2">
+                            送出對帳並通知主理人出貨
+                        </button>
                     </form>
                 </div>
             </div>
@@ -303,7 +333,6 @@
         let finalPayPrice = 580;
         let activeDiscount = 0;
 
-        // 👑 雙主理人最高權限白名單
         const ADMIN_EMAILS = [
             "qoojude@hotmail.com",
             "a0937034596@gmail.com"
@@ -354,7 +383,6 @@
                 const docRef = doc(db, "members", user.uid);
                 const docSnap = await getDoc(docRef);
                 
-                // 👑 比對雙主理人權限
                 let isAdmin = ADMIN_EMAILS.includes(user.email);
                 
                 if (docSnap.exists()) {
@@ -375,6 +403,10 @@
 
                     document.getElementById('bookName').value = currentUserData.fullName || currentUserData.name;
                     document.getElementById('bookPhone').value = currentUserData.phone;
+
+                    // 預先帶入收件人資訊
+                    document.getElementById('shipName').value = currentUserData.fullName || currentUserData.name;
+                    document.getElementById('shipPhone').value = currentUserData.phone;
 
                     if (currentUserData.birthday) {
                         const birthMonth = new Date(currentUserData.birthday).getMonth() + 1;
@@ -408,6 +440,21 @@
                 window.location.href = 'login.html';
             }
         });
+
+        // 動態切換配送提示
+        window.toggleShipInput = function() {
+            const method = document.getElementById('shipMethod').value;
+            const label = document.getElementById('shipAddressLabel');
+            const input = document.getElementById('shipAddress');
+
+            if (method.includes('取貨')) {
+                label.innerText = "取件超商門市名稱與店號";
+                input.placeholder = `請填寫：${method.split(' ')[0]} 門市名稱 (例: 玥石門市 店號123456)`;
+            } else {
+                label.innerText = "完整宅配收件地址";
+                input.placeholder = "請填寫：縣市 / 鄉鎮市區 / 路街 / 號 / 樓";
+            }
+        };
 
         window.applyCoupon = function() {
             const code = document.getElementById('couponInput').value.trim().toUpperCase();
@@ -458,7 +505,7 @@
             currentProductPrice = 60;
             activeDiscount = 0;
             document.getElementById('payOilName').innerText = "🎁 命定香氣試聞瓶體驗樣品 (基礎運費)";
-            document.getElementById('modalTitle').innerText = "索取試聞瓶對帳";
+            document.getElementById('modalTitle').innerText = "索取試聞瓶對帳與配送";
             updatePriceUI();
             openPaymentModal();
         };
@@ -477,14 +524,19 @@
             }
         }
 
+        // 送出含完整配送資訊的對帳單
         document.getElementById('orderReportForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const reportBtn = document.getElementById('reportBtn');
             const fiveCode = document.getElementById('payFiveCode').value;
             const targetOil = document.getElementById('payOilName').innerText;
+            const shipName = document.getElementById('shipName').value;
+            const shipPhone = document.getElementById('shipPhone').value;
+            const shipMethod = document.getElementById('shipMethod').value;
+            const shipAddress = document.getElementById('shipAddress').value;
 
             reportBtn.disabled = true;
-            reportBtn.innerText = "⏳ 回報中...";
+            reportBtn.innerText = "⏳ 正在提交雲端對帳單...";
 
             try {
                 await addDoc(collection(db, "order_reports"), {
@@ -497,6 +549,10 @@
                     discountAmount: activeDiscount,
                     paymentMethod: "匯款/轉帳",
                     lastFiveDigits: fiveCode,
+                    shipName: shipName,
+                    shipPhone: shipPhone,
+                    shipMethod: shipMethod,
+                    shipAddress: shipAddress,
                     status: "待核對",
                     createdAt: new Date().toISOString()
                 });
@@ -508,14 +564,14 @@
                     });
                 }
 
-                alert(`🎉 後五碼【${fiveCode}】回報成功！\n系統已預先為您發放 +${earnedPoints} 點養份！主理人核對後將火速出貨！`);
+                alert(`🎉 對帳單送出成功！\n收件人：${shipName}\n配送方式：${shipMethod}\n主理人核對後將火速出貨！`);
                 closePaymentModal();
                 document.getElementById('orderReportForm').reset();
             } catch (error) {
                 alert("❌ 回報失敗：" + error.message);
             } finally {
                 reportBtn.disabled = false;
-                reportBtn.innerText = "送出對帳";
+                reportBtn.innerText = "送出對帳並通知主理人出貨";
             }
         });
 
