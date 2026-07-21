@@ -22,7 +22,7 @@
         .card-back { transform: rotateY(180deg); }
     </style>
 </head>
-<body class="bg-sand min-h-screen font-sans">
+<body class="bg-sand min-h-screen font-sans flex flex-col justify-between">
 
     <!-- 導覽列 -->
     <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-gray-100 sticky top-0 z-40">
@@ -33,61 +33,37 @@
     </nav>
 
     <!-- 主要內容區 -->
-    <main class="max-w-5xl mx-auto px-4 py-12 text-center">
+    <main class="max-w-5xl mx-auto px-4 py-12 text-center w-full flex-1">
 
-        <!-- 🌐 生態圈快捷傳送入口 (Dashboard) -->
-        <section class="max-w-4xl mx-auto mb-12 text-left">
-            <span class="text-[10px] uppercase font-bold tracking-widest text-gray-400 block mb-2">療癒生活生態圈儀表板</span>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                <a href="#" class="bg-forest text-white p-3 rounded-xl shadow-sm text-center border border-forest transition flex flex-col items-center justify-center">
-                    <span class="text-lg">🌿</span>
-                    <span class="text-xs font-bold mt-1">玥石之溫</span>
-                </a>
-                <a href="https://starjhan.github.io/blood-pressure-tracker/" target="_blank" class="bg-white hover:bg-gray-50 p-3 rounded-xl shadow-sm text-center border border-gray-100 transition flex flex-col items-center justify-center">
-                    <span class="text-lg">🩺</span>
-                    <span class="text-xs font-medium text-gray-700 mt-1">血壓日記</span>
-                </a>
-                <a href="https://wefily777-cmyk.github.io/365-savings/" target="_blank" class="bg-white hover:bg-gray-50 p-3 rounded-xl shadow-sm text-center border border-gray-100 transition flex flex-col items-center justify-center">
-                    <span class="text-lg">💰</span>
-                    <span class="text-xs font-medium text-gray-700 mt-1">365存錢</span>
-                </a>
-                <a href="https://astrofortune-star.firebaseapp.com" target="_blank" class="bg-white hover:bg-gray-50 p-3 rounded-xl shadow-sm text-center border border-gray-100 transition flex flex-col items-center justify-center">
-                    <span class="text-lg">🔮</span>
-                    <span class="text-xs font-medium text-gray-700 mt-1">五行算命</span>
-                </a>
-                <!-- 🀄 預留麻將區 -->
-                <div class="bg-gray-100/70 p-3 rounded-xl text-center border border-gray-200/50 flex flex-col items-center justify-center opacity-60 relative group">
-                    <span class="text-lg">🀄</span>
-                    <span class="text-xs font-medium text-gray-500 mt-1">麻將揪團</span>
-                    <span class="absolute -top-2 bg-clay text-white text-[8px] px-1 rounded-full scale-90">預留</span>
-                </div>
-                <!-- 💬 預留交友區 -->
-                <div class="bg-gray-100/70 p-3 rounded-xl text-center border border-gray-200/50 flex flex-col items-center justify-center opacity-60 relative group">
-                    <span class="text-lg">💬</span>
-                    <span class="text-xs font-medium text-gray-500 mt-1">交友空間</span>
-                    <span class="absolute -top-2 bg-clay text-white text-[8px] px-1 rounded-full scale-90">預留</span>
+        <!-- 🎂 壽星祝賀條（當月壽星自動觸發） -->
+        <div id="birthdayBanner" class="hidden bg-gradient-to-r from-amber-100 to-pink-100 border border-amber-200 text-amber-900 p-4 rounded-2xl shadow-sm mb-8 text-left flex justify-between items-center max-w-4xl mx-auto">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🎂</span>
+                <div>
+                    <h4 class="font-bold text-sm">親愛的壽星，生日快樂！</h4>
+                    <p class="text-xs text-amber-700">玥石之溫為您準備了專屬壽星祝福！結帳輸入折扣碼 <span class="font-mono font-bold bg-white/60 px-2 py-0.5 rounded text-clay">BIRTHDAY100</span> 可現折 $100 元唷！</p>
                 </div>
             </div>
-        </section>
+        </div>
 
         <!-- 🌱 細胞擴散意向展示中心 (登入後動態秀出) -->
         <div id="referralCenter" class="hidden bg-white max-w-4xl mx-auto mb-12 p-6 rounded-2xl shadow-sm border border-gray-150 text-left grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
             <div class="sm:col-span-1 border-r border-gray-100 pr-4">
                 <span class="text-[10px] uppercase font-bold tracking-widest text-clay">Referral Center</span>
                 <h4 class="text-base font-bold text-forest mt-1">🌱 您的推廣中心</h4>
-                <p class="text-xs text-gray-400 mt-1">分享您的專屬編號給朋友註冊，即可啟動裂變擴散獎勵！</p>
+                <p class="text-xs text-gray-400 mt-1">分享您的專屬編號給朋友註冊，即可獲得養份點數！</p>
             </div>
             <div class="bg-sand/60 p-4 rounded-xl text-center">
                 <p class="text-xs text-gray-500 font-medium">您的推廣碼</p>
                 <p id="displayMemberCode" class="text-2xl font-black text-forest mt-1 tracking-wider">------</p>
             </div>
             <div class="bg-clay/10 p-4 rounded-xl text-center">
-                <p class="text-xs text-clay font-medium">目前累積療癒點數</p>
+                <p class="text-xs text-clay font-medium">目前累積養份點數</p>
                 <p id="displayPoints" class="text-2xl font-black text-clay mt-1">0 點</p>
             </div>
         </div>
         
-        <!-- 🛍️ 商品展示區 (動態抓取實體照片) -->
+        <!-- 🛍️ 商品展示區 (動態抓取實體照片與價格) -->
         <section class="mb-20">
             <header class="mb-10">
                 <span class="text-xs font-bold uppercase tracking-widest bg-forest/10 text-forest px-3 py-1 rounded-full">Aroma Showcase</span>
@@ -100,10 +76,22 @@
             </div>
         </section>
 
+        <!-- 🎁 試聞瓶免費索取專區 -->
+        <section class="bg-gradient-to-br from-emerald-900 to-forest text-white p-8 rounded-3xl shadow-lg max-w-4xl mx-auto mb-20 text-left flex flex-col sm:flex-row justify-between items-center gap-6">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full text-emerald-200">Free Sample</span>
+                <h3 class="text-2xl font-bold mt-3">🎁 體驗植萃原香・試聞瓶體驗計畫</h3>
+                <p class="text-xs text-emerald-100/80 mt-2 leading-relaxed">想先體驗香氣嗎？只需負擔基礎運費 $60 元，即可索取命定香氣試聞瓶乙份！（單筆消費滿 $1,000 免運費免費加贈）</p>
+            </div>
+            <button onclick="openSampleModal()" class="whitespace-nowrap bg-clay hover:bg-opacity-90 text-white px-6 py-3 rounded-xl font-bold text-sm transition shadow-md">
+                索取試聞瓶 ($60 運費)
+            </button>
+        </section>
+
         <hr class="border-gray-200 my-16 max-w-2xl mx-auto">
 
         <!-- 🔮 抽籤三選一盲盒區 -->
-        <section>
+        <section class="mb-16">
             <header class="mb-12">
                 <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">Interactive Game</span>
                 <h2 class="text-3xl font-bold text-forest mb-3">今天，想抽什麼精油？</h2>
@@ -148,45 +136,107 @@
             <div id="resultSection" class="hidden bg-white rounded-2xl p-8 shadow-lg max-w-xl mx-auto border border-gray-100">
                 <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">今日命定香氣</span>
                 <h3 id="resultTitle" class="text-2xl font-bold text-forest mt-4 mb-2">精油名稱</h3>
-                <p id="resultDesc" class="text-gray-600 text-sm leading-relaxed mb-8">精油功效...</p>
+                <p id="resultDesc" class="text-gray-600 text-sm leading-relaxed mb-6">精油功效...</p>
                 
+                <div class="bg-sand p-4 rounded-xl text-left text-xs text-gray-600 mb-8 border border-gray-100">
+                    <p class="font-bold text-forest mb-1">🔮 本季五行運勢與水晶商配：</p>
+                    <p id="crystalSuggest">建議搭配【紫水晶】或【白水晶】擴香飾品，能補足本季缺水木能量，增進心靈平靜。</p>
+                </div>
+
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button onclick="handleAction('buy')" class="bg-clay text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">🛍️ 購買這款精油 ($580)</button>
+                    <button id="buyBtn" onclick="handleAction('buy')" class="bg-clay text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">🛍️ 購買這款精油</button>
                     <button onclick="handleAction('book')" class="bg-forest text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">📅 報名玥石之溫體驗課</button>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- 💳 旗艦級雙軌結帳彈出視窗 -->
+    <!-- 🌐 生態圈快捷選單（移至網頁最下方） -->
+    <footer class="bg-white border-t border-gray-200 pt-10 pb-12 mt-20 text-center">
+        <div class="max-w-4xl mx-auto px-4">
+            <span class="text-[10px] uppercase font-bold tracking-widest text-gray-400 block mb-4">療癒生活生態圈探索</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto mb-8">
+                <a href="https://starjhan.github.io/blood-pressure-tracker/" target="_blank" class="bg-sand/60 hover:bg-sand p-3 rounded-xl border border-gray-100 transition flex flex-col items-center justify-center">
+                    <span class="text-lg">🩺</span>
+                    <span class="text-xs font-medium text-gray-700 mt-1">血壓日記</span>
+                </a>
+                <a href="https://wefily777-cmyk.github.io/365-savings/" target="_blank" class="bg-sand/60 hover:bg-sand p-3 rounded-xl border border-gray-100 transition flex flex-col items-center justify-center">
+                    <span class="text-lg">💰</span>
+                    <span class="text-xs font-medium text-gray-700 mt-1">365存錢</span>
+                </a>
+                <a href="https://astrofortune-star.firebaseapp.com" target="_blank" class="bg-sand/60 hover:bg-sand p-3 rounded-xl border border-gray-100 transition flex flex-col items-center justify-center">
+                    <span class="text-lg">🔮</span>
+                    <span class="text-xs font-medium text-gray-700 mt-1">五行算命</span>
+                </a>
+                <!-- 💬 預留交友區 -->
+                <div class="bg-gray-100/50 p-3 rounded-xl text-center border border-gray-200/50 flex flex-col items-center justify-center opacity-60 relative">
+                    <span class="text-lg">💬</span>
+                    <span class="text-xs font-medium text-gray-500 mt-1">交友空間</span>
+                    <span class="absolute -top-2 bg-clay text-white text-[8px] px-1 rounded-full scale-90">預留</span>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400">© 玥石之溫 Aura Gem. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- 💳 雙軌結帳與郵局/行動支付對帳視窗 -->
     <div id="paymentModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl text-center border border-gray-100">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl text-center border border-gray-100 max-h-[90vh] overflow-y-auto">
             <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
             <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">Checkout</span>
-            <h3 class="text-xl font-bold text-forest mt-3">選擇付款方式</h3>
-            <p class="text-xs text-gray-400 mt-1">選定您的專屬香氣：<span id="payOilName" class="font-bold text-clay">精油</span></p>
-            <p class="text-2xl font-black text-forest mt-2 mb-6">$580 <span class="text-xs font-normal text-gray-400">TWD</span></p>
+            <h3 class="text-xl font-bold text-forest mt-3" id="modalTitle">選擇付款方式</h3>
+            <p class="text-xs text-gray-400 mt-1">品項：<span id="payOilName" class="font-bold text-clay">精油</span></p>
+            
+            <!-- 價格顯示 -->
+            <div class="my-4 bg-sand/80 p-3 rounded-2xl border">
+                <div class="text-xs text-gray-400 flex justify-between px-4">
+                    <span>原價：</span><span id="originalPriceText">$580</span>
+                </div>
+                <div id="discountRow" class="text-xs text-clay hidden flex justify-between px-4 mt-1">
+                    <span>折扣折抵：</span><span id="discountText">-$0</span>
+                </div>
+                <div class="text-2xl font-black text-forest mt-2 border-t pt-2 flex justify-between px-4">
+                    <span class="text-xs font-normal text-gray-500 self-center">最終應付金額：</span>
+                    <span>$<span id="finalPriceText">580</span> <span class="text-xs font-normal text-gray-400">TWD</span></span>
+                </div>
+            </div>
+
+            <!-- 🏷️ 折扣碼輸入框 -->
+            <div class="mb-4 text-left">
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">優惠折扣碼 (例: STAR88 / BIRTHDAY100)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="couponInput" class="w-full px-3 py-1.5 border rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-clay" placeholder="輸入折扣碼">
+                    <button type="button" onclick="applyCoupon()" class="bg-clay/20 text-clay px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-clay hover:text-white transition whitespace-nowrap">套用</button>
+                </div>
+            </div>
 
             <div class="space-y-3">
-                <!-- 💳 Stripe 快速付款 -->
-                <a id="stripeLink" href="https://buy.stripe.com/test_XXXXXX" target="_blank" onclick="alert('💡 這裡未來將無縫導向您的 Stripe Payment Links 一鍵刷卡/Apple Pay 頁面唷！')" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-95 transition shadow-sm text-sm">
+                <a id="stripeLink" href="https://buy.stripe.com/test_XXXXXX" target="_blank" onclick="alert('💡 這裡未來將導向 Stripe Payment Links 一鍵刷卡頁面！')" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:opacity-95 transition shadow-sm text-sm">
                     💳 信用卡 / Apple Pay 快速刷卡
                 </a>
                 
-                <div class="text-gray-300 text-xs my-2">— 或者使用本土轉帳免手續費 —</div>
+                <div class="text-gray-300 text-xs my-2">— 或者使用匯款 / 行動支付 —</div>
 
-                <!-- 📱 街口 / LINE Pay 轉帳引導 -->
+                <!-- 📮 郵局與行動支付轉帳資訊卡 -->
                 <div class="bg-sand/60 p-4 rounded-2xl border text-left space-y-3">
-                    <p class="text-xs font-bold text-forest text-center bg-white py-1 rounded-lg shadow-2xs border">📱 手機掃碼 / 銀行轉帳對帳</p>
-                    <div class="text-xs text-gray-600 space-y-1 bg-white p-3 rounded-xl border border-gray-100">
-                        <p>🔹 <span class="font-bold text-gray-800">街口支付：</span>請掃主理人收款碼轉帳</p>
-                        <p>🔹 <span class="font-bold text-gray-800">LINE Pay：</span>請點轉帳並輸入金額</p>
-                        <p class="text-[10px] text-gray-400 border-t pt-1 mt-1">（邱小姐的永久有效收款 QR 碼將同步顯示於此處）</p>
+                    <p class="text-xs font-bold text-forest text-center bg-white py-1.5 rounded-lg shadow-2xs border">📮 匯款 / 掃碼轉帳資訊</p>
+                    
+                    <div class="text-xs text-gray-700 space-y-2 bg-white p-3.5 rounded-xl border border-gray-100 shadow-2xs">
+                        <!-- 📮 郵局帳號資訊 (可自由替換) -->
+                        <div class="border-b pb-2">
+                            <p class="font-bold text-forest flex items-center gap-1">🏦 中華郵政 (700)</p>
+                            <p class="mt-0.5 font-mono text-gray-800">03110490859611<span class="font-bold text-clay select-all">0001234-0987654</span></p>
+                            <p class="text-[11px] text-gray-500">戶名：邱佳祈</p>
+                        </div>
+                        
+                        <div>
+                            <p class="font-bold text-gray-800">📱 行動支付轉帳：</p>
+                            <p class="text-[11px] text-gray-500">可使用街口支付 / LINE Pay 掃瞄主理人專屬收款碼轉帳。</p>
+                        </div>
                     </div>
                     
-                    <!-- 轉帳通知表單：直接寫入資料庫 -->
                     <form id="orderReportForm" class="space-y-2 pt-1">
-                        <label class="block text-[11px] font-bold text-gray-700">👇 轉帳完成後，請在此填寫帳號後五碼對帳：</label>
+                        <label class="block text-[11px] font-bold text-gray-700">👇 匯款完成後，請填寫帳號後五碼對帳：</label>
                         <div class="flex gap-2">
                             <input type="text" id="payFiveCode" required maxlength="5" class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如: 12345">
                             <button type="submit" id="reportBtn" class="bg-forest text-white px-4 py-1.5 rounded-xl text-xs font-medium hover:bg-opacity-95 transition whitespace-nowrap shadow-xs">送出對帳</button>
@@ -202,16 +252,16 @@
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-2xl">
             <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
             <h3 class="text-2xl font-bold text-forest mb-2">預約玥石之溫・調香體驗課</h3>
-            <p class="text-xs text-gray-400 mb-6">抽中命定香，來親手調配一瓶屬於你的專屬香氣吧！</p>
+            <p class="text-xs text-gray-400 mb-6">抽中命定香，親手調配屬於你的專屬香氣！</p>
             
             <form id="bookingForm" class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">預約會員姓名</label>
-                    <input type="text" id="bookName" readonly class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 text-sm outline-none" placeholder="載入中...">
+                    <input type="text" id="bookName" readonly class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 text-sm outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">聯絡電話</label>
-                    <input type="tel" id="bookPhone" readonly class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 text-sm outline-none" placeholder="載入中...">
+                    <input type="tel" id="bookPhone" readonly class="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 text-sm outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">選擇體驗日期</label>
@@ -234,9 +284,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 🎯 修正版專案官方認證金鑰（大寫 O 正確版）
         const firebaseConfig = {
             apiKey: "AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c",
             authDomain: "poetry-ai-5dd52.firebaseapp.com",
@@ -252,6 +301,9 @@
         const db = getFirestore(app);
 
         let currentUserData = null;
+        let currentProductPrice = 580;
+        let finalPayPrice = 580;
+        let activeDiscount = 0;
         const ADMIN_EMAIL = "qoojude@hotmail.com";
 
         async function fetchShowcaseProducts() {
@@ -266,6 +318,7 @@
                 let showcaseHTML = '';
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
+                    const price = data.price || 580;
                     const imageMarkup = data.imageUrl 
                         ? `<img src="${data.imageUrl}" class="w-full h-48 object-cover rounded-2xl shadow-md mb-4 bg-white border border-gray-100">`
                         : `<div class="text-4xl bg-sand p-4 rounded-full mb-4">🌿</div>`;
@@ -274,10 +327,11 @@
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
                             ${imageMarkup}
                             <h4 class="text-lg font-bold text-gray-800">${data.name}</h4>
-                            <p class="text-xs text-clay font-medium mb-3">${data.codeName || data.code || '---'}</p>
+                            <p class="text-xs text-clay font-bold mb-1">$${price} TWD</p>
+                            <p class="text-[10px] text-gray-400 font-medium mb-3">${data.codeName || data.code || '---'}</p>
                             <p class="text-xs text-gray-500 text-center leading-relaxed mb-5 flex-1 line-clamp-3">${data.description || '無商品描述'}</p>
-                            <button onclick="handleAction('buy')" class="w-full py-2 bg-forest text-white text-xs font-medium rounded-lg hover:bg-opacity-95 transition">
-                                了解更多商品詳情
+                            <button onclick="triggerProductBuy('${data.name}', ${price})" class="w-full py-2 bg-forest text-white text-xs font-medium rounded-lg hover:bg-opacity-95 transition">
+                                立即選購此單品 ($${price})
                             </button>
                         </div>
                     `;
@@ -291,6 +345,7 @@
         onAuthStateChanged(auth, async (user) => {
             const navStatus = document.getElementById('navUserStatus');
             const refCenter = document.getElementById('referralCenter');
+            const birthdayBanner = document.getElementById('birthdayBanner');
             
             if (user) {
                 const docRef = doc(db, "members", user.uid);
@@ -316,6 +371,14 @@
 
                     document.getElementById('bookName').value = currentUserData.fullName || currentUserData.name;
                     document.getElementById('bookPhone').value = currentUserData.phone;
+
+                    if (currentUserData.birthday) {
+                        const birthMonth = new Date(currentUserData.birthday).getMonth() + 1;
+                        const currentMonth = new Date().getMonth() + 1;
+                        if (birthMonth === currentMonth) {
+                            birthdayBanner.classList.remove('hidden');
+                        }
+                    }
                 } else {
                     let adminLink = isAdmin ? `<a href="admin.html" class="text-clay hover:underline mr-4 font-bold">⚙️ 後台管理</a>` : '';
                     navStatus.innerHTML = `
@@ -342,6 +405,60 @@
             }
         });
 
+        window.applyCoupon = function() {
+            const code = document.getElementById('couponInput').value.trim().toUpperCase();
+            if (!code) return;
+
+            let discount = 0;
+            if (code === 'STAR88') {
+                discount = Math.round(currentProductPrice * 0.12);
+                alert("🎉 成功套用【STAR88】專屬 88 折優惠！");
+            } else if (code === 'BIRTHDAY100') {
+                discount = 100;
+                alert("🎉 成功套用【壽星專屬禮】現折 $100 元！");
+            } else if (code === 'FREE60') {
+                discount = 60;
+                alert("🎉 成功套用運費折抵券現折 $60 元！");
+            } else {
+                alert("❌ 無效的折扣碼，請確認後重試。");
+                return;
+            }
+
+            activeDiscount = discount;
+            updatePriceUI();
+        };
+
+        function updatePriceUI() {
+            finalPayPrice = Math.max(0, currentProductPrice - activeDiscount);
+            document.getElementById('originalPriceText').innerText = `$${currentProductPrice}`;
+            document.getElementById('finalPriceText').innerText = finalPayPrice;
+            
+            const discountRow = document.getElementById('discountRow');
+            if (activeDiscount > 0) {
+                discountRow.classList.remove('hidden');
+                document.getElementById('discountText').innerText = `-$${activeDiscount}`;
+            } else {
+                discountRow.classList.add('hidden');
+            }
+        }
+
+        window.triggerProductBuy = function(pName, pPrice) {
+            currentProductPrice = pPrice;
+            activeDiscount = 0;
+            document.getElementById('payOilName').innerText = pName;
+            updatePriceUI();
+            openPaymentModal();
+        };
+
+        window.openSampleModal = function() {
+            currentProductPrice = 60;
+            activeDiscount = 0;
+            document.getElementById('payOilName').innerText = "🎁 命定香氣試聞瓶體驗樣品 (基礎運費)";
+            document.getElementById('modalTitle').innerText = "索取試聞瓶對帳";
+            updatePriceUI();
+            openPaymentModal();
+        };
+
         window.handleAction = function(actionType) {
             if (!auth.currentUser) {
                 alert('為了記錄您的預約與配送資料，請先填寫會員資料唷！');
@@ -349,11 +466,13 @@
                 window.location.href = 'login.html';
             } else {
                 if (actionType === 'book') openBookingModal();
-                else openPaymentModal();
+                else {
+                    const name = document.getElementById('resultTitle').innerText || "命定精油";
+                    triggerProductBuy(name, 580);
+                }
             }
         }
 
-        // 📝 處理轉帳後五碼即時回報系統
         document.getElementById('orderReportForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const reportBtn = document.getElementById('reportBtn');
@@ -366,16 +485,26 @@
             try {
                 await addDoc(collection(db, "order_reports"), {
                     uid: auth.currentUser.uid,
-                    customerName: currentUserData ? (currentUserData.fullName || currentUserData.name) : "生態圈會員",
+                    customerName: currentUserData ? (currentUserData.fullName || currentUserData.name) : "會員",
                     phone: currentUserData ? currentUserData.phone : "未填電話",
                     productName: targetOil,
-                    price: 580,
-                    paymentMethod: "行動支付/轉帳",
+                    originalPrice: currentProductPrice,
+                    finalPrice: finalPayPrice,
+                    discountAmount: activeDiscount,
+                    paymentMethod: "匯款/轉帳",
                     lastFiveDigits: fiveCode,
                     status: "待核對",
                     createdAt: new Date().toISOString()
                 });
-                alert(`🎉 後五碼【${fiveCode}】回報成功！\n主理人邱小姐將在核對帳款後為您火速出貨！`);
+
+                const earnedPoints = Math.round(finalPayPrice * 0.1);
+                if (earnedPoints > 0) {
+                    await updateDoc(doc(db, "members", auth.currentUser.uid), {
+                        points: increment(earnedPoints)
+                    });
+                }
+
+                alert(`🎉 後五碼【${fiveCode}】回報成功！\n系統已預先為您發放 +${earnedPoints} 點養份！主理人核對後將火速出貨！`);
                 closePaymentModal();
                 document.getElementById('orderReportForm').reset();
             } catch (error) {
@@ -386,7 +515,6 @@
             }
         });
 
-        // 體驗課預約
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const date = document.getElementById('bookDate').value;
@@ -418,7 +546,7 @@
     <script>
         const oilData = [
             { name: "真正薰衣草 (Lavender)", desc: "【心靈指引】你最近可能有些疲憊。薰衣草溫柔的香氣提醒你：『是時候放下掌控，好好睡一覺了。』" },
-            { name: "澳洲茶樹 (Tea Tree)", desc: "【心靈指引】你正處於需要釐清思緒的階段。茶樹強勁的潔淨能量能幫情阻絕外在的負面干擾。" },
+            { name: "澳洲茶樹 (Tea Tree)", desc: "【心靈指引】你正處於需要釐清思緒的階段。茶樹強勁的潔淨能量能幫你阻絕外在的負面干擾。" },
             { name: "甜橙 (Sweet Orange)", desc: "【心靈指引】生活需要一點純粹的快樂！甜橙就像陽光一樣，能融化內心的冰冷與嚴肅。" }
         ];
         let hasDrawn = false;
@@ -437,12 +565,7 @@
         function openBookingModal() { document.getElementById('bookingModal').classList.remove('hidden'); }
         function closeBookingModal() { document.getElementById('bookingModal').classList.add('hidden'); }
         
-        // 💳 結帳視窗控制
-        function openPaymentModal() {
-            const drawnOilName = document.getElementById('resultTitle').innerText;
-            document.getElementById('payOilName').innerText = drawnOilName || "本季嚴選療癒精油";
-            document.getElementById('paymentModal').classList.remove('hidden');
-        }
+        function openPaymentModal() { document.getElementById('paymentModal').classList.remove('hidden'); }
         function closePaymentModal() { document.getElementById('paymentModal').classList.add('hidden'); }
     </script>
 </body>
