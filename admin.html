@@ -47,10 +47,9 @@
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
                 <h3 class="text-base font-bold text-forest flex items-center gap-2">
-                    📦 顧客訂單與匯款對帳管理 
+                    📦 顧客訂單與對帳寄送管理 
                     <span id="newOrderBadge" class="hidden bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">有新訂單</span>
                 </h3>
-                <button onclick="loadOrders()" class="text-xs text-clay hover:underline">🔄 刷新對帳表</button>
             </div>
 
             <div class="overflow-x-auto">
@@ -58,10 +57,10 @@
                     <thead>
                         <tr class="bg-sand/60 text-gray-500 border-b">
                             <th class="p-3">下單時間</th>
-                            <th class="p-3">顧客資訊</th>
-                            <th class="p-3">訂購品項</th>
+                            <th class="p-3">會員/購買品項</th>
                             <th class="p-3">實付金額</th>
-                            <th class="p-3">匯款後五碼</th>
+                            <th class="p-3">後五碼</th>
+                            <th class="p-3">📦 寄送門市 / 地址資訊</th>
                             <th class="p-3">目前狀態</th>
                             <th class="p-3 text-right">對帳操作</th>
                         </tr>
@@ -146,14 +145,12 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // 👑 雙主理人最高權限白名單
         const ADMIN_EMAILS = [
             "qoojude@hotmail.com",
             "a0937034596@gmail.com"
         ];
         let productsCache = {};
 
-        // 🛡️ 後台權限守衛
         onAuthStateChanged(auth, (user) => {
             if (!user || !ADMIN_EMAILS.includes(user.email)) {
                 alert("🔒 抱歉，本頁面為玥石之溫主理人專屬。已為您跳轉回首頁。");
@@ -164,7 +161,6 @@
             listenRealtimeOrders();
         });
 
-        // 🔔 即時監聽訂單
         function listenRealtimeOrders() {
             const ordersRef = collection(db, "order_reports");
             onSnapshot(ordersRef, (snapshot) => {
@@ -198,10 +194,17 @@
                     tableHTML += `
                         <tr class="border-b hover:bg-sand/30 transition">
                             <td class="p-3 text-[10px] text-gray-400">${dateStr}</td>
-                            <td class="p-3 font-bold text-gray-800">${order.customerName || '會員'}<br><span class="text-[10px] text-gray-400 font-normal">${order.phone || ''}</span></td>
-                            <td class="p-3 text-gray-700">${order.productName || '精油'}</td>
+                            <td class="p-3">
+                                <p class="font-bold text-gray-800">${order.customerName || '會員'}</p>
+                                <p class="text-[10px] text-clay font-bold mt-0.5">${order.productName || '精油'}</p>
+                            </td>
                             <td class="p-3 font-black text-clay">$${order.finalPrice || 580}</td>
                             <td class="p-3"><span class="font-mono font-bold bg-clay/10 text-clay px-2 py-1 rounded text-sm">${order.lastFiveDigits || '無'}</span></td>
+                            <td class="p-3 text-[11px] text-gray-700">
+                                <span class="font-bold text-forest bg-sand px-1.5 py-0.5 rounded border border-gray-200">${order.shipMethod || '7-11取貨'}</span><br>
+                                <span class="font-bold text-gray-800">收件人：${order.shipName || '未填'} (${order.shipPhone || '未填'})</span><br>
+                                <span class="text-gray-500">${order.shipAddress || '未填寫門市'}</span>
+                            </td>
                             <td class="p-3">${statusBadge}</td>
                             <td class="p-3 text-right space-x-1">
                                 <button onclick="updateOrderStatus('${id}', '已核對/待出貨')" class="bg-forest text-white px-2 py-1 rounded text-[10px] hover:opacity-90">✅ 入帳</button>
