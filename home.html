@@ -345,11 +345,28 @@
 
         function normalizeProduct(id, data) {
             let flavors = Array.isArray(data.flavors) ? data.flavors
-                .map((f, index) => ({ id: `${id}_${index}`, name: String(f.name || '').trim(), price: Number(f.price || 0) }))
-                .filter(f => f.name && f.price >= 0) : [];
+                .map((f, index) => ({
+                    id: `${id}_${index}`,
+                    name: String(f.name || '').trim(),
+                    price: Number(f.price ?? 0),
+                    compareAtPrice: f.compareAtPrice == null ? null : Number(f.compareAtPrice),
+                    sku: String(f.sku || ''),
+                    active: f.active !== false,
+                    sortOrder: Number(f.sortOrder ?? index)
+                }))
+                .filter(f => f.name && f.price >= 0)
+                .sort((a,b) => a.sortOrder - b.sortOrder) : [];
             if (!flavors.length) {
                 const fallbackName = data.codeName || data.code || data.name || '預設香氣';
-                flavors = [{ id: `${id}_0`, name: fallbackName, price: Number(data.price ?? data.defaultPrice ?? 580) }];
+                flavors = [{
+                    id: `${id}_0`,
+                    name: fallbackName,
+                    price: Number(data.price ?? data.defaultPrice ?? 580),
+                    compareAtPrice: null,
+                    sku: String(data.code || ''),
+                    active: true,
+                    sortOrder: 0
+                }];
             }
             return {
                 id,
@@ -358,8 +375,9 @@
                 description: data.description || '讓今天的香氣陪你回到自己的節奏。',
                 imageUrl: data.imageUrl || '',
                 active: data.active !== false,
+                sortOrder: Number(data.sortOrder ?? 100),
                 flavors,
-                defaultPrice: Number(data.defaultPrice ?? flavors[0]?.price ?? data.price ?? 580)
+                defaultPrice: Number(data.defaultPrice ?? flavors.find(f=>f.active)?.price ?? flavors[0]?.price ?? data.price ?? 580)
             };
         }
 
@@ -378,21 +396,39 @@
                     const p = normalizeProduct(ds.id, ds.data());
                     if (!p.active) return;
                     productsCache[p.id] = p;
-                    p.flavors.forEach(f => drawPool.push({ productId:p.id, productName:p.name, category:p.category, flavorName:f.name, price:f.price, description:p.description, imageUrl:p.imageUrl }));
+                    p.flavors.filter(f=>f.active).forEach(f => drawPool.push({
+                        productId:p.id,
+                        productName:p.name,
+                        category:p.category,
+                        flavorName:f.name,
+                        price:f.price,
+                        description:p.description,
+                        imageUrl:p.imageUrl
+                    }));
                 });
-                showcase.innerHTML = Object.values(productsCache).map(p => {
+                showcase.innerHTML = Object.values(productsCache)
+                    .sort((a,b)=>a.sortOrder-b.sortOrder || a.name.localeCompare(b.name,'zh-Hant'))
+                    .map(p => {
                     const selectId = `flavor_${p.id}`;
                     const image = p.imageUrl
                         ? `<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-48 object-cover rounded-2xl shadow-md mb-4 bg-white border border-gray-100" loading="lazy">`
                         : '<div class="text-4xl bg-sand p-4 rounded-full mb-4">🌿</div>';
-                    const options = p.flavors.map(f => `<option value="${escapeHtml(f.id)}" data-price="${f.price}">${escapeHtml(f.name)} — $${f.price}</option>`).join('');
+                    const saleFlavors = p.flavors.filter(f=>f.active);
+                    const options = saleFlavors.map(f => {
+                        const original = f.compareAtPrice && f.compareAtPrice > f.price ? `（原價 $${f.compareAtPrice}）` : '';
+                        return `<option value="${escapeHtml(f.id)}" data-price="${f.price}">${escapeHtml(f.name)} — $${f.price} ${original}</option>`;
+                    }).join('');
+                    const soldOut = saleFlavors.length === 0;
                     return `<article class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
                         ${image}
                         <span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 rounded-full font-bold mb-2">${escapeHtml(p.category)}</span>
                         <h4 class="text-lg font-bold text-gray-800">${escapeHtml(p.name)}</h4>
                         <p class="text-xs text-gray-500 text-center leading-relaxed my-3 flex-1 line-clamp-3">${escapeHtml(p.description)}</p>
-                        <select id="${selectId}" class="w-full mb-3 px-3 py-2 border rounded-xl text-xs bg-white focus:ring-2 focus:ring-clay outline-none">${options}</select>
-                        <button onclick="buyProduct('${p.id}')" class="w-full py-2 bg-forest text-white text-xs font-medium rounded-lg hover:bg-opacity-95 transition">選擇此香氣購買</button>
+                        ${soldOut
+                            ? `<div class="w-full mb-3 px-3 py-2 rounded-xl text-xs bg-gray-100 text-gray-400 text-center">目前所有規格暫停販售</div>`
+                            : `<select id="${selectId}" class="w-full mb-3 px-3 py-2 border rounded-xl text-xs bg-white focus:ring-2 focus:ring-clay outline-none">${options}</select>`
+                        }
+                        <button ${soldOut?'disabled':''} onclick="buyProduct('${p.id}')" class="w-full py-2 ${soldOut?'bg-gray-300 cursor-not-allowed':'bg-forest hover:bg-opacity-95'} text-white text-xs font-medium rounded-lg transition">${soldOut?'暫時售罄':'選擇此香氣購買'}</button>
                     </article>`;
                 }).join('');
                 prepareDrawCards();
@@ -405,9 +441,11 @@
         window.buyProduct = function(productId) {
             const p = productsCache[productId];
             if (!p) return;
+            const selectable = p.flavors.filter(f=>f.active);
+            if(!selectable.length) return alert('此商品目前沒有可販售規格。');
             const select = document.getElementById(`flavor_${productId}`);
             const chosenId = select?.value;
-            const flavor = p.flavors.find(f => f.id === chosenId) || p.flavors[0];
+            const flavor = selectable.find(f => f.id === chosenId) || selectable[0];
             requestPurchase({ productId:p.id, productName:p.name, flavorName:flavor.name, price:flavor.price });
         };
 
