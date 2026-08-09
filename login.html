@@ -43,6 +43,9 @@
                 進入玥石之溫
             </button>
         </form>
+        <div id="forgotWrap" class="mt-3 text-right">
+            <button type="button" onclick="forgotPassword()" class="text-xs text-gray-400 hover:text-clay">忘記密碼？寄送重設信</button>
+        </div>
 
         <!-- 註冊表單 -->
         <form id="registerForm" class="space-y-4 hidden">
@@ -86,8 +89,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, increment, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c",
@@ -98,101 +101,106 @@
             appId: "1:433041548580:web:43808e3a99ea9fbd123fb1",
             measurementId: "G-D3LY5HJLZG"
         };
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const SIGNUP_POINTS = 50;
+        const REFERRER_REWARD = 50;
 
-        // 切換 Tab
         window.switchTab = function(type) {
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
             const tabLogin = document.getElementById('tabLogin');
             const tabRegister = document.getElementById('tabRegister');
-
+            const forgot = document.getElementById('forgotWrap');
             if (type === 'login') {
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                tabLogin.className = "w-1/2 pb-3 border-b-2 border-forest text-forest font-bold";
-                tabRegister.className = "w-1/2 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600";
+                loginForm.classList.remove('hidden'); registerForm.classList.add('hidden'); forgot.classList.remove('hidden');
+                tabLogin.className = 'w-1/2 pb-3 border-b-2 border-forest text-forest font-bold';
+                tabRegister.className = 'w-1/2 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600';
             } else {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-                tabRegister.className = "w-1/2 pb-3 border-b-2 border-clay text-clay font-bold";
-                tabLogin.className = "w-1/2 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600";
+                loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); forgot.classList.add('hidden');
+                tabRegister.className = 'w-1/2 pb-3 border-b-2 border-clay text-clay font-bold';
+                tabLogin.className = 'w-1/2 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600';
             }
         };
 
-        // 登入
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const btn = document.getElementById('loginBtn');
+        async function findMemberByCode(code) {
+            const normalized = code.trim().toUpperCase();
+            if (!normalized) return null;
+            const snap = await getDocs(query(collection(db, 'members'), where('memberCode', '==', normalized)));
+            if (snap.empty) return null;
+            const first = snap.docs[0];
+            return { id:first.id, ...first.data() };
+        }
 
-            btn.disabled = true;
-            btn.innerText = "⏳ 登入中...";
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                alert("🎉 歡迎回來玥石之溫！");
-                window.location.href = 'home.html';
-            } catch (error) {
-                alert("❌ 登入失敗：請確認帳號與密碼是否正確。");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "進入玥石之溫";
+        async function generateUniqueMemberCode() {
+            for (let i=0; i<12; i++) {
+                const code = 'YS' + Math.floor(100000 + Math.random() * 900000);
+                if (!await findMemberByCode(code)) return code;
             }
+            return 'YS' + Date.now().toString().slice(-8);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true; btn.textContent = '⏳ 登入中...';
+            try {
+                await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value.trim(), document.getElementById('loginPassword').value);
+                location.href = 'home.html';
+            } catch (_) { alert('❌ 登入失敗：請確認帳號與密碼是否正確。'); }
+            finally { btn.disabled = false; btn.textContent = '進入玥石之溫'; }
         });
 
-        // 註冊
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        window.forgotPassword = async function() {
+            const email = document.getElementById('loginEmail').value.trim();
+            if (!email) return alert('請先在 Email 欄位輸入你的信箱。');
+            try { await sendPasswordResetEmail(auth, email); alert('📧 密碼重設信已寄出，請到信箱查看。'); }
+            catch (e) { alert('無法寄送重設信：' + e.message); }
+        };
+
+        document.getElementById('registerForm').addEventListener('submit', async e => {
             e.preventDefault();
-            const name = document.getElementById('regName').value;
-            const phone = document.getElementById('regPhone').value;
+            const btn = document.getElementById('regBtn');
+            const name = document.getElementById('regName').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
             const birthday = document.getElementById('regBirthday').value;
-            const email = document.getElementById('regEmail').value;
+            const email = document.getElementById('regEmail').value.trim();
             const password = document.getElementById('regPassword').value;
             const passwordConfirm = document.getElementById('regPasswordConfirm').value;
-            const inviteCode = document.getElementById('regInviteCode').value;
-            const btn = document.getElementById('regBtn');
-
-            if (password !== passwordConfirm) {
-                alert("⚠️ 兩次輸入的密碼不一致，請再次確認唷！");
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "⏳ 正在建立個人資料庫...";
-
+            const inviteCode = document.getElementById('regInviteCode').value.trim().toUpperCase();
+            if (password !== passwordConfirm) return alert('⚠️ 兩次輸入的密碼不一致。');
+            btn.disabled = true; btn.textContent = '⏳ 正在驗證推薦碼並建立會員...';
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                const myMemberCode = 'YS' + Math.floor(100000 + Math.random() * 900000);
-
-                await setDoc(doc(db, "members", user.uid), {
-                    uid: user.uid,
-                    fullName: name,
-                    phone: phone,
-                    birthday: birthday,
-                    email: email,
-                    memberCode: myMemberCode,
-                    usedInviteCode: inviteCode || "",
-                    points: 50,
-                    role: 'member',
-                    createdAt: new Date().toISOString()
+                let inviter = null;
+                if (inviteCode) {
+                    inviter = await findMemberByCode(inviteCode);
+                    if (!inviter) throw new Error('推薦碼不存在，請確認後再試；若沒有推薦人可留白。');
+                }
+                const myMemberCode = await generateUniqueMemberCode();
+                const credential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = credential.user;
+                await setDoc(doc(db, 'members', user.uid), {
+                    uid:user.uid, fullName:name, phone, birthday, email,
+                    memberCode:myMemberCode, usedInviteCode:inviteCode || '',
+                    points:SIGNUP_POINTS, role:'member', createdAt:new Date().toISOString()
                 });
-
-                alert("🎉 註冊成功！獲得首訪體驗養份 50 點！");
-                window.location.href = 'home.html';
-            } catch (error) {
-                alert("❌ 註冊失敗：" + error.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "註冊並開啟療癒之旅";
-            }
+                if (inviter) {
+                    try {
+                        await updateDoc(doc(db, 'members', inviter.id), { points: increment(REFERRER_REWARD) });
+                        await addDoc(collection(db, 'referrals'), {
+                            inviterUid:inviter.id, inviterCode:inviteCode,
+                            invitedUid:user.uid, invitedName:name, invitedEmail:email,
+                            rewardPoints:REFERRER_REWARD, createdAt:new Date().toISOString()
+                        });
+                    } catch (refErr) { console.error('推薦獎勵寫入失敗', refErr); }
+                }
+                alert(`🎉 註冊成功！獲得首訪養份 ${SIGNUP_POINTS} 點${inviter ? `，並已為推薦人送出 ${REFERRER_REWARD} 點獎勵` : ''}。`);
+                location.href = 'home.html';
+            } catch (e) { alert('❌ 註冊失敗：' + e.message); }
+            finally { btn.disabled = false; btn.textContent = '註冊並開啟療癒之旅'; }
         });
     </script>
+
 </body>
 </html>
