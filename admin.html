@@ -22,28 +22,20 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-forest">👑 玥石之溫・主理人後台</h1>
-                <p class="text-xs text-gray-400 mt-1">即時管理商品價格、照片與顧客匯款對帳</p>
+                <p class="text-xs text-gray-400 mt-1">管理商品系列、多口味獨立定價與顧客對帳</p>
             </div>
             <a href="home.html" class="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-200 transition">返回前台首頁</a>
         </div>
 
-        <!-- 📊 營運數據看板 -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-xs text-gray-400">待對帳訂單</p>
-                <p id="statPendingOrders" class="text-2xl font-black text-clay mt-1">0 <span class="text-xs font-normal">筆</span></p>
-            </div>
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-xs text-gray-400">已核對/等出貨</p>
-                <p id="statPaidOrders" class="text-2xl font-black text-forest mt-1">0 <span class="text-xs font-normal">筆</span></p>
-            </div>
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 col-span-2 sm:col-span-1">
-                <p class="text-xs text-gray-400">總商品數量</p>
-                <p id="statTotalProducts" class="text-2xl font-black text-gray-700 mt-1">0 <span class="text-xs font-normal">款</span></p>
-            </div>
+        <!-- 📊 營運看板 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-2xl border"><p class="text-xs text-gray-400">待對帳</p><p id="statPending" class="text-2xl font-black text-clay">0</p></div>
+            <div class="bg-white p-4 rounded-2xl border"><p class="text-xs text-gray-400">待出貨</p><p id="statPaid" class="text-2xl font-black text-forest">0</p></div>
+            <div class="bg-white p-4 rounded-2xl border"><p class="text-xs text-gray-400">商品系列</p><p id="statProducts" class="text-2xl font-black text-gray-700">0</p></div>
+            <div class="bg-white p-4 rounded-2xl border"><p class="text-xs text-gray-400">待處理預約</p><p id="statBookings" class="text-2xl font-black text-gray-700">0</p></div>
         </div>
 
-        <!-- 📦 顧客訂單與匯款對帳管理區 -->
+        <!-- 📦 顧客訂單與對帳寄送管理區 -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
                 <h3 class="text-base font-bold text-forest flex items-center gap-2">
@@ -74,12 +66,12 @@
             </div>
         </div>
 
-        <!-- 🛍️ 商品管理 -->
+        <!-- 🛍️ 商品管理（支援同系列多口味獨立定價） -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- 左側：上架/編輯表單 -->
             <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 id="formTitle" class="text-sm font-bold text-forest">✨ 新品上架至櫥窗</h3>
+                    <h3 id="formTitle" class="text-sm font-bold text-forest">✨ 新品/系列上架</h3>
                     <button id="cancelEditBtn" onclick="resetForm()" class="hidden text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded hover:bg-gray-200">取消編輯</button>
                 </div>
 
@@ -88,38 +80,84 @@
                     <input type="hidden" id="existingImageUrl" value="">
 
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">精油名稱</label>
-                        <input type="text" id="pName" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如：大馬士革玫瑰">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">🏷️ 系列/分類名稱</label>
+                        <select id="pCategory" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white">
+                            <option value="經典單方精油">🌿 經典單方精油</option>
+                            <option value="複方複和精油">✨ 複方療癒精油</option>
+                            <option value="水晶擴香套組">🔮 水晶擴香套組</option>
+                            <option value="限定盲盒體驗">🎁 限定盲盒體驗</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">商品/系列主名稱</label>
+                        <input type="text" id="pName" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如：植萃經典單方系列">
+                    </div>
+
+                    <!-- 🌸 多口味與獨立定價動態新增區 -->
+                    <div class="border-t border-b border-gray-100 py-3 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-xs font-bold text-forest">🌸 口味/香氣與獨立定價</label>
+                            <button type="button" onclick="addFlavorRow()" class="text-[10px] bg-clay/10 text-clay font-bold px-2 py-1 rounded-lg hover:bg-clay hover:text-white transition">+ 新增口味</button>
+                        </div>
+                        
+                        <div id="flavorContainer" class="space-y-2">
+                            <!-- 預設第一組口味 -->
+                            <div class="flex gap-2 items-center flavor-row">
+                                <input type="text" class="flavor-name w-1/2 px-2 py-1.5 border rounded-lg text-xs outline-none" placeholder="口味 (例: 薰衣草)" required>
+                                <input type="number" class="flavor-price w-1/2 px-2 py-1.5 border rounded-lg text-xs outline-none" placeholder="價格 (例: 580)" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">系列/香氣心靈描述</label>
+                        <textarea id="pDesc" required rows="3" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="輸入商品或香氣指引描述..."></textarea>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">商品英文/代號</label>
-                        <input type="text" id="pCode" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如：Rose">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">💵 商品售價 ($ TWD)</label>
-                        <input type="number" id="pPrice" required min="0" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如：580">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">香氣心靈描述</label>
-                        <textarea id="pDesc" required rows="3" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="輸入抽中時顯示的心靈指引文字..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">商品實體照片 (編輯時不選擇則保留原圖)</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">商品實體照片</label>
                         <input type="file" id="pKeyImage" accept="image/*" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-clay/10 file:text-clay hover:file:bg-clay/20">
                     </div>
                     
+                    <label class="flex items-center gap-2 text-xs text-gray-600"><input type="checkbox" id="pActive" checked> 前台啟用此商品系列</label>
                     <button type="submit" id="submitBtn" class="w-full bg-forest text-white py-2.5 rounded-xl text-xs font-medium hover:bg-opacity-95 transition shadow-sm">
                         🚀 確認上架至雲端櫥窗
                     </button>
                 </form>
             </div>
 
-            <!-- 右側：現有盲盒清單 -->
+            <!-- 右側：現有盲盒與系列商品清單 -->
             <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 class="text-sm font-bold text-forest mb-4 border-b pb-2">📦 目前雲端盲盒庫商品</h3>
+                <h3 class="text-sm font-bold text-forest mb-4 border-b pb-2">📦 目前雲端櫥窗商品系列</h3>
                 <div id="adminProductList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <p class="text-xs text-gray-400 py-8 col-span-full text-center">正在同步雲端照片清單...</p>
+                    <p class="text-xs text-gray-400 py-8 col-span-full text-center">正在同步雲端商品數據...</p>
                 </div>
+            </div>
+        </div>
+        <!-- 📅 體驗課預約管理 -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="text-base font-bold text-forest mb-4 border-b pb-3">📅 體驗課預約管理</h3>
+            <div id="bookingAdminList" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"><p class="text-gray-400">正在同步預約...</p></div>
+        </div>
+
+        <!-- 🏷️ 優惠券管理 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="text-sm font-bold text-forest mb-4">🏷️ 新增 / 更新優惠券</h3>
+                <form id="couponForm" class="space-y-3">
+                    <input id="couponCodeAdmin" required class="w-full px-3 py-2 border rounded-xl text-sm uppercase" placeholder="代碼，例如 STAR88">
+                    <select id="couponTypeAdmin" class="w-full px-3 py-2 border rounded-xl text-sm bg-white"><option value="percent">百分比折扣 (%)</option><option value="fixed">固定折抵 ($)</option></select>
+                    <input id="couponValueAdmin" type="number" min="0" required class="w-full px-3 py-2 border rounded-xl text-sm" placeholder="折扣值，例如 12 或 100">
+                    <input id="couponMinSpendAdmin" type="number" min="0" value="0" class="w-full px-3 py-2 border rounded-xl text-sm" placeholder="最低消費">
+                    <select id="couponScopeAdmin" class="w-full px-3 py-2 border rounded-xl text-sm bg-white"><option value="all">所有會員</option><option value="birthday">當月壽星</option></select>
+                    <label class="flex items-center gap-2 text-xs"><input id="couponActiveAdmin" type="checkbox" checked> 啟用</label>
+                    <button class="w-full bg-clay text-white py-2 rounded-xl text-xs font-bold">儲存優惠券</button>
+                </form>
+                <button onclick="seedDefaultCoupons()" class="w-full mt-3 bg-sand text-forest py-2 rounded-xl text-xs font-bold">建立預設 STAR88 / BIRTHDAY100 / FREE60</button>
+            </div>
+            <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="text-sm font-bold text-forest mb-4">目前優惠券</h3>
+                <div id="couponList" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"><p class="text-gray-400">正在載入...</p></div>
             </div>
         </div>
     </div>
@@ -127,257 +165,75 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c",
-            authDomain: "poetry-ai-5dd52.firebaseapp.com",
-            projectId: "poetry-ai-5dd52",
-            storageBucket: "poetry-ai-5dd52.firebasestorage.app",
-            messagingSenderId: "433041548580",
-            appId: "1:433041548580:web:43808e3a99ea9fbd123fb1",
-            measurementId: "G-D3LY5HJLZG"
-        };
+        const firebaseConfig = { apiKey:"AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c", authDomain:"poetry-ai-5dd52.firebaseapp.com", projectId:"poetry-ai-5dd52", storageBucket:"poetry-ai-5dd52.firebasestorage.app", messagingSenderId:"433041548580", appId:"1:433041548580:web:43808e3a99ea9fbd123fb1", measurementId:"G-D3LY5HJLZG" };
+        const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app), storage=getStorage(app);
+        const ADMIN_EMAILS=["qoojude@hotmail.com","a0937034596@gmail.com"];
+        let productsCache={};
+        const esc=(v='')=>String(v).replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-
-        const ADMIN_EMAILS = [
-            "qoojude@hotmail.com",
-            "a0937034596@gmail.com"
-        ];
-        let productsCache = {};
-
-        onAuthStateChanged(auth, (user) => {
-            if (!user || !ADMIN_EMAILS.includes(user.email)) {
-                alert("🔒 抱歉，本頁面為玥石之溫主理人專屬。已為您跳轉回首頁。");
-                window.location.href = 'home.html';
-                return;
-            }
-            loadAdminProducts();
-            listenRealtimeOrders();
+        onAuthStateChanged(auth, async user => {
+            if (!user || !ADMIN_EMAILS.includes(user.email)) { alert('🔒 本頁面為主理人專屬。'); location.href='home.html'; return; }
+            loadAdminProducts(); listenRealtimeOrders(); listenBookings(); loadCoupons();
         });
 
-        function listenRealtimeOrders() {
-            const ordersRef = collection(db, "order_reports");
-            onSnapshot(ordersRef, (snapshot) => {
-                let pendingCount = 0;
-                let paidCount = 0;
-                let tableHTML = "";
-
-                if (snapshot.empty) {
-                    document.getElementById('orderListTable').innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">目前尚無顧客回報訂單。</td></tr>`;
-                    updateStats(0, 0);
-                    return;
-                }
-
-                snapshot.forEach((docSnap) => {
-                    const order = docSnap.data();
-                    const id = docSnap.id;
-                    const dateStr = order.createdAt ? new Date(order.createdAt).toLocaleString('zh-TW', { hour12: false }) : '---';
-                    
-                    let statusBadge = `<span class="bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-bold">待對帳</span>`;
-                    if (order.status === '已核對/待出貨') {
-                        statusBadge = `<span class="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-bold">已核對/待出貨</span>`;
-                        paidCount++;
-                    } else if (order.status === '已完成出貨') {
-                        statusBadge = `<span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">已完成出貨</span>`;
-                    } else if (order.status === '帳款異常') {
-                        statusBadge = `<span class="bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold">帳款異常</span>`;
-                    } else {
-                        pendingCount++;
-                    }
-
-                    tableHTML += `
-                        <tr class="border-b hover:bg-sand/30 transition">
-                            <td class="p-3 text-[10px] text-gray-400">${dateStr}</td>
-                            <td class="p-3">
-                                <p class="font-bold text-gray-800">${order.customerName || '會員'}</p>
-                                <p class="text-[10px] text-clay font-bold mt-0.5">${order.productName || '精油'}</p>
-                            </td>
-                            <td class="p-3 font-black text-clay">$${order.finalPrice || 580}</td>
-                            <td class="p-3"><span class="font-mono font-bold bg-clay/10 text-clay px-2 py-1 rounded text-sm">${order.lastFiveDigits || '無'}</span></td>
-                            <td class="p-3 text-[11px] text-gray-700">
-                                <span class="font-bold text-forest bg-sand px-1.5 py-0.5 rounded border border-gray-200">${order.shipMethod || '7-11取貨'}</span><br>
-                                <span class="font-bold text-gray-800">收件人：${order.shipName || '未填'} (${order.shipPhone || '未填'})</span><br>
-                                <span class="text-gray-500">${order.shipAddress || '未填寫門市'}</span>
-                            </td>
-                            <td class="p-3">${statusBadge}</td>
-                            <td class="p-3 text-right space-x-1">
-                                <button onclick="updateOrderStatus('${id}', '已核對/待出貨')" class="bg-forest text-white px-2 py-1 rounded text-[10px] hover:opacity-90">✅ 入帳</button>
-                                <button onclick="updateOrderStatus('${id}', '已完成出貨')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] hover:opacity-90">🚚 出貨</button>
-                                <button onclick="updateOrderStatus('${id}', '帳款異常')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px] hover:bg-red-100">❌ 異常</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                document.getElementById('orderListTable').innerHTML = tableHTML;
-                updateStats(pendingCount, paidCount);
-            });
-        }
-
-        window.updateOrderStatus = async function(orderId, newStatus) {
-            try {
-                await updateDoc(doc(db, "order_reports", orderId), {
-                    status: newStatus,
-                    updatedAt: new Date().toISOString()
-                });
-            } catch (err) {
-                alert("修改失敗：" + err.message);
-            }
+        window.addFlavorRow=function(name='',price=''){
+            const row=document.createElement('div'); row.className='flex gap-2 items-center flavor-row';
+            row.innerHTML=`<input type="text" value="${esc(name)}" class="flavor-name w-1/2 px-2 py-1.5 border rounded-lg text-xs" placeholder="香氣名稱" required><input type="number" min="0" value="${Number(price)||''}" class="flavor-price w-1/2 px-2 py-1.5 border rounded-lg text-xs" placeholder="售價" required><button type="button" onclick="this.parentElement.remove()" class="text-red-400 font-bold px-1">×</button>`;
+            document.getElementById('flavorContainer').appendChild(row);
         };
+        function getFlavorVariants(){ return [...document.querySelectorAll('.flavor-row')].map((row,i)=>({name:row.querySelector('.flavor-name').value.trim(),price:Number(row.querySelector('.flavor-price').value)})).filter(f=>f.name && Number.isFinite(f.price) && f.price>=0); }
 
-        function updateStats(pending, paid) {
-            document.getElementById('statPendingOrders').innerHTML = `${pending} <span class="text-xs font-normal">筆</span>`;
-            document.getElementById('statPaidOrders').innerHTML = `${paid} <span class="text-xs font-normal">筆</span>`;
-            if (pending > 0) {
-                document.getElementById('newOrderBadge').classList.remove('hidden');
-            } else {
-                document.getElementById('newOrderBadge').classList.add('hidden');
-            }
-        }
-
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
-            const editId = document.getElementById('editProductId').value;
-            const fileInput = document.getElementById('pKeyImage');
-            const name = document.getElementById('pName').value;
-            const code = document.getElementById('pCode').value;
-            const price = parseInt(document.getElementById('pPrice').value) || 580;
-            const desc = document.getElementById('pDesc').value;
-            const existingImg = document.getElementById('existingImageUrl').value;
-
-            if (!editId && fileInput.files.length === 0) {
-                alert("新品上架請上傳或拍攝一張商品實體照片唷！");
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.innerText = editId ? "⏳ 正在更新商品資料..." : "⏳ 正在上架至雲端...";
-
-            try {
-                let downloadUrl = existingImg;
-
-                if (fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
-                    const storageRef = ref(storage, 'products/' + Date.now() + '_' + file.name);
-                    const snapshot = await uploadBytes(storageRef, file);
-                    downloadUrl = await getDownloadURL(snapshot.ref);
-                }
-
-                if (editId) {
-                    await updateDoc(doc(db, "products", editId), {
-                        name: name,
-                        codeName: code,
-                        code: code,
-                        price: price,
-                        description: desc,
-                        imageUrl: downloadUrl,
-                        updatedAt: new Date().toISOString()
-                    });
-                    alert("🎉 商品資料成功更新！");
-                } else {
-                    await addDoc(collection(db, "products"), {
-                        name: name,
-                        codeName: code,
-                        code: code,
-                        price: price,
-                        description: desc,
-                        imageUrl: downloadUrl,
-                        createdAt: new Date().toISOString()
-                    });
-                    alert("🎉 商品實體照與價格成功上架至雲端櫥窗！");
-                }
-
-                resetForm();
-                loadAdminProducts();
-            } catch (error) {
-                alert("❌ 操作失敗：" + error.message);
-            } finally {
-                submitBtn.disabled = false;
-            }
+        document.getElementById('uploadForm').addEventListener('submit',async e=>{
+            e.preventDefault(); const btn=document.getElementById('submitBtn'); const editId=document.getElementById('editProductId').value;
+            const fileInput=document.getElementById('pKeyImage'); const flavors=getFlavorVariants();
+            if(!flavors.length) return alert('請至少新增一種香氣與售價。');
+            if(!editId && !fileInput.files.length) return alert('新品上架請上傳商品照片。');
+            btn.disabled=true; btn.textContent='⏳ 正在同步雲端庫存...';
+            try{
+                let imageUrl=document.getElementById('existingImageUrl').value;
+                if(fileInput.files.length){ const file=fileInput.files[0]; const sref=ref(storage,'products/'+Date.now()+'_'+file.name); const snap=await uploadBytes(sref,file); imageUrl=await getDownloadURL(snap.ref); }
+                const data={ schemaVersion:2, category:document.getElementById('pCategory').value, name:document.getElementById('pName').value.trim(), description:document.getElementById('pDesc').value.trim(), flavors, defaultPrice:flavors[0].price, imageUrl, active:document.getElementById('pActive').checked, updatedAt:new Date().toISOString() };
+                if(editId) await updateDoc(doc(db,'products',editId),data); else { data.createdAt=new Date().toISOString(); await addDoc(collection(db,'products'),data); }
+                alert('🎉 商品資料已儲存。'); resetForm(); loadAdminProducts();
+            }catch(e){alert('❌ 操作失敗：'+e.message)} finally{btn.disabled=false; btn.textContent='🚀 確認上架至雲端櫥窗'}
         });
 
-        async function loadAdminProducts() {
-            const listContainer = document.getElementById('adminProductList');
-            try {
-                const querySnapshot = await getDocs(collection(db, "products"));
-                listContainer.innerHTML = '';
-                productsCache = {};
-                
-                document.getElementById('statTotalProducts').innerHTML = `${querySnapshot.size} <span class="text-xs font-normal">款</span>`;
-
-                if (querySnapshot.empty) {
-                    listContainer.innerHTML = `<p class="text-xs text-gray-400 py-8 col-span-full text-center">目前保險箱內空空如也，快拍下第一款精油商品吧！</p>`;
-                    return;
-                }
-
-                querySnapshot.forEach((docSnap) => {
-                    const p = docSnap.data();
-                    productsCache[docSnap.id] = p;
-
-                    listContainer.innerHTML += `
-                        <div class="bg-sand/50 p-4 rounded-xl flex items-center justify-between border border-gray-100">
-                            <div class="flex items-center gap-3">
-                                <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=100'}" class="w-12 h-12 object-cover rounded-lg bg-white border">
-                                <div class="text-left">
-                                    <p class="text-xs font-bold text-gray-800">${p.name}</p>
-                                    <p class="text-[10px] text-clay font-bold mt-0.5">$${p.price || 580} TWD</p>
-                                    <p class="text-[9px] text-gray-400">代號: ${p.codeName || p.code || '---'}</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-1">
-                                <button onclick="editProduct('${docSnap.id}')" class="text-[10px] bg-forest/10 text-forest px-2 py-1 rounded hover:bg-forest/20 transition">✏️ 編輯</button>
-                                <button onclick="deleteProduct('${docSnap.id}')" class="text-[10px] bg-red-50 text-red-500 px-2 py-1 rounded hover:bg-red-100 transition">刪除</button>
-                            </div>
-                        </div>
-                    `;
+        async function loadAdminProducts(){
+            const list=document.getElementById('adminProductList');
+            try{ const snap=await getDocs(collection(db,'products')); productsCache={}; list.innerHTML=''; document.getElementById('statProducts').textContent=snap.size;
+                if(snap.empty){list.innerHTML='<p class="text-gray-400 text-xs">目前沒有商品。</p>'; return;}
+                snap.forEach(ds=>{ const p=ds.data(); productsCache[ds.id]=p; const flavors=(Array.isArray(p.flavors)&&p.flavors.length?p.flavors:[{name:p.codeName||p.code||p.name,price:p.price||p.defaultPrice||580}]);
+                    list.innerHTML+=`<div class="bg-sand/50 p-4 rounded-xl border"><div class="flex gap-3"><img src="${esc(p.imageUrl||'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=100')}" class="w-14 h-14 object-cover rounded-lg"><div class="flex-1"><span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 rounded-full font-bold">${esc(p.category||'精油系列')}</span><p class="font-bold text-xs mt-1">${esc(p.name)}</p><p class="text-[10px] ${p.active===false?'text-red-500':'text-emerald-600'}">${p.active===false?'已停用':'前台啟用'}</p><div class="mt-2">${flavors.map(f=>`<span class="inline-block bg-clay/10 text-clay px-1.5 py-0.5 rounded text-[10px] mr-1 mb-1">${esc(f.name)} $${Number(f.price)}</span>`).join('')}</div></div></div><div class="flex justify-end gap-1 border-t mt-3 pt-2"><button onclick="editProduct('${ds.id}')" class="text-[10px] bg-forest/10 text-forest px-2 py-1 rounded">✏️ 編輯</button><button onclick="deleteProduct('${ds.id}')" class="text-[10px] bg-red-50 text-red-500 px-2 py-1 rounded">刪除</button></div></div>`;
                 });
-            } catch (err) {
-                listContainer.innerHTML = `<p class="text-xs text-red-400 py-8 col-span-full text-center">加載失敗，請檢查網路狀態。</p>`;
-            }
+            }catch(e){list.innerHTML='<p class="text-red-400 text-xs">商品載入失敗。</p>'}
         }
+        window.editProduct=function(id){ const p=productsCache[id]; if(!p)return; document.getElementById('editProductId').value=id; document.getElementById('pCategory').value=p.category||'經典單方精油'; document.getElementById('pName').value=p.name||''; document.getElementById('pDesc').value=p.description||''; document.getElementById('existingImageUrl').value=p.imageUrl||''; document.getElementById('pActive').checked=p.active!==false; const box=document.getElementById('flavorContainer'); box.innerHTML=''; const fs=Array.isArray(p.flavors)&&p.flavors.length?p.flavors:[{name:p.codeName||p.code||p.name,price:p.price||580}]; fs.forEach(f=>addFlavorRow(f.name,f.price)); document.getElementById('formTitle').textContent='✏️ 編輯商品系列'; document.getElementById('cancelEditBtn').classList.remove('hidden'); };
+        window.resetForm=function(){ document.getElementById('uploadForm').reset(); document.getElementById('editProductId').value=''; document.getElementById('existingImageUrl').value=''; document.getElementById('pActive').checked=true; document.getElementById('flavorContainer').innerHTML=''; addFlavorRow(); document.getElementById('formTitle').textContent='✨ 新品/系列上架'; document.getElementById('cancelEditBtn').classList.add('hidden'); };
+        window.deleteProduct=async id=>{ if(!confirm('確定要刪除此商品系列？'))return; try{await deleteDoc(doc(db,'products',id)); loadAdminProducts()}catch(e){alert(e.message)} };
 
-        window.editProduct = function(id) {
-            const p = productsCache[id];
-            if (!p) return;
-
-            document.getElementById('editProductId').value = id;
-            document.getElementById('pName').value = p.name || '';
-            document.getElementById('pCode').value = p.codeName || p.code || '';
-            document.getElementById('pPrice').value = p.price || 580;
-            document.getElementById('pDesc').value = p.description || '';
-            document.getElementById('existingImageUrl').value = p.imageUrl || '';
-
-            document.getElementById('formTitle').innerText = "✏️ 編輯商品資料";
-            document.getElementById('submitBtn').innerText = "💾 儲存修改";
-            document.getElementById('cancelEditBtn').classList.remove('hidden');
+        function listenRealtimeOrders(){ onSnapshot(collection(db,'order_reports'),snap=>{ let pending=0,paid=0,html=''; const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+            rows.forEach(o=>{ if(o.status==='待核對')pending++; if(o.status==='已核對/待出貨')paid++; const badge=o.status==='已核對/待出貨'?'bg-emerald-50 text-emerald-600':o.status==='已完成出貨'?'bg-blue-50 text-blue-600':o.status==='帳款異常'?'bg-red-50 text-red-600':'bg-amber-50 text-amber-600'; html+=`<tr class="border-b"><td class="p-3 text-[10px] text-gray-400">${o.createdAt?new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false}):'---'}</td><td class="p-3"><b>${esc(o.customerName||'會員')}</b><br><span class="text-clay">${esc(o.productName||'商品')}</span></td><td class="p-3 font-bold">$${Number(o.finalPrice||0)}${o.pointsAwarded?'<br><span class="text-[9px] text-emerald-600">點數已發</span>':''}</td><td class="p-3 font-mono">${esc(o.lastFiveDigits||'')}</td><td class="p-3">${esc(o.shipMethod||'')}<br>${esc(o.shipName||'')} ${esc(o.shipPhone||'')}<br>${esc(o.shipAddress||'')}</td><td class="p-3"><span class="${badge} px-2 py-1 rounded-full font-bold">${esc(o.status||'待核對')}</span></td><td class="p-3 text-right"><button onclick="updateOrderStatus('${o.id}','已核對/待出貨')" class="bg-forest text-white px-2 py-1 rounded text-[10px]">✅ 入帳</button> <button onclick="updateOrderStatus('${o.id}','已完成出貨')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]">🚚 出貨</button> <button onclick="updateOrderStatus('${o.id}','帳款異常')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px]">❌ 異常</button></td></tr>`; });
+            document.getElementById('orderListTable').innerHTML=html||'<tr><td colspan="7" class="text-center py-8 text-gray-400">目前尚無訂單。</td></tr>'; document.getElementById('statPending').textContent=pending; document.getElementById('statPaid').textContent=paid; document.getElementById('newOrderBadge').classList.toggle('hidden',pending===0);
+        }); }
+        window.updateOrderStatus=async function(orderId,newStatus){
+            try{ await runTransaction(db,async tx=>{ const orderRef=doc(db,'order_reports',orderId); const orderSnap=await tx.get(orderRef); if(!orderSnap.exists())throw new Error('訂單不存在'); const o=orderSnap.data(); const changes={status:newStatus,updatedAt:new Date().toISOString()};
+                if(newStatus==='已核對/待出貨' && !o.pointsAwarded && o.uid){ const memberRef=doc(db,'members',o.uid); const memberSnap=await tx.get(memberRef); const earned=Math.round(Number(o.finalPrice||0)*0.1); if(memberSnap.exists() && earned>0){tx.update(memberRef,{points:increment(earned)}); changes.pointsAwarded=true; changes.pointsEarned=earned; changes.pointsAwardedAt=new Date().toISOString();} }
+                tx.update(orderRef,changes); });
+            }catch(e){alert('修改失敗：'+e.message)}
         };
 
-        window.resetForm = function() {
-            document.getElementById('uploadForm').reset();
-            document.getElementById('editProductId').value = '';
-            document.getElementById('existingImageUrl').value = '';
-            document.getElementById('formTitle').innerText = "✨ 新品上架至櫥窗";
-            document.getElementById('submitBtn').innerText = "🚀 確認上架至雲端櫥窗";
-            document.getElementById('cancelEditBtn').classList.add('hidden');
-        };
+        function listenBookings(){ onSnapshot(collection(db,'course_bookings'),snap=>{ let pending=0; const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.bookingDate||'').localeCompare(String(a.bookingDate||''))); rows.forEach(b=>{ if((b.status||'已預約')==='已預約')pending++; }); document.getElementById('statBookings').textContent=pending; document.getElementById('bookingAdminList').innerHTML=rows.length?rows.map(b=>`<div class="bg-sand/50 border rounded-xl p-3"><b>${esc(b.customerName||'會員')}</b>・${esc(b.bookingDate||'未定')}・${Number(b.peopleCount||1)} 人<br><span class="text-clay">${esc(b.drawnOil||'未指定香氣')}</span><br><span>${esc(b.status||'已預約')}</span><div class="mt-2"><button onclick="updateBooking('${b.id}','已確認')" class="bg-forest text-white px-2 py-1 rounded text-[10px]">確認</button> <button onclick="updateBooking('${b.id}','已完成')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]">完成</button> <button onclick="updateBooking('${b.id}','已取消')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px]">取消</button></div></div>`).join(''):'<p class="text-gray-400">目前沒有預約。</p>'; }); }
+        window.updateBooking=async(id,status)=>{try{await updateDoc(doc(db,'course_bookings',id),{status,updatedAt:new Date().toISOString()})}catch(e){alert(e.message)}};
 
-        window.deleteProduct = async function(id) {
-            if (!confirm("確定要將這款精油從雲端櫥窗下架嗎？")) return;
-            try {
-                await deleteDoc(doc(db, "products", id));
-                alert("已成功下架！");
-                loadAdminProducts();
-            } catch (e) {
-                alert("下架失敗：" + e.message);
-            }
-        };
+        document.getElementById('couponForm').addEventListener('submit',async e=>{ e.preventDefault(); const code=document.getElementById('couponCodeAdmin').value.trim().toUpperCase(); if(!code)return; try{await setDoc(doc(db,'coupons',code),{code,discountType:document.getElementById('couponTypeAdmin').value,value:Number(document.getElementById('couponValueAdmin').value),minSpend:Number(document.getElementById('couponMinSpendAdmin').value||0),scope:document.getElementById('couponScopeAdmin').value,active:document.getElementById('couponActiveAdmin').checked,updatedAt:new Date().toISOString()},{merge:true}); alert('優惠券已儲存'); document.getElementById('couponForm').reset(); document.getElementById('couponActiveAdmin').checked=true; loadCoupons();}catch(e){alert(e.message)} });
+        async function loadCoupons(){ const snap=await getDocs(collection(db,'coupons')); document.getElementById('couponList').innerHTML=snap.empty?'<p class="text-gray-400">目前沒有優惠券。</p>':snap.docs.map(ds=>{const c=ds.data(); return `<div class="border rounded-xl p-3 bg-sand/40"><b class="text-forest">${esc(ds.id)}</b>・${c.discountType==='percent'?Number(c.value)+'%':'$'+Number(c.value)}<br><span>最低 $${Number(c.minSpend||0)}・${c.scope==='birthday'?'壽星限定':'所有會員'}・${c.active===false?'停用':'啟用'}</span><div class="mt-2"><button onclick="editCoupon('${ds.id}')" class="bg-forest/10 text-forest px-2 py-1 rounded text-[10px]">編輯</button> <button onclick="deleteCoupon('${ds.id}')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px]">刪除</button></div></div>`}).join(''); }
+        window.editCoupon=async code=>{const s=await getDoc(doc(db,'coupons',code)); if(!s.exists())return; const c=s.data(); document.getElementById('couponCodeAdmin').value=code; document.getElementById('couponTypeAdmin').value=c.discountType||'fixed'; document.getElementById('couponValueAdmin').value=c.value||0; document.getElementById('couponMinSpendAdmin').value=c.minSpend||0; document.getElementById('couponScopeAdmin').value=c.scope||'all'; document.getElementById('couponActiveAdmin').checked=c.active!==false;};
+        window.deleteCoupon=async code=>{if(confirm(`刪除優惠券 ${code}？`)){await deleteDoc(doc(db,'coupons',code)); loadCoupons()}};
+        window.seedDefaultCoupons=async()=>{ const defaults={STAR88:{discountType:'percent',value:12,minSpend:0,scope:'all'},BIRTHDAY100:{discountType:'fixed',value:100,minSpend:0,scope:'birthday'},FREE60:{discountType:'fixed',value:60,minSpend:60,scope:'all'}}; for(const [code,c] of Object.entries(defaults)) await setDoc(doc(db,'coupons',code),{code,...c,active:true,updatedAt:new Date().toISOString()},{merge:true}); alert('預設優惠券已建立'); loadCoupons(); };
     </script>
+
 </body>
 </html>
