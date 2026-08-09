@@ -66,74 +66,123 @@
             </div>
         </div>
 
-        <!-- 🛍️ 商品管理（支援同系列多口味獨立定價） -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- 左側：上架/編輯表單 -->
-            <div class="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 id="formTitle" class="text-sm font-bold text-forest">✨ 新品/系列上架</h3>
-                    <button id="cancelEditBtn" onclick="resetForm()" class="hidden text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded hover:bg-gray-200">取消編輯</button>
+        <!-- 🛍️ 商品管理 v2 -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b pb-4 mb-5">
+                <div>
+                    <h3 class="text-base font-bold text-forest">🛍️ 商品上架與規格管理</h3>
+                    <p class="text-xs text-gray-400 mt-1">先建立商品系列，再用「規格卡」管理每一種香氣與價格；舊商品也可直接編輯升級。</p>
                 </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 新增商品</button>
+                </div>
+            </div>
 
-                <form id="uploadForm" class="space-y-4 text-left">
-                    <input type="hidden" id="editProductId" value="">
-                    <input type="hidden" id="existingImageUrl" value="">
-
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">🏷️ 系列/分類名稱</label>
-                        <select id="pCategory" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white">
-                            <option value="經典單方精油">🌿 經典單方精油</option>
-                            <option value="複方複和精油">✨ 複方療癒精油</option>
-                            <option value="水晶擴香套組">🔮 水晶擴香套組</option>
-                            <option value="限定盲盒體驗">🎁 限定盲盒體驗</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">商品/系列主名稱</label>
-                        <input type="text" id="pName" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如：植萃經典單方系列">
-                    </div>
-
-                    <!-- 🌸 多口味與獨立定價動態新增區 -->
-                    <div class="border-t border-b border-gray-100 py-3 space-y-2">
-                        <div class="flex justify-between items-center">
-                            <label class="block text-xs font-bold text-forest">🌸 口味/香氣與獨立定價</label>
-                            <button type="button" onclick="addFlavorRow()" class="text-[10px] bg-clay/10 text-clay font-bold px-2 py-1 rounded-lg hover:bg-clay hover:text-white transition">+ 新增口味</button>
+            <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                <!-- 商品表單 -->
+                <div id="productFormPanel" class="xl:col-span-2 bg-sand/50 rounded-2xl p-5 border border-gray-100 h-fit">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h4 id="formTitle" class="font-bold text-forest">✨ 建立新商品</h4>
+                            <p id="formModeHint" class="text-[10px] text-gray-400 mt-1">商品資料與規格可一次完成。</p>
                         </div>
-                        
-                        <div id="flavorContainer" class="space-y-2">
-                            <!-- 預設第一組口味 -->
-                            <div class="flex gap-2 items-center flavor-row">
-                                <input type="text" class="flavor-name w-1/2 px-2 py-1.5 border rounded-lg text-xs outline-none" placeholder="口味 (例: 薰衣草)" required>
-                                <input type="number" class="flavor-price w-1/2 px-2 py-1.5 border rounded-lg text-xs outline-none" placeholder="價格 (例: 580)" required>
+                        <button id="cancelEditBtn" type="button" onclick="resetForm()" class="hidden text-[10px] bg-white border text-gray-500 px-3 py-1.5 rounded-lg">取消編輯</button>
+                    </div>
+
+                    <form id="uploadForm" class="space-y-5 text-left">
+                        <input type="hidden" id="editProductId" value="">
+                        <input type="hidden" id="existingImageUrl" value="">
+
+                        <div class="bg-white rounded-xl p-4 border space-y-3">
+                            <div class="flex items-center justify-between">
+                                <h5 class="text-xs font-black text-forest">① 商品基本資料</h5>
+                                <span class="text-[9px] text-gray-400">系列層級</span>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">商品分類</label>
+                                <select id="pCategory" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white">
+                                    <option value="經典單方精油">🌿 經典單方精油</option>
+                                    <option value="複方複和精油">✨ 複方療癒精油</option>
+                                    <option value="水晶擴香套組">🔮 水晶擴香套組</option>
+                                    <option value="限定盲盒體驗">🎁 限定盲盒體驗</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">商品／系列名稱</label>
+                                <input type="text" id="pName" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如：植萃經典單方系列">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">商品介紹／心靈描述</label>
+                                <textarea id="pDesc" required rows="4" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="介紹這個系列，也會作為抽中香氣時的心靈文字來源。"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">首頁排序</label>
+                                    <input type="number" id="pSortOrder" min="0" value="100" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="100">
+                                    <p class="text-[9px] text-gray-400 mt-1">數字越小越前面</p>
+                                </div>
+                                <div class="flex flex-col justify-end">
+                                    <label class="flex items-center gap-2 text-xs bg-white border rounded-xl px-3 py-2.5 cursor-pointer">
+                                        <input type="checkbox" id="pActive" checked>
+                                        <span><b>前台上架</b><br><small class="text-gray-400">取消即整個系列停售</small></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">商品主圖</label>
+                                <input type="file" id="pKeyImage" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-clay/10 file:text-clay">
+                                <div id="currentImageHint" class="hidden mt-2 text-[10px] text-gray-400"></div>
                             </div>
                         </div>
-                    </div>
 
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">系列/香氣心靈描述</label>
-                        <textarea id="pDesc" required rows="3" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="輸入商品或香氣指引描述..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">商品實體照片</label>
-                        <input type="file" id="pKeyImage" accept="image/*" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-clay/10 file:text-clay hover:file:bg-clay/20">
-                    </div>
-                    
-                    <label class="flex items-center gap-2 text-xs text-gray-600"><input type="checkbox" id="pActive" checked> 前台啟用此商品系列</label>
-                    <button type="submit" id="submitBtn" class="w-full bg-forest text-white py-2.5 rounded-xl text-xs font-medium hover:bg-opacity-95 transition shadow-sm">
-                        🚀 確認上架至雲端櫥窗
-                    </button>
-                </form>
-            </div>
+                        <div class="bg-white rounded-xl p-4 border">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h5 class="text-xs font-black text-forest">② 香氣／商品規格</h5>
+                                    <p class="text-[9px] text-gray-400 mt-1">每一張卡片就是前台可選的一個規格。</p>
+                                </div>
+                                <button type="button" onclick="addFlavorRow()" class="text-[10px] bg-clay text-white font-bold px-3 py-1.5 rounded-lg">＋ 新增規格</button>
+                            </div>
 
-            <!-- 右側：現有盲盒與系列商品清單 -->
-            <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 class="text-sm font-bold text-forest mb-4 border-b pb-2">📦 目前雲端櫥窗商品系列</h3>
-                <div id="adminProductList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <p class="text-xs text-gray-400 py-8 col-span-full text-center">正在同步雲端商品數據...</p>
+                            <div id="flavorContainer" class="space-y-3"></div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="submit" id="submitBtn" class="flex-1 bg-forest text-white py-3 rounded-xl text-xs font-bold hover:opacity-95 shadow-sm">
+                                🚀 儲存商品
+                            </button>
+                            <button type="button" onclick="resetForm()" class="px-4 py-3 bg-white border rounded-xl text-xs text-gray-500">清空</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 商品清單 -->
+                <div class="xl:col-span-3">
+                    <div class="flex flex-col sm:flex-row gap-3 justify-between mb-4">
+                        <div>
+                            <h4 class="font-bold text-forest">📦 已建立商品</h4>
+                            <p class="text-[10px] text-gray-400 mt-1">建議用「停售」代替刪除，可保留舊訂單與歷史資料的關聯。</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="productFilter" onchange="loadAdminProducts()" class="px-3 py-2 border rounded-xl text-xs bg-white">
+                                <option value="all">全部商品</option>
+                                <option value="active">只看上架</option>
+                                <option value="inactive">只看停售</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="adminProductList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <p class="text-xs text-gray-400 py-8 col-span-full text-center">正在同步雲端商品數據...</p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
+
         <!-- 📅 體驗課預約管理 -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h3 class="text-base font-bold text-forest mb-4 border-b pb-3">📅 體驗課預約管理</h3>
@@ -176,43 +225,332 @@
 
         onAuthStateChanged(auth, async user => {
             if (!user || !ADMIN_EMAILS.includes(user.email)) { alert('🔒 本頁面為主理人專屬。'); location.href='home.html'; return; }
-            loadAdminProducts(); listenRealtimeOrders(); listenBookings(); loadCoupons();
+            resetForm(); loadAdminProducts(); listenRealtimeOrders(); listenBookings(); loadCoupons();
         });
 
-        window.addFlavorRow=function(name='',price=''){
-            const row=document.createElement('div'); row.className='flex gap-2 items-center flavor-row';
-            row.innerHTML=`<input type="text" value="${esc(name)}" class="flavor-name w-1/2 px-2 py-1.5 border rounded-lg text-xs" placeholder="香氣名稱" required><input type="number" min="0" value="${Number(price)||''}" class="flavor-price w-1/2 px-2 py-1.5 border rounded-lg text-xs" placeholder="售價" required><button type="button" onclick="this.parentElement.remove()" class="text-red-400 font-bold px-1">×</button>`;
-            document.getElementById('flavorContainer').appendChild(row);
+        let flavorRowSerial = 0;
+
+        window.scrollToProductForm = function(){
+            document.getElementById('productFormPanel')?.scrollIntoView({behavior:'smooth', block:'start'});
         };
-        function getFlavorVariants(){ return [...document.querySelectorAll('.flavor-row')].map((row,i)=>({name:row.querySelector('.flavor-name').value.trim(),price:Number(row.querySelector('.flavor-price').value)})).filter(f=>f.name && Number.isFinite(f.price) && f.price>=0); }
 
-        document.getElementById('uploadForm').addEventListener('submit',async e=>{
-            e.preventDefault(); const btn=document.getElementById('submitBtn'); const editId=document.getElementById('editProductId').value;
-            const fileInput=document.getElementById('pKeyImage'); const flavors=getFlavorVariants();
-            if(!flavors.length) return alert('請至少新增一種香氣與售價。');
-            if(!editId && !fileInput.files.length) return alert('新品上架請上傳商品照片。');
-            btn.disabled=true; btn.textContent='⏳ 正在同步雲端庫存...';
+        window.addFlavorRow = function(name='', price='', options={}){
+            const box = document.getElementById('flavorContainer');
+            const rowId = `flavorRow_${++flavorRowSerial}`;
+            const compareAtPrice = options.compareAtPrice ?? '';
+            const sku = options.sku ?? '';
+            const active = options.active !== false;
+            const card = document.createElement('div');
+            card.className = 'flavor-row border rounded-xl p-3 bg-sand/40';
+            card.id = rowId;
+            card.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black text-forest">香氣規格</span>
+                    <div class="flex items-center gap-2">
+                        <label class="text-[10px] flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" class="flavor-active" ${active ? 'checked' : ''}> 可販售
+                        </label>
+                        <button type="button" onclick="duplicateFlavorRow('${rowId}')" class="text-[10px] text-forest bg-white border px-2 py-1 rounded">複製</button>
+                        <button type="button" onclick="removeFlavorRow('${rowId}')" class="text-[10px] text-red-500 bg-white border px-2 py-1 rounded">移除</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="col-span-2">
+                        <label class="text-[9px] text-gray-500">規格／香氣名稱 *</label>
+                        <input type="text" value="${esc(name)}" class="flavor-name w-full px-2.5 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="例如：真正薰衣草" required>
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-gray-500">售價 *</label>
+                        <input type="number" min="0" value="${price !== '' ? Number(price) : ''}" class="flavor-price w-full px-2.5 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="580" required>
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-gray-500">原價（選填）</label>
+                        <input type="number" min="0" value="${compareAtPrice !== '' ? Number(compareAtPrice) : ''}" class="flavor-compare-price w-full px-2.5 py-2 border rounded-lg text-xs outline-none" placeholder="680">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] text-gray-500">SKU／內部代號（選填）</label>
+                        <input type="text" value="${esc(sku)}" class="flavor-sku w-full px-2.5 py-2 border rounded-lg text-xs outline-none" placeholder="例如 LAV-10ML">
+                    </div>
+                </div>
+            `;
+            box.appendChild(card);
+        };
+
+        window.removeFlavorRow = function(rowId){
+            const rows = document.querySelectorAll('.flavor-row');
+            if(rows.length <= 1){
+                alert('每個商品至少要保留一個規格。');
+                return;
+            }
+            document.getElementById(rowId)?.remove();
+        };
+
+        window.duplicateFlavorRow = function(rowId){
+            const row = document.getElementById(rowId);
+            if(!row) return;
+            addFlavorRow(
+                row.querySelector('.flavor-name')?.value || '',
+                row.querySelector('.flavor-price')?.value || '',
+                {
+                    compareAtPrice: row.querySelector('.flavor-compare-price')?.value || '',
+                    sku: row.querySelector('.flavor-sku')?.value || '',
+                    active: row.querySelector('.flavor-active')?.checked !== false
+                }
+            );
+        };
+
+        function collectFlavors(){
+            return [...document.querySelectorAll('.flavor-row')].map((row, index)=>{
+                const name = row.querySelector('.flavor-name').value.trim();
+                const priceRaw = row.querySelector('.flavor-price').value;
+                const compareRaw = row.querySelector('.flavor-compare-price').value;
+                return {
+                    name,
+                    price: Number(priceRaw),
+                    compareAtPrice: compareRaw === '' ? null : Number(compareRaw),
+                    sku: row.querySelector('.flavor-sku').value.trim(),
+                    active: row.querySelector('.flavor-active').checked,
+                    sortOrder: index
+                };
+            }).filter(f=>f.name && Number.isFinite(f.price) && f.price >= 0);
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async e=>{
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const editId = document.getElementById('editProductId').value;
+            const fileInput = document.getElementById('pKeyImage');
+            const existingImg = document.getElementById('existingImageUrl').value;
+            const flavors = collectFlavors();
+
+            if(!flavors.length){
+                alert('請至少建立一個有效的香氣規格與售價。');
+                return;
+            }
+            if(!editId && fileInput.files.length===0){
+                alert('新品請先選擇一張商品主圖。');
+                return;
+            }
+
+            const seen = new Set();
+            for(const f of flavors){
+                const key = f.name.toLowerCase();
+                if(seen.has(key)){
+                    alert(`規格名稱「${f.name}」重複，請調整後再儲存。`);
+                    return;
+                }
+                seen.add(key);
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ 正在儲存商品...';
+
             try{
-                let imageUrl=document.getElementById('existingImageUrl').value;
-                if(fileInput.files.length){ const file=fileInput.files[0]; const sref=ref(storage,'products/'+Date.now()+'_'+file.name); const snap=await uploadBytes(sref,file); imageUrl=await getDownloadURL(snap.ref); }
-                const data={ schemaVersion:2, category:document.getElementById('pCategory').value, name:document.getElementById('pName').value.trim(), description:document.getElementById('pDesc').value.trim(), flavors, defaultPrice:flavors[0].price, imageUrl, active:document.getElementById('pActive').checked, updatedAt:new Date().toISOString() };
-                if(editId) await updateDoc(doc(db,'products',editId),data); else { data.createdAt=new Date().toISOString(); await addDoc(collection(db,'products'),data); }
-                alert('🎉 商品資料已儲存。'); resetForm(); loadAdminProducts();
-            }catch(e){alert('❌ 操作失敗：'+e.message)} finally{btn.disabled=false; btn.textContent='🚀 確認上架至雲端櫥窗'}
+                let imageUrl = existingImg;
+                if(fileInput.files.length){
+                    const file = fileInput.files[0];
+                    if(file.size > 5 * 1024 * 1024) throw new Error('商品圖片請控制在 5 MB 以內。');
+                    const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+                    const uploaded = await uploadBytes(storageRef, file);
+                    imageUrl = await getDownloadURL(uploaded.ref);
+                }
+
+                const data = {
+                    category: document.getElementById('pCategory').value,
+                    name: document.getElementById('pName').value.trim(),
+                    description: document.getElementById('pDesc').value.trim(),
+                    flavors,
+                    defaultPrice: flavors.find(f=>f.active)?.price ?? flavors[0].price,
+                    imageUrl,
+                    active: document.getElementById('pActive').checked,
+                    sortOrder: Number(document.getElementById('pSortOrder').value || 100),
+                    updatedAt: new Date().toISOString(),
+                    schemaVersion: 2
+                };
+
+                if(editId){
+                    await updateDoc(doc(db,'products',editId),data);
+                }else{
+                    data.createdAt = new Date().toISOString();
+                    await addDoc(collection(db,'products'),data);
+                }
+
+                alert(editId ? '✅ 商品更新完成。' : '🎉 商品已成功建立。');
+                resetForm();
+                await loadAdminProducts();
+            }catch(err){
+                console.error(err);
+                alert('❌ 儲存商品失敗：' + err.message);
+            }finally{
+                btn.disabled = false;
+                btn.textContent = '🚀 儲存商品';
+            }
         });
+
+        function normalizeAdminFlavors(p){
+            if(Array.isArray(p.flavors) && p.flavors.length){
+                return p.flavors.map((f,index)=>({
+                    name: String(f.name || '').trim() || `規格 ${index+1}`,
+                    price: Number(f.price ?? 0),
+                    compareAtPrice: f.compareAtPrice ?? null,
+                    sku: f.sku || '',
+                    active: f.active !== false,
+                    sortOrder: Number(f.sortOrder ?? index)
+                })).sort((a,b)=>a.sortOrder-b.sortOrder);
+            }
+            return [{
+                name: p.codeName || p.code || p.name || '預設規格',
+                price: Number(p.price ?? p.defaultPrice ?? 580),
+                compareAtPrice: null,
+                sku: p.code || '',
+                active: true,
+                sortOrder: 0
+            }];
+        }
 
         async function loadAdminProducts(){
-            const list=document.getElementById('adminProductList');
-            try{ const snap=await getDocs(collection(db,'products')); productsCache={}; list.innerHTML=''; document.getElementById('statProducts').textContent=snap.size;
-                if(snap.empty){list.innerHTML='<p class="text-gray-400 text-xs">目前沒有商品。</p>'; return;}
-                snap.forEach(ds=>{ const p=ds.data(); productsCache[ds.id]=p; const flavors=(Array.isArray(p.flavors)&&p.flavors.length?p.flavors:[{name:p.codeName||p.code||p.name,price:p.price||p.defaultPrice||580}]);
-                    list.innerHTML+=`<div class="bg-sand/50 p-4 rounded-xl border"><div class="flex gap-3"><img src="${esc(p.imageUrl||'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=100')}" class="w-14 h-14 object-cover rounded-lg"><div class="flex-1"><span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 rounded-full font-bold">${esc(p.category||'精油系列')}</span><p class="font-bold text-xs mt-1">${esc(p.name)}</p><p class="text-[10px] ${p.active===false?'text-red-500':'text-emerald-600'}">${p.active===false?'已停用':'前台啟用'}</p><div class="mt-2">${flavors.map(f=>`<span class="inline-block bg-clay/10 text-clay px-1.5 py-0.5 rounded text-[10px] mr-1 mb-1">${esc(f.name)} $${Number(f.price)}</span>`).join('')}</div></div></div><div class="flex justify-end gap-1 border-t mt-3 pt-2"><button onclick="editProduct('${ds.id}')" class="text-[10px] bg-forest/10 text-forest px-2 py-1 rounded">✏️ 編輯</button><button onclick="deleteProduct('${ds.id}')" class="text-[10px] bg-red-50 text-red-500 px-2 py-1 rounded">刪除</button></div></div>`;
+            const list = document.getElementById('adminProductList');
+            try{
+                const snap = await getDocs(collection(db,'products'));
+                productsCache = {};
+                document.getElementById('statProducts').textContent = snap.size;
+                const filter = document.getElementById('productFilter')?.value || 'all';
+
+                let rows = snap.docs.map(ds=>{
+                    const p = ds.data();
+                    productsCache[ds.id] = p;
+                    return {id:ds.id, ...p, flavors:normalizeAdminFlavors(p)};
+                }).sort((a,b)=>{
+                    const s = Number(a.sortOrder ?? 100) - Number(b.sortOrder ?? 100);
+                    return s || String(a.name||'').localeCompare(String(b.name||''), 'zh-Hant');
                 });
-            }catch(e){list.innerHTML='<p class="text-red-400 text-xs">商品載入失敗。</p>'}
+
+                if(filter==='active') rows = rows.filter(p=>p.active!==false);
+                if(filter==='inactive') rows = rows.filter(p=>p.active===false);
+
+                if(!rows.length){
+                    list.innerHTML = '<p class="text-gray-400 text-xs col-span-full py-8 text-center">目前沒有符合條件的商品。</p>';
+                    return;
+                }
+
+                list.innerHTML = rows.map(p=>{
+                    const liveCount = p.flavors.filter(f=>f.active!==false).length;
+                    const flavorHtml = p.flavors.map(f=>{
+                        const original = f.compareAtPrice && f.compareAtPrice > f.price
+                            ? `<span class="line-through text-gray-400 mr-1">$${Number(f.compareAtPrice)}</span>`
+                            : '';
+                        return `<div class="flex items-center justify-between gap-2 border-t first:border-t-0 py-2">
+                            <div>
+                                <span class="text-xs font-bold ${f.active===false?'text-gray-400':'text-gray-700'}">${esc(f.name)}</span>
+                                ${f.sku ? `<span class="block text-[9px] text-gray-400">${esc(f.sku)}</span>` : ''}
+                            </div>
+                            <div class="text-right text-[10px]">
+                                ${original}<b class="${f.active===false?'text-gray-400':'text-clay'}">$${Number(f.price)}</b>
+                                <span class="block ${f.active===false?'text-red-400':'text-emerald-600'}">${f.active===false?'停售':'可販售'}</span>
+                            </div>
+                        </div>`;
+                    }).join('');
+
+                    return `<article class="bg-sand/40 rounded-2xl border overflow-hidden">
+                        <div class="p-4">
+                            <div class="flex gap-3">
+                                <img src="${esc(p.imageUrl||'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=200')}" alt="${esc(p.name||'商品')}" class="w-20 h-20 object-cover rounded-xl bg-white border shrink-0">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap gap-1 mb-1">
+                                        <span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 rounded-full font-bold">${esc(p.category||'精油系列')}</span>
+                                        <span class="text-[9px] bg-white border px-2 py-0.5 rounded-full text-gray-500">排序 ${Number(p.sortOrder ?? 100)}</span>
+                                    </div>
+                                    <p class="font-black text-sm text-gray-800 truncate">${esc(p.name||'未命名商品')}</p>
+                                    <p class="text-[10px] mt-1 ${p.active===false?'text-red-500':'text-emerald-600'}">${p.active===false?'● 整體停售':'● 前台上架'}・${liveCount}/${p.flavors.length} 規格可販售</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 bg-white rounded-xl border px-3">
+                                ${flavorHtml}
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 p-3 bg-white border-t">
+                            <button onclick="editProduct('${p.id}')" class="flex-1 min-w-[80px] bg-forest text-white px-3 py-2 rounded-lg text-[10px] font-bold">✏️ 編輯</button>
+                            <button onclick="toggleProductActive('${p.id}')" class="flex-1 min-w-[80px] ${p.active===false?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'} px-3 py-2 rounded-lg text-[10px] font-bold">${p.active===false?'▶ 重新上架':'⏸ 暫停販售'}</button>
+                            <button onclick="deleteProduct('${p.id}')" class="px-3 py-2 rounded-lg text-[10px] text-red-500 border border-red-100">永久刪除</button>
+                        </div>
+                    </article>`;
+                }).join('');
+            }catch(err){
+                console.error(err);
+                list.innerHTML = '<p class="text-red-400 text-xs col-span-full">商品載入失敗：'+esc(err.message)+'</p>';
+            }
         }
-        window.editProduct=function(id){ const p=productsCache[id]; if(!p)return; document.getElementById('editProductId').value=id; document.getElementById('pCategory').value=p.category||'經典單方精油'; document.getElementById('pName').value=p.name||''; document.getElementById('pDesc').value=p.description||''; document.getElementById('existingImageUrl').value=p.imageUrl||''; document.getElementById('pActive').checked=p.active!==false; const box=document.getElementById('flavorContainer'); box.innerHTML=''; const fs=Array.isArray(p.flavors)&&p.flavors.length?p.flavors:[{name:p.codeName||p.code||p.name,price:p.price||580}]; fs.forEach(f=>addFlavorRow(f.name,f.price)); document.getElementById('formTitle').textContent='✏️ 編輯商品系列'; document.getElementById('cancelEditBtn').classList.remove('hidden'); };
-        window.resetForm=function(){ document.getElementById('uploadForm').reset(); document.getElementById('editProductId').value=''; document.getElementById('existingImageUrl').value=''; document.getElementById('pActive').checked=true; document.getElementById('flavorContainer').innerHTML=''; addFlavorRow(); document.getElementById('formTitle').textContent='✨ 新品/系列上架'; document.getElementById('cancelEditBtn').classList.add('hidden'); };
-        window.deleteProduct=async id=>{ if(!confirm('確定要刪除此商品系列？'))return; try{await deleteDoc(doc(db,'products',id)); loadAdminProducts()}catch(e){alert(e.message)} };
+
+        window.editProduct = function(id){
+            const p = productsCache[id];
+            if(!p) return;
+            document.getElementById('editProductId').value = id;
+            document.getElementById('pCategory').value = p.category || '經典單方精油';
+            document.getElementById('pName').value = p.name || '';
+            document.getElementById('pDesc').value = p.description || '';
+            document.getElementById('existingImageUrl').value = p.imageUrl || '';
+            document.getElementById('pActive').checked = p.active !== false;
+            document.getElementById('pSortOrder').value = Number(p.sortOrder ?? 100);
+            const hint = document.getElementById('currentImageHint');
+            if(p.imageUrl){
+                hint.classList.remove('hidden');
+                hint.innerHTML = `目前已有主圖；若不重新選擇圖片，會保留原圖。`;
+            }else{
+                hint.classList.add('hidden');
+            }
+
+            const box = document.getElementById('flavorContainer');
+            box.innerHTML = '';
+            normalizeAdminFlavors(p).forEach(f=>addFlavorRow(f.name, f.price, f));
+
+            document.getElementById('formTitle').textContent = '✏️ 編輯商品';
+            document.getElementById('formModeHint').textContent = '修改後會直接更新前台商品資料。';
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+            scrollToProductForm();
+        };
+
+        window.resetForm = function(){
+            document.getElementById('uploadForm').reset();
+            document.getElementById('editProductId').value = '';
+            document.getElementById('existingImageUrl').value = '';
+            document.getElementById('pActive').checked = true;
+            document.getElementById('pSortOrder').value = 100;
+            document.getElementById('flavorContainer').innerHTML = '';
+            addFlavorRow();
+            document.getElementById('formTitle').textContent = '✨ 建立新商品';
+            document.getElementById('formModeHint').textContent = '商品資料與規格可一次完成。';
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+            document.getElementById('currentImageHint').classList.add('hidden');
+        };
+
+        window.toggleProductActive = async function(id){
+            const p = productsCache[id];
+            if(!p) return;
+            const next = p.active === false;
+            try{
+                await updateDoc(doc(db,'products',id), {
+                    active: next,
+                    updatedAt: new Date().toISOString()
+                });
+                await loadAdminProducts();
+            }catch(err){
+                alert('狀態修改失敗：'+err.message);
+            }
+        };
+
+        window.deleteProduct = async function(id){
+            const p = productsCache[id];
+            const name = p?.name || '此商品';
+            if(!confirm(`「${name}」將從資料庫永久刪除。\n\n若只是暫時不販售，建議使用「暫停販售」。\n\n仍要永久刪除嗎？`)) return;
+            try{
+                await deleteDoc(doc(db,'products',id));
+                await loadAdminProducts();
+            }catch(err){
+                alert('刪除失敗：'+err.message);
+            }
+        };
 
         function listenRealtimeOrders(){ onSnapshot(collection(db,'order_reports'),snap=>{ let pending=0,paid=0,html=''; const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
             rows.forEach(o=>{ if(o.status==='待核對')pending++; if(o.status==='已核對/待出貨')paid++; const badge=o.status==='已核對/待出貨'?'bg-emerald-50 text-emerald-600':o.status==='已完成出貨'?'bg-blue-50 text-blue-600':o.status==='帳款異常'?'bg-red-50 text-red-600':'bg-amber-50 text-amber-600'; html+=`<tr class="border-b"><td class="p-3 text-[10px] text-gray-400">${o.createdAt?new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false}):'---'}</td><td class="p-3"><b>${esc(o.customerName||'會員')}</b><br><span class="text-clay">${esc(o.productName||'商品')}</span></td><td class="p-3 font-bold">$${Number(o.finalPrice||0)}${o.pointsAwarded?'<br><span class="text-[9px] text-emerald-600">點數已發</span>':''}</td><td class="p-3 font-mono">${esc(o.lastFiveDigits||'')}</td><td class="p-3">${esc(o.shipMethod||'')}<br>${esc(o.shipName||'')} ${esc(o.shipPhone||'')}<br>${esc(o.shipAddress||'')}</td><td class="p-3"><span class="${badge} px-2 py-1 rounded-full font-bold">${esc(o.status||'待核對')}</span></td><td class="p-3 text-right"><button onclick="updateOrderStatus('${o.id}','已核對/待出貨')" class="bg-forest text-white px-2 py-1 rounded text-[10px]">✅ 入帳</button> <button onclick="updateOrderStatus('${o.id}','已完成出貨')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]">🚚 出貨</button> <button onclick="updateOrderStatus('${o.id}','帳款異常')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px]">❌ 異常</button></td></tr>`; });
