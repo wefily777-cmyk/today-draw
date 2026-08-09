@@ -62,6 +62,31 @@
                 <p id="displayPoints" class="text-2xl font-black text-clay mt-1">0 點</p>
             </div>
         </div>
+
+        <!-- 👤 會員中心：訂單 / 預約 / 推薦紀錄 -->
+        <section id="memberCenter" class="hidden max-w-4xl mx-auto mb-12 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-left">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-clay">Member Center</span>
+                    <h3 class="text-lg font-bold text-forest mt-1">👤 我的玥石紀錄</h3>
+                </div>
+                <button onclick="refreshMemberCenter()" class="text-xs bg-sand px-3 py-2 rounded-lg text-forest font-bold hover:bg-gray-100">重新整理</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <h4 class="text-xs font-bold text-gray-700 mb-2">📦 我的訂單</h4>
+                    <div id="myOrders" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-gray-700 mb-2">📅 我的預約</h4>
+                    <div id="myBookings" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-gray-700 mb-2">🌱 我的推薦</h4>
+                    <div id="myReferrals" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div>
+                </div>
+            </div>
+        </section>
         
         <!-- 🛍️ 商品展示區 -->
         <section class="mb-20">
@@ -98,40 +123,10 @@
                 <p class="text-gray-500 max-w-md mx-auto text-sm">靜下心來，深呼吸三次，憑直覺挑選一張香氣卡片。</p>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-16 card-perspective">
-                <div class="w-full h-72 cursor-pointer" onclick="drawCard(0, this)">
-                    <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
-                        <div class="card-front absolute inset-0 flex flex-col items-center justify-center bg-forest rounded-2xl text-sand p-6">
-                            <div class="text-4xl mb-4">✨</div><h3 class="text-lg font-medium tracking-widest">植感卡片 一</h3>
-                        </div>
-                        <div class="card-back absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl p-6 border-2 border-clay">
-                            <span class="text-4xl mb-3">🪻</span><h4 class="text-xl font-bold text-gray-800 mb-1">真正薰衣草</h4>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="w-full h-72 cursor-pointer" onclick="drawCard(1, this)">
-                    <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
-                        <div class="card-front absolute inset-0 flex flex-col items-center justify-center bg-forest rounded-2xl text-sand p-6">
-                            <div class="text-4xl mb-4">✨</div><h3 class="text-lg font-medium tracking-widest">植感卡片 二</h3>
-                        </div>
-                        <div class="card-back absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl p-6 border-2 border-clay">
-                            <span class="text-4xl mb-3">🌿</span><h4 class="text-xl font-bold text-gray-800 mb-1">澳洲茶樹</h4>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="w-full h-72 cursor-pointer" onclick="drawCard(2, this)">
-                    <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
-                        <div class="card-front absolute inset-0 flex flex-col items-center justify-center bg-forest rounded-2xl text-sand p-6">
-                            <div class="text-4xl mb-4">✨</div><h3 class="text-lg font-medium tracking-widest">植感卡片 三</h3>
-                        </div>
-                        <div class="card-back absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl p-6 border-2 border-clay">
-                            <span class="text-4xl mb-3">🍊</span><h4 class="text-xl font-bold text-gray-800 mb-1">甜橙</h4>
-                        </div>
-                    </div>
-                </div>
+            <div id="drawCardsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-8 card-perspective">
+                <p class="text-sm text-gray-400 col-span-full py-10">正在準備今日香氣卡片...</p>
             </div>
+            <button id="redrawBtn" onclick="prepareDrawCards()" class="mb-12 text-xs bg-white border border-gray-200 text-gray-500 px-4 py-2 rounded-xl hover:bg-gray-50 transition">🔄 重新洗牌</button>
 
             <div id="resultSection" class="hidden bg-white rounded-2xl p-8 shadow-lg max-w-xl mx-auto border border-gray-100">
                 <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">今日命定香氣</span>
@@ -312,7 +307,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c",
@@ -327,306 +322,385 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const ADMIN_EMAILS = ["qoojude@hotmail.com", "a0937034596@gmail.com"];
 
         let currentUserData = null;
-        let currentProductPrice = 580;
-        let finalPayPrice = 580;
+        let productsCache = {};
+        let drawPool = [];
+        let currentDrawChoices = [];
+        let selectedDrawItem = null;
+        let hasDrawn = false;
+        let currentProductPrice = 0;
+        let finalPayPrice = 0;
         let activeDiscount = 0;
+        let appliedCouponCode = "";
 
-        const ADMIN_EMAILS = [
-            "qoojude@hotmail.com",
-            "a0937034596@gmail.com"
-        ];
+        const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+        const formatDate = (value) => value ? new Date(value).toLocaleString('zh-TW', {hour12:false}) : '---';
+        const isBirthdayMonth = () => {
+            if (!currentUserData?.birthday) return false;
+            const d = new Date(currentUserData.birthday);
+            return !Number.isNaN(d.getTime()) && d.getMonth() === new Date().getMonth();
+        };
+
+        function normalizeProduct(id, data) {
+            let flavors = Array.isArray(data.flavors) ? data.flavors
+                .map((f, index) => ({ id: `${id}_${index}`, name: String(f.name || '').trim(), price: Number(f.price || 0) }))
+                .filter(f => f.name && f.price >= 0) : [];
+            if (!flavors.length) {
+                const fallbackName = data.codeName || data.code || data.name || '預設香氣';
+                flavors = [{ id: `${id}_0`, name: fallbackName, price: Number(data.price ?? data.defaultPrice ?? 580) }];
+            }
+            return {
+                id,
+                category: data.category || '精油系列',
+                name: data.name || '未命名商品',
+                description: data.description || '讓今天的香氣陪你回到自己的節奏。',
+                imageUrl: data.imageUrl || '',
+                active: data.active !== false,
+                flavors,
+                defaultPrice: Number(data.defaultPrice ?? flavors[0]?.price ?? data.price ?? 580)
+            };
+        }
 
         async function fetchShowcaseProducts() {
-            const showcaseContainer = document.getElementById('showcaseContainer');
+            const showcase = document.getElementById('showcaseContainer');
             try {
-                const querySnapshot = await getDocs(collection(db, "products"));
-                showcaseContainer.innerHTML = '';
-                if (querySnapshot.empty) {
-                    showcaseContainer.innerHTML = `<p class="text-sm text-gray-400 text-center py-8 col-span-full">主理人正在籌備新商品，敬請期待！</p>`;
+                const snap = await getDocs(collection(db, 'products'));
+                productsCache = {};
+                drawPool = [];
+                if (snap.empty) {
+                    showcase.innerHTML = '<p class="text-sm text-gray-400 text-center py-8 col-span-full">主理人正在籌備新商品，敬請期待！</p>';
+                    prepareDrawCards();
                     return;
                 }
-                let showcaseHTML = '';
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const price = data.price || 580;
-                    const imageMarkup = data.imageUrl 
-                        ? `<img src="${data.imageUrl}" class="w-full h-48 object-cover rounded-2xl shadow-md mb-4 bg-white border border-gray-100">`
-                        : `<div class="text-4xl bg-sand p-4 rounded-full mb-4">🌿</div>`;
-
-                    showcaseHTML += `
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
-                            ${imageMarkup}
-                            <h4 class="text-lg font-bold text-gray-800">${data.name}</h4>
-                            <p class="text-xs text-clay font-bold mb-1">$${price} TWD</p>
-                            <p class="text-[10px] text-gray-400 font-medium mb-3">${data.codeName || data.code || '---'}</p>
-                            <p class="text-xs text-gray-500 text-center leading-relaxed mb-5 flex-1 line-clamp-3">${data.description || '無商品描述'}</p>
-                            <button onclick="triggerProductBuy('${data.name}', ${price})" class="w-full py-2 bg-forest text-white text-xs font-medium rounded-lg hover:bg-opacity-95 transition">
-                                立即選購此單品 ($${price})
-                            </button>
-                        </div>
-                    `;
+                snap.forEach(ds => {
+                    const p = normalizeProduct(ds.id, ds.data());
+                    if (!p.active) return;
+                    productsCache[p.id] = p;
+                    p.flavors.forEach(f => drawPool.push({ productId:p.id, productName:p.name, category:p.category, flavorName:f.name, price:f.price, description:p.description, imageUrl:p.imageUrl }));
                 });
-                showcaseContainer.innerHTML = showcaseHTML;
+                showcase.innerHTML = Object.values(productsCache).map(p => {
+                    const selectId = `flavor_${p.id}`;
+                    const image = p.imageUrl
+                        ? `<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-48 object-cover rounded-2xl shadow-md mb-4 bg-white border border-gray-100" loading="lazy">`
+                        : '<div class="text-4xl bg-sand p-4 rounded-full mb-4">🌿</div>';
+                    const options = p.flavors.map(f => `<option value="${escapeHtml(f.id)}" data-price="${f.price}">${escapeHtml(f.name)} — $${f.price}</option>`).join('');
+                    return `<article class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
+                        ${image}
+                        <span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 rounded-full font-bold mb-2">${escapeHtml(p.category)}</span>
+                        <h4 class="text-lg font-bold text-gray-800">${escapeHtml(p.name)}</h4>
+                        <p class="text-xs text-gray-500 text-center leading-relaxed my-3 flex-1 line-clamp-3">${escapeHtml(p.description)}</p>
+                        <select id="${selectId}" class="w-full mb-3 px-3 py-2 border rounded-xl text-xs bg-white focus:ring-2 focus:ring-clay outline-none">${options}</select>
+                        <button onclick="buyProduct('${p.id}')" class="w-full py-2 bg-forest text-white text-xs font-medium rounded-lg hover:bg-opacity-95 transition">選擇此香氣購買</button>
+                    </article>`;
+                }).join('');
+                prepareDrawCards();
             } catch (error) {
-                showcaseContainer.innerHTML = `<p class="text-sm text-red-400 text-center py-8 col-span-full">櫥窗加載失敗</p>`;
+                console.error(error);
+                showcase.innerHTML = '<p class="text-sm text-red-400 text-center py-8 col-span-full">櫥窗加載失敗，請稍後再試。</p>';
             }
         }
 
-        onAuthStateChanged(auth, async (user) => {
-            const navStatus = document.getElementById('navUserStatus');
-            const refCenter = document.getElementById('referralCenter');
-            const birthdayBanner = document.getElementById('birthdayBanner');
-            
-            if (user) {
-                const docRef = doc(db, "members", user.uid);
-                const docSnap = await getDoc(docRef);
-                
-                let isAdmin = ADMIN_EMAILS.includes(user.email);
-                
-                if (docSnap.exists()) {
-                    currentUserData = docSnap.data();
-                    if (currentUserData.role === 'admin') isAdmin = true;
-                    
-                    let adminLink = isAdmin ? `<a href="admin.html" class="text-clay hover:underline mr-4 font-bold">⚙️ 後台管理</a>` : '';
-                    
-                    navStatus.innerHTML = `
-                        ${adminLink}
-                        <span class="text-forest font-bold">🌟 你好，${currentUserData.fullName || currentUserData.name}</span>
-                        <button id="logoutBtn" class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded ml-4">登出</button>
-                    `;
-                    
-                    refCenter.classList.remove('hidden');
-                    document.getElementById('displayMemberCode').innerText = currentUserData.memberCode || currentUserData.inviteCode || "未生成";
-                    document.getElementById('displayPoints').innerText = `${currentUserData.points || 0} 點`;
+        window.buyProduct = function(productId) {
+            const p = productsCache[productId];
+            if (!p) return;
+            const select = document.getElementById(`flavor_${productId}`);
+            const chosenId = select?.value;
+            const flavor = p.flavors.find(f => f.id === chosenId) || p.flavors[0];
+            requestPurchase({ productId:p.id, productName:p.name, flavorName:flavor.name, price:flavor.price });
+        };
 
-                    document.getElementById('bookName').value = currentUserData.fullName || currentUserData.name;
-                    document.getElementById('bookPhone').value = currentUserData.phone;
-
-                    // 預先帶入收件人資訊
-                    document.getElementById('shipName').value = currentUserData.fullName || currentUserData.name;
-                    document.getElementById('shipPhone').value = currentUserData.phone;
-
-                    if (currentUserData.birthday) {
-                        const birthMonth = new Date(currentUserData.birthday).getMonth() + 1;
-                        const currentMonth = new Date().getMonth() + 1;
-                        if (birthMonth === currentMonth) {
-                            birthdayBanner.classList.remove('hidden');
-                        }
-                    }
-                } else {
-                    let adminLink = isAdmin ? `<a href="admin.html" class="text-clay hover:underline mr-4 font-bold">⚙️ 後台管理</a>` : '';
-                    navStatus.innerHTML = `
-                        ${adminLink}
-                        <span class="text-forest font-bold">🌟 測試主理人 (${user.email})</span>
-                        <button id="logoutBtn" class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded ml-4">登出</button>
-                    `;
-                }
-
-                if (localStorage.getItem('pendingAction') === 'book') {
-                    localStorage.removeItem('pendingAction');
-                    openBookingModal();
-                } else if (localStorage.getItem('pendingAction') === 'buy') {
-                    localStorage.removeItem('pendingAction');
-                    openPaymentModal();
-                }
-                
-                document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => { window.location.href = 'login.html'; }));
-            } else {
-                currentUserData = null;
-                refCenter.classList.add('hidden');
-                navStatus.innerHTML = `<a href="login.html" class="bg-forest text-white px-4 py-2 rounded-lg text-xs">加入會員 / 登入</a>`;
-                window.location.href = 'login.html';
+        function requestPurchase(item) {
+            if (!auth.currentUser) {
+                localStorage.setItem('pendingAction', 'buy');
+                localStorage.setItem('pendingPurchase', JSON.stringify(item));
+                alert('請先登入會員，登入後會自動帶回剛剛選擇的商品。');
+                location.href = 'login.html';
+                return;
             }
+            triggerProductBuy(`${item.productName}・${item.flavorName}`, item.price);
+        }
+
+        window.prepareDrawCards = function() {
+            const wrap = document.getElementById('drawCardsContainer');
+            const result = document.getElementById('resultSection');
+            result.classList.add('hidden');
+            hasDrawn = false;
+            selectedDrawItem = null;
+            if (!drawPool.length) {
+                wrap.innerHTML = '<p class="text-sm text-gray-400 col-span-full py-10">目前尚無可抽取的香氣商品。</p>';
+                return;
+            }
+            const shuffled = [...drawPool].sort(() => Math.random() - 0.5);
+            currentDrawChoices = shuffled.slice(0, Math.min(3, shuffled.length));
+            while (currentDrawChoices.length < 3 && currentDrawChoices.length) currentDrawChoices.push(currentDrawChoices[currentDrawChoices.length % currentDrawChoices.length]);
+            wrap.innerHTML = currentDrawChoices.map((item, index) => `<div class="w-full h-72 cursor-pointer" data-draw-index="${index}">
+                <div class="card-inner w-full h-full relative rounded-2xl shadow-md bg-white">
+                    <div class="card-front absolute inset-0 flex flex-col items-center justify-center bg-forest rounded-2xl text-sand p-6">
+                        <div class="text-4xl mb-4">✨</div><h3 class="text-lg font-medium tracking-widest">植感卡片 ${['一','二','三'][index]}</h3>
+                    </div>
+                    <div class="card-back absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl p-6 border-2 border-clay">
+                        <span class="text-4xl mb-3">🌿</span><h4 class="text-lg font-bold text-gray-800 mb-1">等待揭曉</h4>
+                    </div>
+                </div>
+            </div>`).join('');
+            wrap.querySelectorAll('[data-draw-index]').forEach(el => el.addEventListener('click', () => drawCard(Number(el.dataset.drawIndex), el)));
+        };
+
+        function drawCard(index, cardElement) {
+            if (hasDrawn || !currentDrawChoices[index]) return;
+            hasDrawn = true;
+            selectedDrawItem = currentDrawChoices[index];
+            const inner = cardElement.querySelector('.card-inner');
+            const backTitle = cardElement.querySelector('.card-back h4');
+            backTitle.textContent = selectedDrawItem.flavorName;
+            inner.classList.add('card-flipped');
+            setTimeout(() => {
+                document.getElementById('resultTitle').textContent = `${selectedDrawItem.productName}・${selectedDrawItem.flavorName}`;
+                document.getElementById('resultDesc').textContent = selectedDrawItem.description;
+                document.getElementById('buyBtn').textContent = `🛍️ 購買這款香氣 ($${selectedDrawItem.price})`;
+                const resultSection = document.getElementById('resultSection');
+                resultSection.classList.remove('hidden');
+                resultSection.scrollIntoView({ behavior:'smooth', block:'center' });
+            }, 400);
+        }
+
+        onAuthStateChanged(auth, async user => {
+            const nav = document.getElementById('navUserStatus');
+            const referralCenter = document.getElementById('referralCenter');
+            const memberCenter = document.getElementById('memberCenter');
+            const birthdayBanner = document.getElementById('birthdayBanner');
+            birthdayBanner.classList.add('hidden');
+            if (!user) {
+                currentUserData = null;
+                referralCenter.classList.add('hidden');
+                memberCenter.classList.add('hidden');
+                nav.innerHTML = '<span class="text-xs text-gray-400 hidden sm:inline">訪客模式</span><a href="login.html" class="bg-forest text-white px-4 py-2 rounded-lg text-xs">加入會員 / 登入</a>';
+                return;
+            }
+            const memberSnap = await getDoc(doc(db, 'members', user.uid));
+            currentUserData = memberSnap.exists() ? memberSnap.data() : { fullName:user.email, email:user.email, points:0 };
+            const isAdmin = ADMIN_EMAILS.includes(user.email) || currentUserData.role === 'admin';
+            nav.innerHTML = `${isAdmin ? '<a href="admin.html" class="text-clay hover:underline font-bold text-xs">⚙️ 後台</a>' : ''}<span class="text-forest font-bold text-xs sm:text-sm">🌟 ${escapeHtml(currentUserData.fullName || currentUserData.name || user.email)}</span><button id="logoutBtn" class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">登出</button>`;
+            document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+            referralCenter.classList.remove('hidden');
+            memberCenter.classList.remove('hidden');
+            document.getElementById('displayMemberCode').textContent = currentUserData.memberCode || '未生成';
+            document.getElementById('displayPoints').textContent = `${Number(currentUserData.points || 0)} 點`;
+            document.getElementById('bookName').value = currentUserData.fullName || currentUserData.name || '';
+            document.getElementById('bookPhone').value = currentUserData.phone || '';
+            document.getElementById('shipName').value = currentUserData.fullName || currentUserData.name || '';
+            document.getElementById('shipPhone').value = currentUserData.phone || '';
+            if (isBirthdayMonth()) birthdayBanner.classList.remove('hidden');
+            await refreshMemberCenter();
+            restorePendingAction();
         });
 
-        // 動態切換配送提示
+        async function restorePendingAction() {
+            const action = localStorage.getItem('pendingAction');
+            if (!action || !auth.currentUser) return;
+            localStorage.removeItem('pendingAction');
+            if (action === 'buy') {
+                try {
+                    const item = JSON.parse(localStorage.getItem('pendingPurchase') || 'null');
+                    localStorage.removeItem('pendingPurchase');
+                    if (item) triggerProductBuy(`${item.productName}・${item.flavorName}`, Number(item.price));
+                } catch (_) {}
+            } else if (action === 'book') {
+                try {
+                    const savedDraw = JSON.parse(localStorage.getItem('pendingDraw') || 'null');
+                    localStorage.removeItem('pendingDraw');
+                    if (savedDraw) {
+                        selectedDrawItem = savedDraw;
+                        document.getElementById('resultTitle').textContent = `${savedDraw.productName}・${savedDraw.flavorName}`;
+                    }
+                } catch (_) {}
+                openBookingModal();
+            } else if (action === 'sample') {
+                openSampleModal();
+            }
+        }
+
+        window.refreshMemberCenter = async function() {
+            if (!auth.currentUser) return;
+            const uid = auth.currentUser.uid;
+            const [ordersSnap, bookingsSnap] = await Promise.all([
+                getDocs(query(collection(db, 'order_reports'), where('uid', '==', uid))),
+                getDocs(query(collection(db, 'course_bookings'), where('uid', '==', uid)))
+            ]);
+            const orders = ordersSnap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b) => String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,8);
+            const bookings = bookingsSnap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b) => String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,8);
+            document.getElementById('myOrders').innerHTML = orders.length ? orders.map(o => `<div class="p-2 rounded-lg bg-sand/70 border"><b>${escapeHtml(o.productName || '商品')}</b><br><span>$${Number(o.finalPrice || 0)}・${escapeHtml(o.status || '待處理')}</span><br><span class="text-[10px] text-gray-400">${formatDate(o.createdAt)}</span></div>`).join('') : '<p>目前沒有訂單。</p>';
+            document.getElementById('myBookings').innerHTML = bookings.length ? bookings.map(b => `<div class="p-2 rounded-lg bg-sand/70 border"><b>${escapeHtml(b.drawnOil || '體驗課')}</b><br><span>${escapeHtml(b.bookingDate || '未定日期')}・${Number(b.peopleCount || 1)} 人・${escapeHtml(b.status || '已預約')}</span></div>`).join('') : '<p>目前沒有預約。</p>';
+            const code = currentUserData?.memberCode;
+            if (code) {
+                const referralSnap = await getDocs(query(collection(db, 'referrals'), where('inviterCode', '==', code)));
+                const referrals = referralSnap.docs.map(d => d.data()).sort((a,b) => String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,8);
+                document.getElementById('myReferrals').innerHTML = referrals.length ? referrals.map(r => `<div class="p-2 rounded-lg bg-sand/70 border"><b>${escapeHtml(r.invitedName || '新會員')}</b><br><span class="text-clay font-bold">+${Number(r.rewardPoints || 0)} 點</span><br><span class="text-[10px] text-gray-400">${formatDate(r.createdAt)}</span></div>`).join('') : '<p>還沒有推薦紀錄，分享你的推廣碼給朋友吧！</p>';
+            } else document.getElementById('myReferrals').innerHTML = '<p>尚未建立推廣碼。</p>';
+        };
+
         window.toggleShipInput = function() {
             const method = document.getElementById('shipMethod').value;
             const label = document.getElementById('shipAddressLabel');
             const input = document.getElementById('shipAddress');
-
             if (method.includes('取貨')) {
-                label.innerText = "取件超商門市名稱與店號";
-                input.placeholder = `請填寫：${method.split(' ')[0]} 門市名稱 (例: 玥石門市 店號123456)`;
+                label.textContent = '取件超商門市名稱與店號';
+                input.placeholder = `請填寫：${method.replace('取貨','')} 門市名稱與店號`;
             } else {
-                label.innerText = "完整宅配收件地址";
-                input.placeholder = "請填寫：縣市 / 鄉鎮市區 / 路街 / 號 / 樓";
+                label.textContent = '完整宅配收件地址';
+                input.placeholder = '請填寫：縣市 / 鄉鎮市區 / 路街 / 號 / 樓';
             }
         };
 
-        window.applyCoupon = function() {
+        window.applyCoupon = async function() {
             const code = document.getElementById('couponInput').value.trim().toUpperCase();
             if (!code) return;
-
-            let discount = 0;
-            if (code === 'STAR88') {
-                discount = Math.round(currentProductPrice * 0.12);
-                alert("🎉 成功套用【STAR88】專屬 88 折優惠！");
-            } else if (code === 'BIRTHDAY100') {
-                discount = 100;
-                alert("🎉 成功套用【壽星專屬禮】現折 $100 元！");
-            } else if (code === 'FREE60') {
-                discount = 60;
-                alert("🎉 成功套用運費折抵券現折 $60 元！");
-            } else {
-                alert("❌ 無效的折扣碼，請確認後重試。");
-                return;
+            try {
+                const snap = await getDoc(doc(db, 'coupons', code));
+                if (!snap.exists()) return alert('❌ 優惠碼不存在或已失效。');
+                const c = snap.data();
+                if (c.active === false) return alert('❌ 此優惠碼目前未啟用。');
+                const now = Date.now();
+                if (c.startsAt && new Date(c.startsAt).getTime() > now) return alert('⏳ 優惠尚未開始。');
+                if (c.expiresAt && new Date(c.expiresAt).getTime() < now) return alert('⌛ 優惠已過期。');
+                if (Number(c.minSpend || 0) > currentProductPrice) return alert(`需消費滿 $${c.minSpend} 才可使用。`);
+                if (c.scope === 'birthday' && !isBirthdayMonth()) return alert('🎂 此優惠僅限當月壽星使用。');
+                activeDiscount = c.discountType === 'percent'
+                    ? Math.round(currentProductPrice * (Number(c.value || 0) / 100))
+                    : Number(c.value || 0);
+                appliedCouponCode = code;
+                updatePriceUI();
+                alert(`🎉 已套用優惠碼 ${code}，折抵 $${activeDiscount}。`);
+            } catch (e) {
+                console.error(e);
+                alert('優惠碼驗證失敗，請稍後再試。');
             }
-
-            activeDiscount = discount;
-            updatePriceUI();
         };
 
         function updatePriceUI() {
             finalPayPrice = Math.max(0, currentProductPrice - activeDiscount);
-            document.getElementById('originalPriceText').innerText = `$${currentProductPrice}`;
-            document.getElementById('finalPriceText').innerText = finalPayPrice;
-            
-            const discountRow = document.getElementById('discountRow');
+            document.getElementById('originalPriceText').textContent = `$${currentProductPrice}`;
+            document.getElementById('finalPriceText').textContent = finalPayPrice;
+            const row = document.getElementById('discountRow');
             if (activeDiscount > 0) {
-                discountRow.classList.remove('hidden');
-                document.getElementById('discountText').innerText = `-$${activeDiscount}`;
-            } else {
-                discountRow.classList.add('hidden');
-            }
+                row.classList.remove('hidden');
+                document.getElementById('discountText').textContent = `-$${activeDiscount}`;
+            } else row.classList.add('hidden');
         }
 
-        window.triggerProductBuy = function(pName, pPrice) {
-            currentProductPrice = pPrice;
+        function triggerProductBuy(name, price) {
+            currentProductPrice = Number(price || 0);
+            finalPayPrice = currentProductPrice;
             activeDiscount = 0;
-            document.getElementById('payOilName').innerText = pName;
+            appliedCouponCode = '';
+            document.getElementById('couponInput').value = '';
+            document.getElementById('payOilName').textContent = name;
+            document.getElementById('modalTitle').textContent = '選擇付款與配送方式';
             updatePriceUI();
             openPaymentModal();
-        };
+        }
 
         window.openSampleModal = function() {
-            currentProductPrice = 60;
-            activeDiscount = 0;
-            document.getElementById('payOilName').innerText = "🎁 命定香氣試聞瓶體驗樣品 (基礎運費)";
-            document.getElementById('modalTitle').innerText = "索取試聞瓶對帳與配送";
-            updatePriceUI();
-            openPaymentModal();
+            if (!auth.currentUser) {
+                localStorage.setItem('pendingAction', 'sample');
+                alert('索取試聞瓶前請先登入會員。');
+                location.href = 'login.html';
+                return;
+            }
+            triggerProductBuy('🎁 命定香氣試聞瓶體驗樣品 (基礎運費)', 60);
+            document.getElementById('modalTitle').textContent = '索取試聞瓶對帳與配送';
         };
 
         window.handleAction = function(actionType) {
             if (!auth.currentUser) {
-                alert('為了記錄您的預約與配送資料，請先填寫會員資料唷！');
                 localStorage.setItem('pendingAction', actionType);
-                window.location.href = 'login.html';
-            } else {
-                if (actionType === 'book') openBookingModal();
-                else {
-                    const name = document.getElementById('resultTitle').innerText || "命定精油";
-                    triggerProductBuy(name, 580);
-                }
+                if (actionType === 'buy' && selectedDrawItem) localStorage.setItem('pendingPurchase', JSON.stringify(selectedDrawItem));
+                if (actionType === 'book' && selectedDrawItem) localStorage.setItem('pendingDraw', JSON.stringify(selectedDrawItem));
+                alert('此功能需要會員身分，登入後會自動繼續。');
+                location.href = 'login.html';
+                return;
             }
-        }
+            if (actionType === 'book') openBookingModal();
+            else if (selectedDrawItem) requestPurchase(selectedDrawItem);
+        };
 
-        // 送出含完整配送資訊的對帳單
-        document.getElementById('orderReportForm').addEventListener('submit', async (e) => {
+        document.getElementById('orderReportForm').addEventListener('submit', async e => {
             e.preventDefault();
+            if (!auth.currentUser) return alert('請先登入會員。');
             const reportBtn = document.getElementById('reportBtn');
-            const fiveCode = document.getElementById('payFiveCode').value;
-            const targetOil = document.getElementById('payOilName').innerText;
-            const shipName = document.getElementById('shipName').value;
-            const shipPhone = document.getElementById('shipPhone').value;
-            const shipMethod = document.getElementById('shipMethod').value;
-            const shipAddress = document.getElementById('shipAddress').value;
-
+            const fiveCode = document.getElementById('payFiveCode').value.trim();
+            if (!/^\d{5}$/.test(fiveCode)) return alert('請輸入正確的轉帳帳號後五碼（5 位數字）。');
             reportBtn.disabled = true;
-            reportBtn.innerText = "⏳ 正在提交雲端對帳單...";
-
+            reportBtn.textContent = '⏳ 正在提交雲端對帳單...';
             try {
-                await addDoc(collection(db, "order_reports"), {
+                await addDoc(collection(db, 'order_reports'), {
                     uid: auth.currentUser.uid,
-                    customerName: currentUserData ? (currentUserData.fullName || currentUserData.name) : "會員",
-                    phone: currentUserData ? currentUserData.phone : "未填電話",
-                    productName: targetOil,
+                    customerName: currentUserData?.fullName || currentUserData?.name || '會員',
+                    phone: currentUserData?.phone || '',
+                    productName: document.getElementById('payOilName').textContent,
                     originalPrice: currentProductPrice,
                     finalPrice: finalPayPrice,
                     discountAmount: activeDiscount,
-                    paymentMethod: "匯款/轉帳",
+                    couponCode: appliedCouponCode,
+                    paymentMethod: '匯款/轉帳',
                     lastFiveDigits: fiveCode,
-                    shipName: shipName,
-                    shipPhone: shipPhone,
-                    shipMethod: shipMethod,
-                    shipAddress: shipAddress,
-                    status: "待核對",
+                    shipName: document.getElementById('shipName').value.trim(),
+                    shipPhone: document.getElementById('shipPhone').value.trim(),
+                    shipMethod: document.getElementById('shipMethod').value,
+                    shipAddress: document.getElementById('shipAddress').value.trim(),
+                    status: '待核對',
+                    pointsAwarded: false,
                     createdAt: new Date().toISOString()
                 });
-
-                const earnedPoints = Math.round(finalPayPrice * 0.1);
-                if (earnedPoints > 0) {
-                    await updateDoc(doc(db, "members", auth.currentUser.uid), {
-                        points: increment(earnedPoints)
-                    });
-                }
-
-                alert(`🎉 對帳單送出成功！\n收件人：${shipName}\n配送方式：${shipMethod}\n主理人核對後將火速出貨！`);
+                alert('🎉 對帳單已送出！點數會在主理人確認入帳後自動發放。');
                 closePaymentModal();
                 document.getElementById('orderReportForm').reset();
-            } catch (error) {
-                alert("❌ 回報失敗：" + error.message);
+                toggleShipInput();
+                await refreshMemberCenter();
+            } catch (e) {
+                alert('❌ 回報失敗：' + e.message);
             } finally {
                 reportBtn.disabled = false;
-                reportBtn.innerText = "送出對帳並通知主理人出貨";
+                reportBtn.textContent = '送出對帳並通知主理人出貨';
             }
         });
 
-        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+        document.getElementById('bookingForm').addEventListener('submit', async e => {
             e.preventDefault();
+            if (!auth.currentUser) return;
             const date = document.getElementById('bookDate').value;
-            const count = document.getElementById('bookCount').value;
-            const currentOil = document.getElementById('resultTitle').innerText;
-
+            const count = Number(document.getElementById('bookCount').value || 1);
+            const currentOil = selectedDrawItem ? `${selectedDrawItem.productName}・${selectedDrawItem.flavorName}` : document.getElementById('resultTitle').textContent;
             try {
-                await addDoc(collection(db, "course_bookings"), {
+                await addDoc(collection(db, 'course_bookings'), {
                     uid: auth.currentUser.uid,
-                    customerName: currentUserData ? (currentUserData.fullName || currentUserData.name) : "測試會員",
-                    phone: currentUserData ? currentUserData.phone : "無電話",
-                    bookingDate: date,
-                    peopleCount: parseInt(count),
-                    drawnOil: currentOil,
-                    status: "已預約",
-                    createdAt: new Date().toISOString()
+                    customerName: currentUserData?.fullName || currentUserData?.name || '會員',
+                    phone: currentUserData?.phone || '', bookingDate: date, peopleCount: count,
+                    drawnOil: currentOil || '未指定香氣', status: '已預約', createdAt: new Date().toISOString()
                 });
-                alert(`🎉 預約成功！\n期待在 ${date} 一起在玥石之溫體驗 ${currentOil} 的調香魅力！`);
+                alert(`🎉 預約成功！期待在 ${date} 與你相見。`);
                 closeBookingModal();
                 document.getElementById('bookingForm').reset();
-            } catch (error) {
-                alert("❌ 預約失敗：" + error.message);
-            }
+                await refreshMemberCenter();
+            } catch (e) { alert('❌ 預約失敗：' + e.message); }
         });
 
+        function openBookingModal() { document.getElementById('bookingModal').classList.remove('hidden'); }
+        function closeBookingModal() { document.getElementById('bookingModal').classList.add('hidden'); }
+        function openPaymentModal() { document.getElementById('paymentModal').classList.remove('hidden'); }
+        function closePaymentModal() { document.getElementById('paymentModal').classList.add('hidden'); }
+        window.openBookingModal = openBookingModal;
+        window.closeBookingModal = closeBookingModal;
+        window.openPaymentModal = openPaymentModal;
+        window.closePaymentModal = closePaymentModal;
+
+        // 避免選到過去日期
+        document.getElementById('bookDate').min = new Date().toISOString().slice(0,10);
+        toggleShipInput();
         fetchShowcaseProducts();
     </script>
 
-    <script>
-        const oilData = [
-            { name: "真正薰衣草 (Lavender)", desc: "【心靈指引】你最近可能有些疲憊。薰衣草溫柔的香氣提醒你：『是時候放下掌控，好好睡一覺了。』" },
-            { name: "澳洲茶樹 (Tea Tree)", desc: "【心靈指引】你正處於需要釐清思緒的階段。茶樹強勁的潔淨能量能幫你阻絕外在的負面干擾。" },
-            { name: "甜橙 (Sweet Orange)", desc: "【心靈指引】生活需要一點純粹的快樂！甜橙就像陽光一樣，能融化內心的冰冷與嚴肅。" }
-        ];
-        let hasDrawn = false;
-        function drawCard(index, cardElement) {
-            if (hasDrawn) return;
-            hasDrawn = true;
-            cardElement.querySelector('.card-inner').classList.add('card-flipped');
-            setTimeout(() => {
-                const resultSection = document.getElementById('resultSection');
-                document.getElementById('resultTitle').innerText = oilData[index].name;
-                document.getElementById('resultDesc').innerText = oilData[index].desc;
-                resultSection.classList.remove('hidden');
-                resultSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 400);
-        }
-        function openBookingModal() { document.getElementById('bookingModal').classList.remove('hidden'); }
-        function closeBookingModal() { document.getElementById('bookingModal').classList.add('hidden'); }
-        
-        function openPaymentModal() { document.getElementById('paymentModal').classList.remove('hidden'); }
-        function closePaymentModal() { document.getElementById('paymentModal').classList.add('hidden'); }
-    </script>
 </body>
 </html>
