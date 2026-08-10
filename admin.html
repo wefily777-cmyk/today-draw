@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>玥石之溫 - 管理者後台</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -27,42 +28,95 @@
             <a href="home.html" class="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-200 transition">返回前台首頁</a>
         </div>
 
-        <!-- 📊 營運看板 -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-2xl border"><p class="text-xs text-gray-400">待對帳</p><p id="statPending" class="text-2xl font-black text-clay">0</p></div>
-            <div class="bg-white p-4 rounded-2xl border"><p class="text-xs text-gray-400">待出貨</p><p id="statPaid" class="text-2xl font-black text-forest">0</p></div>
-            <div class="bg-white p-4 rounded-2xl border"><p class="text-xs text-gray-400">商品系列</p><p id="statProducts" class="text-2xl font-black text-gray-700">0</p></div>
-            <div class="bg-white p-4 rounded-2xl border"><p class="text-xs text-gray-400">待處理預約</p><p id="statBookings" class="text-2xl font-black text-gray-700">0</p></div>
-        </div>
-
-        <!-- 📦 顧客訂單與對帳寄送管理區 -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 class="text-base font-bold text-forest flex items-center gap-2">
-                    📦 顧客訂單與對帳寄送管理 
-                    <span id="newOrderBadge" class="hidden bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">有新訂單</span>
-                </h3>
+        <!-- 📊 一目了然訂單營運看板 -->
+        <section class="space-y-4">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-lg font-black text-forest">📦 訂單作戰中心</h2>
+                    <p class="text-xs text-gray-400 mt-1">先看卡在哪裡，再處理下一步；所有歷史訂單都保留在 Firestore。</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="exportOrdersCSV()" class="bg-white border px-3 py-2 rounded-xl text-xs font-bold text-forest hover:bg-sand">⬇️ 匯出 CSV</button>
+                    <button onclick="exportOrdersExcel()" class="bg-forest text-white px-3 py-2 rounded-xl text-xs font-bold hover:opacity-90">📊 匯出 Excel</button>
+                </div>
             </div>
 
+            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                <button onclick="setStatusQuickFilter('待核對')" class="text-left bg-white p-4 rounded-2xl border hover:shadow-sm transition">
+                    <p class="text-[10px] text-gray-400">🟠 待確認入帳</p><p id="statPending" class="text-2xl font-black text-clay mt-1">0</p>
+                </button>
+                <button onclick="setStatusQuickFilter('已核對/待出貨')" class="text-left bg-white p-4 rounded-2xl border hover:shadow-sm transition">
+                    <p class="text-[10px] text-gray-400">🟢 已入帳・待出貨</p><p id="statPaid" class="text-2xl font-black text-forest mt-1">0</p>
+                </button>
+                <button onclick="setStatusQuickFilter('已完成出貨')" class="text-left bg-white p-4 rounded-2xl border hover:shadow-sm transition">
+                    <p class="text-[10px] text-gray-400">🔵 已出貨</p><p id="statShipped" class="text-2xl font-black text-blue-600 mt-1">0</p>
+                </button>
+                <button onclick="setStatusQuickFilter('帳款異常')" class="text-left bg-white p-4 rounded-2xl border hover:shadow-sm transition">
+                    <p class="text-[10px] text-gray-400">🔴 異常待處理</p><p id="statAbnormal" class="text-2xl font-black text-red-600 mt-1">0</p>
+                </button>
+                <button onclick="setStatusQuickFilter('已取消')" class="text-left bg-white p-4 rounded-2xl border hover:shadow-sm transition">
+                    <p class="text-[10px] text-gray-400">⚫ 已取消</p><p id="statCancelled" class="text-2xl font-black text-gray-600 mt-1">0</p>
+                </button>
+                <button onclick="setStatusQuickFilter('all')" class="text-left bg-white p-4 rounded-2xl border hover:shadow-sm transition">
+                    <p class="text-[10px] text-gray-400">📚 全部歷史訂單</p><p id="statAllOrders" class="text-2xl font-black text-gray-800 mt-1">0</p>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="bg-forest text-white p-4 rounded-2xl shadow-sm"><p class="text-[10px] opacity-70">篩選區間實收營業額</p><p id="statRevenue" class="text-2xl font-black mt-1">$0</p></div>
+                <div class="bg-white p-4 rounded-2xl border"><p class="text-[10px] text-gray-400">成交訂單數</p><p id="statCompletedSales" class="text-2xl font-black text-forest mt-1">0</p></div>
+                <div class="bg-white p-4 rounded-2xl border"><p class="text-[10px] text-gray-400">平均客單價</p><p id="statAov" class="text-2xl font-black text-clay mt-1">$0</p></div>
+                <div class="bg-white p-4 rounded-2xl border"><p class="text-[10px] text-gray-400">營運輔助</p><p class="text-xs mt-2"><span class="font-bold text-gray-700">商品 <span id="statProducts">0</span></span> ・ <span class="font-bold text-gray-700">待預約 <span id="statBookings">0</span></span></p></div>
+            </div>
+        </section>
+
+        <!-- 🔎 訂單搜尋 / 篩選 -->
+        <section class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-bold text-forest flex items-center gap-2">🔎 訂單搜尋與篩選 <span id="newOrderBadge" class="hidden bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">有新訂單</span></h3>
+                    <p id="filterSummary" class="text-[10px] text-gray-400 mt-1">顯示全部訂單</p>
+                </div>
+                <button onclick="resetOrderFilters()" class="text-[10px] border px-3 py-1.5 rounded-lg text-gray-500 hover:bg-sand">清除篩選</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
+                <input id="orderSearch" oninput="renderOrders()" class="xl:col-span-2 px-3 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="姓名 / 電話 / 商品 / 門市 / 後五碼">
+                <select id="orderStatusFilter" onchange="renderOrders()" class="px-3 py-2 border rounded-xl text-xs bg-white">
+                    <option value="all">全部狀態</option><option value="待核對">待確認入帳</option><option value="已核對/待出貨">已入帳・待出貨</option><option value="已完成出貨">已出貨</option><option value="帳款異常">帳款異常</option><option value="已取消">已取消</option>
+                </select>
+                <select id="orderShipFilter" onchange="renderOrders()" class="px-3 py-2 border rounded-xl text-xs bg-white">
+                    <option value="all">全部配送</option><option value="7-11">7-ELEVEN</option><option value="全家">全家</option><option value="宅配">宅配</option>
+                </select>
+                <input id="orderDateFrom" type="date" onchange="renderOrders()" class="px-3 py-2 border rounded-xl text-xs bg-white">
+                <input id="orderDateTo" type="date" onchange="renderOrders()" class="px-3 py-2 border rounded-xl text-xs bg-white">
+            </div>
+        </section>
+
+        <!-- 📋 訂單處理清單 -->
+        <section class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-forest">📋 訂單處理清單</h3>
+                    <p class="text-[10px] text-gray-400 mt-1">按鈕只顯示當下允許的下一步，降低誤操作。</p>
+                </div>
+                <span id="visibleOrderCount" class="text-[10px] bg-sand px-3 py-1.5 rounded-full text-gray-500">0 筆</span>
+            </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="bg-sand/60 text-gray-500 border-b">
-                            <th class="p-3">下單時間</th>
-                            <th class="p-3">會員/購買品項</th>
-                            <th class="p-3">實付金額</th>
-                            <th class="p-3">付款資訊</th>
-                            <th class="p-3">📦 寄送門市 / 地址資訊</th>
-                            <th class="p-3">目前狀態</th>
-                            <th class="p-3 text-right">對帳操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="orderListTable">
-                        <tr>
-                            <td colspan="7" class="text-center py-8 text-gray-400">正在同步雲端對帳資料...</td>
-                        </tr>
-                    </tbody>
+                <table class="w-full text-left text-xs min-w-[1100px]">
+                    <thead><tr class="bg-sand/60 text-gray-500 border-b">
+                        <th class="p-3">訂單 / 時間</th><th class="p-3">顧客 / 商品</th><th class="p-3">金額 / 付款</th><th class="p-3">配送資訊</th><th class="p-3">目前卡點</th><th class="p-3">下一步</th>
+                    </tr></thead>
+                    <tbody id="orderListTable"><tr><td colspan="6" class="text-center py-10 text-gray-400">正在同步雲端訂單...</td></tr></tbody>
                 </table>
+            </div>
+        </section>
+
+        <!-- 🧾 訂單詳情視窗 -->
+        <div id="orderDetailModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[80]">
+            <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] overflow-y-auto shadow-2xl p-6 relative">
+                <button onclick="closeOrderDetail()" class="absolute top-4 right-4 text-gray-400 text-xl">&times;</button>
+                <h3 class="text-lg font-black text-forest">🧾 訂單完整資料</h3>
+                <div id="orderDetailContent" class="mt-5 text-xs"></div>
             </div>
         </div>
 
@@ -552,16 +606,139 @@
             }
         };
 
-        function listenRealtimeOrders(){ onSnapshot(collection(db,'order_reports'),snap=>{ let pending=0,paid=0,html=''; const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
-            rows.forEach(o=>{ if(o.status==='待核對')pending++; if(o.status==='已核對/待出貨')paid++; const badge=o.status==='已核對/待出貨'?'bg-emerald-50 text-emerald-600':o.status==='已完成出貨'?'bg-blue-50 text-blue-600':o.status==='帳款異常'?'bg-red-50 text-red-600':'bg-amber-50 text-amber-600'; html+=`<tr class="border-b"><td class="p-3 text-[10px] text-gray-400">${o.createdAt?new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false}):'---'}</td><td class="p-3"><b>${esc(o.customerName||'會員')}</b><br><span class="text-clay">${esc(o.productName||'商品')}</span></td><td class="p-3 font-bold">$${Number(o.finalPrice||0)}${o.pointsAwarded?'<br><span class="text-[9px] text-emerald-600">點數已發</span>':''}</td><td class="p-3 font-mono">${esc(o.lastFiveDigits||'')}</td><td class="p-3">${esc(o.shipMethod||'')}<br>${esc(o.shipName||'')} ${esc(o.shipPhone||'')}<br>${o.fulfillmentType==='cvs'||o.shipStoreName ? `<b>${esc(o.shipStoreName||'')}</b> ${o.shipStoreId?`(${esc(o.shipStoreId)})`:''}<br>${esc(o.shipStoreAddress||o.shipAddress||'')}` : esc(o.shipAddress||'')}</td><td class="p-3"><span class="${badge} px-2 py-1 rounded-full font-bold">${esc(o.status||'待核對')}</span></td><td class="p-3 text-right"><button onclick="updateOrderStatus('${o.id}','已核對/待出貨')" class="bg-forest text-white px-2 py-1 rounded text-[10px]">✅ 入帳</button> <button onclick="updateOrderStatus('${o.id}','已完成出貨')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]">🚚 出貨</button> <button onclick="updateOrderStatus('${o.id}','帳款異常')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px]">❌ 異常</button></td></tr>`; });
-            document.getElementById('orderListTable').innerHTML=html||'<tr><td colspan="7" class="text-center py-8 text-gray-400">目前尚無訂單。</td></tr>'; document.getElementById('statPending').textContent=pending; document.getElementById('statPaid').textContent=paid; document.getElementById('newOrderBadge').classList.toggle('hidden',pending===0);
-        }); }
-        window.updateOrderStatus=async function(orderId,newStatus){
-            try{ await runTransaction(db,async tx=>{ const orderRef=doc(db,'order_reports',orderId); const orderSnap=await tx.get(orderRef); if(!orderSnap.exists())throw new Error('訂單不存在'); const o=orderSnap.data(); const changes={status:newStatus,updatedAt:new Date().toISOString()};
-                if(newStatus==='已核對/待出貨' && !o.pointsAwarded && o.uid){ const memberRef=doc(db,'members',o.uid); const memberSnap=await tx.get(memberRef); const earned=Math.round(Number(o.finalPrice||0)*0.1); if(memberSnap.exists() && earned>0){tx.update(memberRef,{points:increment(earned)}); changes.pointsAwarded=true; changes.pointsEarned=earned; changes.pointsAwardedAt=new Date().toISOString();} }
-                tx.update(orderRef,changes); });
+        let ordersCache = [];
+        let visibleOrdersCache = [];
+
+        function money(v){ return '$' + Number(v || 0).toLocaleString('zh-TW'); }
+        function dt(v){ if(!v) return '—'; const d=new Date(v); return Number.isNaN(d.getTime())?'—':d.toLocaleString('zh-TW',{hour12:false}); }
+        function statusMeta(status){
+            const map={
+                '待核對':{label:'待確認入帳',cls:'bg-amber-50 text-amber-700 border-amber-100',step:'等待核對款項'},
+                '已核對/待出貨':{label:'已入帳・待出貨',cls:'bg-emerald-50 text-emerald-700 border-emerald-100',step:'請安排出貨'},
+                '已完成出貨':{label:'已出貨',cls:'bg-blue-50 text-blue-700 border-blue-100',step:'已完成出貨'},
+                '帳款異常':{label:'帳款異常',cls:'bg-red-50 text-red-700 border-red-100',step:'需要人工處理'},
+                '已取消':{label:'已取消',cls:'bg-gray-100 text-gray-600 border-gray-200',step:'交易已取消'}
+            }; return map[status]||map['待核對'];
+        }
+        function orderNo(o){ return o.orderNo || ('YS-' + String(o.id||'').slice(0,8).toUpperCase()); }
+        function shipText(o){
+            if(o.fulfillmentType==='cvs'||o.shipStoreName){ return `${o.shipMethod||'超商取貨'}｜${o.shipStoreName||''}${o.shipStoreId?' ('+o.shipStoreId+')':''}｜${o.shipStoreAddress||o.shipAddress||''}`; }
+            return `${o.shipMethod||'宅配'}｜${o.shipAddress||''}`;
+        }
+        function getFilteredOrders(){
+            const q=(document.getElementById('orderSearch')?.value||'').trim().toLowerCase();
+            const status=document.getElementById('orderStatusFilter')?.value||'all';
+            const ship=document.getElementById('orderShipFilter')?.value||'all';
+            const from=document.getElementById('orderDateFrom')?.value||'';
+            const to=document.getElementById('orderDateTo')?.value||'';
+            const fromTs=from?new Date(from+'T00:00:00').getTime():null;
+            const toTs=to?new Date(to+'T23:59:59').getTime():null;
+            return ordersCache.filter(o=>{
+                if(status!=='all' && (o.status||'待核對')!==status) return false;
+                if(ship!=='all' && !String(o.shipMethod||'').includes(ship)) return false;
+                const ts=o.createdAt?new Date(o.createdAt).getTime():0;
+                if(fromTs && ts<fromTs) return false;
+                if(toTs && ts>toTs) return false;
+                if(q){ const hay=[orderNo(o),o.customerName,o.phone,o.shipName,o.shipPhone,o.productName,o.lastFiveDigits,o.shipMethod,o.shipStoreName,o.shipStoreId,o.shipStoreAddress,o.shipAddress,o.couponCode,o.paymentMethod,o.abnormalReason].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
+                return true;
+            });
+        }
+        function actionButtons(o){
+            const st=o.status||'待核對';
+            const detail=`<button onclick="openOrderDetail('${o.id}')" class="border bg-white text-gray-600 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">詳情</button>`;
+            if(st==='待核對') return `${detail} <button onclick="updateOrderStatus('${o.id}','已核對/待出貨')" class="bg-forest text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold">✅ 確認入帳</button> <button onclick="markOrderAbnormal('${o.id}')" class="bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">❌ 異常</button>`;
+            if(st==='已核對/待出貨') return `${detail} <button onclick="updateOrderStatus('${o.id}','已完成出貨')" class="bg-blue-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold">🚚 確認出貨</button> <button onclick="markOrderAbnormal('${o.id}')" class="bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">❌ 異常</button>`;
+            if(st==='帳款異常') return `${detail} <button onclick="updateOrderStatus('${o.id}','待核對')" class="bg-amber-500 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold">↩ 恢復待核對</button> <button onclick="cancelOrder('${o.id}')" class="bg-gray-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold">取消訂單</button>`;
+            return detail;
+        }
+        function renderOrders(){
+            visibleOrdersCache=getFilteredOrders();
+            const html=visibleOrdersCache.map(o=>{
+                const meta=statusMeta(o.status||'待核對');
+                const abnormal=o.abnormalReason?`<div class="mt-1 text-[10px] text-red-600">原因：${esc(o.abnormalReason)}</div>`:'';
+                const ship=o.fulfillmentType==='cvs'||o.shipStoreName
+                    ? `<b>${esc(o.shipMethod||'超商取貨')}</b><br>${esc(o.shipName||'')} ${esc(o.shipPhone||'')}<br><span class="text-forest font-bold">${esc(o.shipStoreName||'')}</span> ${o.shipStoreId?`(${esc(o.shipStoreId)})`:''}<br><span class="text-[10px] text-gray-400">${esc(o.shipStoreAddress||o.shipAddress||'')}</span>`
+                    : `<b>${esc(o.shipMethod||'宅配')}</b><br>${esc(o.shipName||'')} ${esc(o.shipPhone||'')}<br><span class="text-[10px] text-gray-400">${esc(o.shipAddress||'')}</span>`;
+                return `<tr class="border-b hover:bg-sand/30 align-top">
+                    <td class="p-3"><b class="text-forest">${esc(orderNo(o))}</b><br><span class="text-[10px] text-gray-400">${dt(o.createdAt)}</span></td>
+                    <td class="p-3"><b>${esc(o.customerName||'會員')}</b><br><span class="text-[10px] text-gray-400">${esc(o.phone||o.shipPhone||'')}</span><br><span class="text-clay font-bold">${esc(o.productName||'商品')}</span></td>
+                    <td class="p-3"><b class="text-base">${money(o.finalPrice)}</b>${Number(o.discountAmount||0)>0?`<br><span class="text-[10px] text-clay">折抵 ${money(o.discountAmount)}</span>`:''}<br><span class="text-[10px] text-gray-400">${esc(o.paymentMethod||'匯款/轉帳')} ${o.lastFiveDigits?'・'+esc(o.lastFiveDigits):''}</span>${o.pointsAwarded?'<br><span class="text-[10px] text-emerald-600 font-bold">會員點數已發</span>':''}</td>
+                    <td class="p-3 leading-relaxed">${ship}</td>
+                    <td class="p-3"><span class="inline-block border ${meta.cls} px-2 py-1 rounded-full font-bold">${meta.label}</span><div class="mt-2 text-[10px] font-bold text-gray-600">${meta.step}</div>${abnormal}</td>
+                    <td class="p-3 whitespace-nowrap"><div class="flex flex-wrap gap-1.5 justify-end">${actionButtons(o)}</div></td>
+                </tr>`;
+            }).join('');
+            document.getElementById('orderListTable').innerHTML=html||'<tr><td colspan="6" class="text-center py-10 text-gray-400">沒有符合條件的訂單。</td></tr>';
+            document.getElementById('visibleOrderCount').textContent=`${visibleOrdersCache.length} 筆`;
+            const activeSales=visibleOrdersCache.filter(o=>['已核對/待出貨','已完成出貨'].includes(o.status));
+            const revenue=activeSales.reduce((sum,o)=>sum+Number(o.finalPrice||0),0);
+            document.getElementById('statRevenue').textContent=money(revenue);
+            document.getElementById('statCompletedSales').textContent=activeSales.length;
+            document.getElementById('statAov').textContent=money(activeSales.length?Math.round(revenue/activeSales.length):0);
+            const parts=[]; const sf=document.getElementById('orderStatusFilter')?.value; if(sf&&sf!=='all')parts.push(statusMeta(sf).label); const q=document.getElementById('orderSearch')?.value.trim(); if(q)parts.push(`搜尋「${q}」`); const d1=document.getElementById('orderDateFrom')?.value, d2=document.getElementById('orderDateTo')?.value; if(d1||d2)parts.push(`${d1||'不限'} ～ ${d2||'不限'}`); document.getElementById('filterSummary').textContent=parts.length?`目前：${parts.join('・')}`:'顯示全部訂單';
+        }
+        function refreshOrderStats(){
+            const count=st=>ordersCache.filter(o=>(o.status||'待核對')===st).length;
+            document.getElementById('statPending').textContent=count('待核對');
+            document.getElementById('statPaid').textContent=count('已核對/待出貨');
+            document.getElementById('statShipped').textContent=count('已完成出貨');
+            document.getElementById('statAbnormal').textContent=count('帳款異常');
+            document.getElementById('statCancelled').textContent=count('已取消');
+            document.getElementById('statAllOrders').textContent=ordersCache.length;
+            document.getElementById('newOrderBadge').classList.toggle('hidden',count('待核對')===0);
+        }
+        function listenRealtimeOrders(){
+            onSnapshot(collection(db,'order_reports'),snap=>{
+                ordersCache=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+                refreshOrderStats(); renderOrders();
+            });
+        }
+        window.setStatusQuickFilter=function(status){ document.getElementById('orderStatusFilter').value=status; renderOrders(); document.getElementById('orderListTable')?.scrollIntoView({behavior:'smooth',block:'start'}); };
+        window.resetOrderFilters=function(){ document.getElementById('orderSearch').value=''; document.getElementById('orderStatusFilter').value='all'; document.getElementById('orderShipFilter').value='all'; document.getElementById('orderDateFrom').value=''; document.getElementById('orderDateTo').value=''; renderOrders(); };
+        window.markOrderAbnormal=function(orderId){ const reason=prompt('請輸入異常原因（例如：款項未入帳、金額不符、後五碼不符、顧客要求取消）：'); if(reason===null)return; if(!reason.trim())return alert('異常訂單必須填寫原因。'); updateOrderStatus(orderId,'帳款異常',reason.trim()); };
+        window.cancelOrder=function(orderId){ const reason=prompt('請輸入取消原因：'); if(reason===null)return; if(!reason.trim())return alert('取消訂單必須填寫原因。'); if(!confirm('確定要將此訂單標記為「已取消」嗎？訂單資料仍會永久保留。'))return; updateOrderStatus(orderId,'已取消',reason.trim()); };
+        window.updateOrderStatus=async function(orderId,newStatus,reason=''){
+            const current=ordersCache.find(o=>o.id===orderId); if(!current)return alert('找不到訂單。');
+            const oldStatus=current.status||'待核對';
+            const allowed={
+                '待核對':['已核對/待出貨','帳款異常'],
+                '已核對/待出貨':['已完成出貨','帳款異常'],
+                '帳款異常':['待核對','已取消'],
+                '已完成出貨':[], '已取消':[]
+            };
+            if(!(allowed[oldStatus]||[]).includes(newStatus)) return alert(`目前狀態「${statusMeta(oldStatus).label}」不能直接變更為「${statusMeta(newStatus).label}」。`);
+            const confirmText=newStatus==='已核對/待出貨'?'確認款項已實際入帳？確認後會發放會員消費點數。':newStatus==='已完成出貨'?'確認商品已完成交寄／出貨？':null;
+            if(confirmText&&!confirm(confirmText))return;
+            try{
+                await runTransaction(db,async tx=>{
+                    const orderRef=doc(db,'order_reports',orderId); const orderSnap=await tx.get(orderRef); if(!orderSnap.exists())throw new Error('訂單不存在'); const o=orderSnap.data();
+                    const now=new Date().toISOString(); const changes={status:newStatus,updatedAt:now};
+                    if(newStatus==='已核對/待出貨'){ changes.paidAt=now; changes.abnormalReason=''; if(!o.pointsAwarded&&o.uid){ const memberRef=doc(db,'members',o.uid); const memberSnap=await tx.get(memberRef); const earned=Math.round(Number(o.finalPrice||0)*0.1); if(memberSnap.exists()&&earned>0){tx.update(memberRef,{points:increment(earned)}); changes.pointsAwarded=true; changes.pointsEarned=earned; changes.pointsAwardedAt=now;} } }
+                    if(newStatus==='已完成出貨') changes.shippedAt=now;
+                    if(newStatus==='帳款異常'){ changes.abnormalReason=reason; changes.abnormalAt=now; if(o.pointsAwarded&&o.uid&&Number(o.pointsEarned||0)>0){ const memberRef=doc(db,'members',o.uid); const memberSnap=await tx.get(memberRef); if(memberSnap.exists()) tx.update(memberRef,{points:increment(-Number(o.pointsEarned||0))}); changes.pointsAwarded=false; changes.pointsRevokedAt=now; } }
+                    if(newStatus==='待核對'){ changes.abnormalReason=''; changes.reopenedAt=now; }
+                    if(newStatus==='已取消'){ changes.cancelReason=reason; changes.cancelledAt=now; }
+                    tx.update(orderRef,changes);
+                });
             }catch(e){alert('修改失敗：'+e.message)}
         };
+        window.openOrderDetail=function(id){
+            const o=ordersCache.find(x=>x.id===id); if(!o)return;
+            const meta=statusMeta(o.status||'待核對');
+            const rows=[
+                ['訂單編號',orderNo(o)],['狀態',meta.label],['下單時間',dt(o.createdAt)],['入帳時間',dt(o.paidAt)],['出貨時間',dt(o.shippedAt)],['取消時間',dt(o.cancelledAt)],
+                ['會員姓名',o.customerName||''],['會員電話',o.phone||''],['收件人',o.shipName||''],['收件電話',o.shipPhone||''],['商品',o.productName||''],['原價',money(o.originalPrice)],['折扣',money(o.discountAmount)],['優惠碼',o.couponCode||'—'],['實付',money(o.finalPrice)],['付款方式',o.paymentMethod||''],['後五碼',o.lastFiveDigits||'—'],['配送',shipText(o)],['異常原因',o.abnormalReason||'—'],['取消原因',o.cancelReason||'—'],['會員點數',o.pointsAwarded?`已發 ${Number(o.pointsEarned||0)} 點`:'未發／已撤回']
+            ];
+            document.getElementById('orderDetailContent').innerHTML=`<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${rows.map(([k,v])=>`<div class="border rounded-xl p-3 bg-sand/30"><span class="text-[9px] text-gray-400">${esc(k)}</span><div class="mt-1 font-bold text-gray-700 break-words">${esc(v)}</div></div>`).join('')}</div>`;
+            const modal=document.getElementById('orderDetailModal'); modal.classList.remove('hidden'); modal.classList.add('flex');
+        };
+        window.closeOrderDetail=function(){ const modal=document.getElementById('orderDetailModal'); modal.classList.add('hidden'); modal.classList.remove('flex'); };
+        function exportRows(){ return visibleOrdersCache.map(o=>({
+            '訂單編號':orderNo(o),'下單時間':dt(o.createdAt),'狀態':statusMeta(o.status||'待核對').label,'會員姓名':o.customerName||'','會員電話':o.phone||'','收件人':o.shipName||'','收件電話':o.shipPhone||'','商品':o.productName||'','原價':Number(o.originalPrice||0),'折扣金額':Number(o.discountAmount||0),'優惠碼':o.couponCode||'','實付金額':Number(o.finalPrice||0),'付款方式':o.paymentMethod||'','後五碼':o.lastFiveDigits||'','入帳時間':dt(o.paidAt),'配送方式':o.shipMethod||'','門市名稱':o.shipStoreName||'','門市店號':o.shipStoreId||'','門市地址':o.shipStoreAddress||'','宅配地址':o.shipAddress||'','出貨時間':dt(o.shippedAt),'異常原因':o.abnormalReason||'','取消原因':o.cancelReason||''
+        })); }
+        function downloadBlob(blob,filename){ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
+        window.exportOrdersCSV=function(){ const rows=exportRows(); if(!rows.length)return alert('目前篩選條件沒有可匯出的訂單。'); const headers=Object.keys(rows[0]); const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"'; const csv='\ufeff'+headers.map(quote).join(',')+'\n'+rows.map(r=>headers.map(h=>quote(r[h])).join(',')).join('\n'); downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8;'}),`玥石之溫_訂單_${new Date().toISOString().slice(0,10)}.csv`); };
+        window.exportOrdersExcel=function(){ const rows=exportRows(); if(!rows.length)return alert('目前篩選條件沒有可匯出的訂單。'); if(typeof XLSX==='undefined')return alert('Excel 元件尚未載入，請重新整理頁面後再試。'); const ws=XLSX.utils.json_to_sheet(rows); ws['!cols']=[{wch:16},{wch:20},{wch:16},{wch:12},{wch:14},{wch:12},{wch:14},{wch:30},{wch:10},{wch:10},{wch:12},{wch:12},{wch:16},{wch:10},{wch:20},{wch:14},{wch:18},{wch:12},{wch:32},{wch:32},{wch:20},{wch:30},{wch:30}]; const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'訂單資料'); XLSX.writeFile(wb,`玥石之溫_訂單_${new Date().toISOString().slice(0,10)}.xlsx`); };
 
         function listenBookings(){ onSnapshot(collection(db,'course_bookings'),snap=>{ let pending=0; const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.bookingDate||'').localeCompare(String(a.bookingDate||''))); rows.forEach(b=>{ if((b.status||'已預約')==='已預約')pending++; }); document.getElementById('statBookings').textContent=pending; document.getElementById('bookingAdminList').innerHTML=rows.length?rows.map(b=>`<div class="bg-sand/50 border rounded-xl p-3"><b>${esc(b.customerName||'會員')}</b>・${esc(b.bookingDate||'未定')}・${Number(b.peopleCount||1)} 人<br><span class="text-clay">${esc(b.drawnOil||'未指定香氣')}</span><br><span>${esc(b.status||'已預約')}</span><div class="mt-2"><button onclick="updateBooking('${b.id}','已確認')" class="bg-forest text-white px-2 py-1 rounded text-[10px]">確認</button> <button onclick="updateBooking('${b.id}','已完成')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]">完成</button> <button onclick="updateBooking('${b.id}','已取消')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px]">取消</button></div></div>`).join(''):'<p class="text-gray-400">目前沒有預約。</p>'; }); }
         window.updateBooking=async(id,status)=>{try{await updateDoc(doc(db,'course_bookings',id),{status,updatedAt:new Date().toISOString()})}catch(e){alert(e.message)}};
