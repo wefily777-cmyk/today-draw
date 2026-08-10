@@ -256,9 +256,25 @@
                             </select>
                         </div>
 
-                        <div>
-                            <label id="shipAddressLabel" class="block text-[11px] font-bold text-gray-700 mb-1">取件超商門市名稱與店號</label>
-                            <input type="text" id="shipAddress" required class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="請填寫：7-11 玥石門市 (店號: 123456)">
+                        <!-- 🏪 超商選店：先使用官方門市查詢，之後可直接替換成綠界電子地圖回傳 -->
+                        <div id="cvsStoreFields" class="space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <label class="block text-[11px] font-bold text-gray-700">取貨門市</label>
+                                <button type="button" id="storeLocatorBtn" onclick="openStoreLocator()" class="bg-clay/10 text-clay border border-clay/20 px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-clay hover:text-white transition">
+                                    🔎 查找門市
+                                </button>
+                            </div>
+                            <p id="storeLocatorHint" class="text-[10px] text-gray-400">請先查詢門市，再將店名、店號與地址填入下方。</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="shipStoreName" class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="門市名稱">
+                                <input type="text" id="shipStoreId" class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="6 碼店號">
+                            </div>
+                            <input type="text" id="shipStoreAddress" class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="門市地址">
+                        </div>
+
+                        <div id="homeDeliveryField" class="hidden">
+                            <label class="block text-[11px] font-bold text-gray-700 mb-1">完整宅配收件地址</label>
+                            <input type="text" id="shipAddress" class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="縣市 / 鄉鎮市區 / 路街 / 號 / 樓">
                         </div>
 
                         <button type="submit" id="reportBtn" class="w-full bg-forest text-white py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition shadow-md mt-2">
@@ -581,15 +597,33 @@
 
         window.toggleShipInput = function() {
             const method = document.getElementById('shipMethod').value;
-            const label = document.getElementById('shipAddressLabel');
-            const input = document.getElementById('shipAddress');
-            if (method.includes('取貨')) {
-                label.textContent = '取件超商門市名稱與店號';
-                input.placeholder = `請填寫：${method.replace('取貨','')} 門市名稱與店號`;
-            } else {
-                label.textContent = '完整宅配收件地址';
-                input.placeholder = '請填寫：縣市 / 鄉鎮市區 / 路街 / 號 / 樓';
+            const isCvs = method.includes('取貨');
+            document.getElementById('cvsStoreFields')?.classList.toggle('hidden', !isCvs);
+            document.getElementById('homeDeliveryField')?.classList.toggle('hidden', isCvs);
+
+            const storeName = document.getElementById('shipStoreName');
+            const storeId = document.getElementById('shipStoreId');
+            const storeAddress = document.getElementById('shipStoreAddress');
+            const homeAddress = document.getElementById('shipAddress');
+
+            [storeName, storeId, storeAddress].forEach(el => { if (el) el.required = isCvs; });
+            if (homeAddress) homeAddress.required = !isCvs;
+
+            const hint = document.getElementById('storeLocatorHint');
+            const btn = document.getElementById('storeLocatorBtn');
+            if (isCvs && hint && btn) {
+                const brand = method.startsWith('7-11') ? '7-ELEVEN' : '全家';
+                hint.textContent = `請使用 ${brand} 官方門市查詢，確認後填入門市名稱、店號與地址。`;
+                btn.textContent = `🔎 查找 ${brand} 門市`;
             }
+        };
+
+        window.openStoreLocator = function() {
+            const method = document.getElementById('shipMethod').value;
+            const url = method.startsWith('7-11')
+                ? 'https://emap.pcsc.com.tw/'
+                : 'https://www.family.com.tw/Marketing/zh/Map';
+            window.open(url, '_blank', 'noopener,noreferrer');
         };
 
         window.applyCoupon = async function() {
@@ -670,6 +704,19 @@
             const reportBtn = document.getElementById('reportBtn');
             const fiveCode = document.getElementById('payFiveCode').value.trim();
             if (!/^\d{5}$/.test(fiveCode)) return alert('請輸入正確的轉帳帳號後五碼（5 位數字）。');
+
+            const shipMethod = document.getElementById('shipMethod').value;
+            if (shipMethod.includes('取貨')) {
+                const storeName = document.getElementById('shipStoreName').value.trim();
+                const storeId = document.getElementById('shipStoreId').value.trim();
+                const storeAddress = document.getElementById('shipStoreAddress').value.trim();
+                if (!storeName || !storeId || !storeAddress) return alert('請完整填寫取貨門市名稱、店號與地址。');
+                if (!/^\d{5,6}$/.test(storeId)) return alert('請確認超商店號是否正確（通常為 5～6 碼數字）。');
+            } else {
+                const address = document.getElementById('shipAddress').value.trim();
+                if (!address) return alert('請填寫完整宅配收件地址。');
+            }
+
             reportBtn.disabled = true;
             reportBtn.textContent = '⏳ 正在提交雲端對帳單...';
             try {
@@ -687,7 +734,11 @@
                     shipName: document.getElementById('shipName').value.trim(),
                     shipPhone: document.getElementById('shipPhone').value.trim(),
                     shipMethod: document.getElementById('shipMethod').value,
-                    shipAddress: document.getElementById('shipAddress').value.trim(),
+                    shipStoreName: document.getElementById('shipStoreName')?.value.trim() || '',
+                    shipStoreId: document.getElementById('shipStoreId')?.value.trim() || '',
+                    shipStoreAddress: document.getElementById('shipStoreAddress')?.value.trim() || '',
+                    shipAddress: document.getElementById('shipAddress')?.value.trim() || '',
+                    fulfillmentType: document.getElementById('shipMethod').value.includes('取貨') ? 'cvs' : 'home',
                     status: '待核對',
                     pointsAwarded: false,
                     createdAt: new Date().toISOString()
