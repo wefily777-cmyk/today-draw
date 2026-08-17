@@ -68,12 +68,45 @@
             <section id="memberCenter" class="hidden mb-12 bg-white border border-stone-100 p-6 soft-shadow"><div class="flex justify-between gap-3 mb-4"><div><span class="text-[10px] uppercase font-bold tracking-widest text-clay">Member Center</span><h3 class="text-lg font-bold text-forest mt-1">我的玥石紀錄</h3></div><button onclick="refreshMemberCenter()" class="text-xs bg-sand px-3 py-2 text-forest font-bold">重新整理</button></div><div class="grid md:grid-cols-3 gap-4"><div><h4 class="text-xs font-bold mb-2">📦 我的訂單</h4><div id="myOrders" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div></div><div><h4 class="text-xs font-bold mb-2">📅 我的預約</h4><div id="myBookings" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div></div><div><h4 class="text-xs font-bold mb-2">🌱 我的推薦</h4><div id="myReferrals" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div></div></div></section>
         </div>
 
-        <section id="shop" class="bg-white py-16 border-y border-stone-100">
-            <div class="max-w-7xl mx-auto px-5 lg:px-8">
-                <div class="flex items-end justify-between mb-9"><div><p class="text-[11px] tracking-[.25em] text-clay font-bold uppercase">Pure Essential Oils</p><h2 class="serif text-3xl text-forest mt-2">精選天然精油</h2><p class="text-sm text-gray-500 mt-2">由後台商品資料即時載入，保留原有規格、價格與購買功能。</p></div><span class="hidden sm:block text-xs text-gray-400">探索全部 →</span></div>
-                <div id="showcaseContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7"><p class="text-sm text-gray-400 text-center py-8 col-span-full">正在從雲端櫥窗調度商品中...</p></div>
+        
+<section id="shop" class="bg-white py-16 border-y border-stone-100">
+    <div class="max-w-7xl mx-auto px-5 lg:px-8">
+        <div class="text-center mb-10">
+            <p class="text-[11px] tracking-[.25em] text-clay font-bold uppercase">Product Categories</p>
+            <h2 class="serif text-3xl text-forest mt-2">商品專區</h2>
+            <p class="text-sm text-gray-500 mt-3">先選擇主題，再進入細分類與商品。分類與商品會由後台資料自動對應。</p>
+        </div>
+
+        <div id="catalogMainGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+
+        <div id="catalogSubSection" class="hidden mt-14">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7">
+                <div>
+                    <button type="button" onclick="showCatalogMain()" class="text-xs text-gray-400 hover:text-forest">← 回全部分類</button>
+                    <p id="catalogMainEyebrow" class="text-[10px] tracking-[.22em] text-clay font-bold uppercase mt-3">Category</p>
+                    <h3 id="catalogMainTitle" class="serif text-3xl text-forest mt-1">分類</h3>
+                    <p id="catalogMainDesc" class="text-sm text-gray-500 mt-2"></p>
+                </div>
             </div>
-        </section>
+            <div id="catalogSubGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"></div>
+        </div>
+
+        <div id="catalogProductSection" class="hidden mt-14">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7">
+                <div>
+                    <button type="button" onclick="backToCatalogSub()" class="text-xs text-gray-400 hover:text-forest">← 回細分類</button>
+                    <p id="catalogBreadcrumb" class="text-[10px] tracking-[.18em] text-clay font-bold uppercase mt-3">PRODUCTS</p>
+                    <h3 id="catalogProductTitle" class="serif text-3xl text-forest mt-1">商品</h3>
+                    <p class="text-sm text-gray-500 mt-2">商品規格、價格與上架狀態均由後台即時載入。</p>
+                </div>
+                <button type="button" onclick="showAllCatalogProducts()" class="text-xs border border-stone-200 bg-white px-4 py-2 text-gray-500 hover:text-forest">顯示全部商品</button>
+            </div>
+            <div id="showcaseContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+                <p class="text-sm text-gray-400 text-center py-8 col-span-full">正在從雲端櫥窗調度商品中...</p>
+            </div>
+        </div>
+    </div>
+</section>
 
         <section class="max-w-7xl mx-auto px-5 lg:px-8 py-16">
             <div class="grid lg:grid-cols-2 gap-5">
@@ -278,6 +311,48 @@
         let activeDiscount = 0;
         let appliedCouponCode = "";
 
+
+        const CATALOG_TAXONOMY = [
+            {name:'精油', desc:'從水氧擴香到純精油，依使用方式找到適合的香氣。', image:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200&auto=format&fit=crop&q=82', subs:[
+                {name:'水氧精油', desc:'適合搭配水氧機使用的香氛精油。', image:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=900&auto=format&fit=crop&q=82'},
+                {name:'純精油', desc:'單方與複方純精油，依香氣與植物來源選擇。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'}
+            ]},
+            {name:'蠟燭', desc:'從融燭、燃燭到薰香燈，打造有層次的居家香氣。', image:'https://images.unsplash.com/photo-1602874801006-e26d0d93730f?w=1200&auto=format&fit=crop&q=82', subs:[
+                {name:'融燭燈', desc:'無明火融蠟，享受穩定香氣。', image:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=900&auto=format&fit=crop&q=82'},
+                {name:'香氛蠟燭', desc:'以燭光與香氣營造生活儀式感。', image:'https://images.unsplash.com/photo-1608181831718-c9ffd66e08df?w=900&auto=format&fit=crop&q=82'},
+                {name:'薰香燈', desc:'適合精油或香氛蠟片使用的薰香器具。', image:'https://images.unsplash.com/photo-1608831540955-35094d48694a?w=900&auto=format&fit=crop&q=82'}
+            ]},
+            {name:'超音波水氧機', desc:'依空間大小與水箱容量選擇合適機型。', image:'https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=1200&auto=format&fit=crop&q=82', subs:[
+                {name:'150ml以下', desc:'小空間與桌面使用。', image:'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=900&auto=format&fit=crop&q=82'},
+                {name:'151ml-250ml', desc:'房間、辦公桌的輕量選擇。', image:'https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=900&auto=format&fit=crop&q=82'},
+                {name:'251ml-400ml', desc:'日常居家空間主流容量。', image:'https://images.unsplash.com/photo-1603905179139-db12ab535ca5?w=900&auto=format&fit=crop&q=82'},
+                {name:'401ml-600ml', desc:'適合較長時間使用。', image:'https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?w=900&auto=format&fit=crop&q=82'},
+                {name:'601ml-1000ml', desc:'大空間與長時間擴香。', image:'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=900&auto=format&fit=crop&q=82'},
+                {name:'1000ml以上', desc:'商空或大坪數空間使用。', image:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=900&auto=format&fit=crop&q=82'}
+            ]},
+            {name:'擴香儀', desc:'無水霧化、玻璃與可攜式擴香設備。', image:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200&auto=format&fit=crop&q=82', subs:[
+                {name:'可攜式', desc:'適合桌面、旅行與移動使用。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'},
+                {name:'玻璃', desc:'玻璃霧化設計，兼具氣味與視覺質感。', image:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=900&auto=format&fit=crop&q=82'},
+                {name:'其他擴香儀', desc:'商空與特殊空間使用機型。', image:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=900&auto=format&fit=crop&q=82'}
+            ]},
+            {name:'空氣清淨水洗機', desc:'以水洗方式帶走空氣中的微粒並搭配香氛使用。', image:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=1200&auto=format&fit=crop&q=82', subs:[
+                {name:'桌上型', desc:'居家房間與辦公桌使用。', image:'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=900&auto=format&fit=crop&q=82'},
+                {name:'大容量', desc:'客廳、工作室與較大空間。', image:'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=900&auto=format&fit=crop&q=82'}
+            ]},
+            {name:'香氛', desc:'將喜歡的香氣帶進空間、織品與每日生活。', image:'https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1200&auto=format&fit=crop&q=82', subs:[
+                {name:'空間香氛', desc:'適合居家與工作空間。', image:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=900&auto=format&fit=crop&q=82'},
+                {name:'織品香氛', desc:'為衣物與布品增添日常氣味。', image:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=900&auto=format&fit=crop&q=82'},
+                {name:'其他香氛', desc:'更多生活香氛品項。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'}
+            ]},
+            {name:'Gonesh', desc:'經典美式線香與生活香氛系列。', image:'https://images.unsplash.com/photo-1602874801006-e26d0d93730f?w=1200&auto=format&fit=crop&q=82', subs:[
+                {name:'線香', desc:'經典線香系列。', image:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=900&auto=format&fit=crop&q=82'},
+                {name:'擴香瓶', desc:'讓香氣自然擴散在生活空間。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'},
+                {name:'車用香氛', desc:'適合車內空間的香氣選擇。', image:'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=900&auto=format&fit=crop&q=82'}
+            ]}
+        ];
+        let activeCatalogMain = '';
+        let activeCatalogSub = '';
+
         const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
         const formatDate = (value) => value ? new Date(value).toLocaleString('zh-TW', {hour12:false}) : '---';
         const isBirthdayMonth = () => {
@@ -313,7 +388,11 @@
             }
             return {
                 id,
-                category: data.category || '精油系列',
+                category: data.category || data.subCategory || data.mainCategory || '精油',
+                mainCategory: data.mainCategory || '精油',
+                subCategory: data.subCategory || (data.category?.includes('水氧') ? '水氧精油' : '純精油'),
+                detailCategory: data.detailCategory || '',
+                details: data.details || {},
                 name: data.name || '未命名商品',
                 description: data.description || '讓今天的香氣陪你回到自己的節奏。',
                 imageUrl: data.imageUrl || '',
@@ -324,60 +403,111 @@
             };
         }
 
+        function catalogCard(item, onClick, isMain=false){
+            return `<button type="button" onclick="${onClick}" class="group text-left bg-white border border-stone-100 overflow-hidden hover:-translate-y-1 hover:shadow-lg transition duration-300">
+                <div class="aspect-[4/3] overflow-hidden bg-sand"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy"></div>
+                <div class="p-5"><p class="text-[9px] tracking-[.18em] text-clay font-bold uppercase">${isMain?'COLLECTION':'CATEGORY'}</p><h3 class="serif text-xl text-forest mt-1">${escapeHtml(item.name)}</h3><p class="text-xs text-gray-500 leading-6 mt-2">${escapeHtml(item.desc||'')}</p><span class="inline-block text-xs text-forest mt-4">探索 →</span></div>
+            </button>`;
+        }
+
+        function renderCatalogMain(){
+            const grid = document.getElementById('catalogMainGrid');
+            if(!grid) return;
+            grid.innerHTML = CATALOG_TAXONOMY.map((item,index)=>catalogCard(item, `openCatalogMain(${index})`, true)).join('');
+        }
+
+        window.showCatalogMain = function(){
+            activeCatalogMain=''; activeCatalogSub='';
+            document.getElementById('catalogMainGrid')?.classList.remove('hidden');
+            document.getElementById('catalogSubSection')?.classList.add('hidden');
+            document.getElementById('catalogProductSection')?.classList.add('hidden');
+            document.getElementById('shop')?.scrollIntoView({behavior:'smooth',block:'start'});
+        };
+
+        window.openCatalogMain = function(index){
+            const item = CATALOG_TAXONOMY[index]; if(!item) return;
+            activeCatalogMain=item.name; activeCatalogSub='';
+            document.getElementById('catalogMainGrid')?.classList.add('hidden');
+            document.getElementById('catalogProductSection')?.classList.add('hidden');
+            document.getElementById('catalogSubSection')?.classList.remove('hidden');
+            document.getElementById('catalogMainTitle').textContent=item.name;
+            document.getElementById('catalogMainDesc').textContent=item.desc||'';
+            document.getElementById('catalogSubGrid').innerHTML=item.subs.map((sub,subIndex)=>catalogCard(sub,`openCatalogSub(${index},${subIndex})`)).join('');
+            document.getElementById('catalogSubSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+        };
+
+        window.openCatalogSub = function(mainIndex,subIndex){
+            const main = CATALOG_TAXONOMY[mainIndex], sub = main?.subs?.[subIndex]; if(!main||!sub) return;
+            activeCatalogMain=main.name; activeCatalogSub=sub.name;
+            document.getElementById('catalogSubSection')?.classList.add('hidden');
+            document.getElementById('catalogProductSection')?.classList.remove('hidden');
+            document.getElementById('catalogBreadcrumb').textContent=`${main.name} / ${sub.name}`;
+            document.getElementById('catalogProductTitle').textContent=sub.name;
+            renderCatalogProducts();
+            document.getElementById('catalogProductSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+        };
+
+        window.backToCatalogSub = function(){
+            const idx = CATALOG_TAXONOMY.findIndex(x=>x.name===activeCatalogMain);
+            if(idx>=0) openCatalogMain(idx); else showCatalogMain();
+        };
+
+        window.showAllCatalogProducts = function(){
+            activeCatalogMain=''; activeCatalogSub='';
+            document.getElementById('catalogMainGrid')?.classList.add('hidden');
+            document.getElementById('catalogSubSection')?.classList.add('hidden');
+            document.getElementById('catalogProductSection')?.classList.remove('hidden');
+            document.getElementById('catalogBreadcrumb').textContent='ALL PRODUCTS';
+            document.getElementById('catalogProductTitle').textContent='全部商品';
+            renderCatalogProducts();
+        };
+
+        function productCard(p){
+            const selectId = `flavor_${p.id}`;
+            const image = p.imageUrl
+                ? `<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-56 object-cover mb-4 bg-white" loading="lazy">`
+                : '<div class="w-full h-56 bg-sand flex items-center justify-center text-5xl mb-4">🌿</div>';
+            const saleFlavors = p.flavors.filter(f=>f.active);
+            const options = saleFlavors.map(f => {
+                const original = f.compareAtPrice && f.compareAtPrice > f.price ? `（原價 $${f.compareAtPrice}）` : '';
+                return `<option value="${escapeHtml(f.id)}" data-price="${f.price}">${escapeHtml(f.name)} — $${f.price} ${original}</option>`;
+            }).join('');
+            const soldOut = saleFlavors.length === 0;
+            const tags=[p.mainCategory,p.subCategory,p.detailCategory].filter(Boolean).map(t=>`<span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 font-bold">${escapeHtml(t)}</span>`).join(' ');
+            return `<article class="bg-white border border-stone-100 p-5 flex flex-col hover:shadow-md transition duration-300">
+                ${image}<div class="flex flex-wrap gap-1 mb-2">${tags}</div>
+                <h4 class="serif text-xl text-forest">${escapeHtml(p.name)}</h4>
+                <p class="text-xs text-gray-500 leading-6 my-3 flex-1 line-clamp-3">${escapeHtml(p.description)}</p>
+                ${soldOut ? `<div class="w-full mb-3 px-3 py-2 text-xs bg-gray-100 text-gray-400 text-center">目前所有規格暫停販售</div>` : `<select id="${selectId}" class="w-full mb-3 px-3 py-2.5 border text-xs bg-white focus:ring-2 focus:ring-clay outline-none">${options}</select>`}
+                <button ${soldOut?'disabled':''} onclick="buyProduct('${p.id}')" class="w-full py-3 ${soldOut?'bg-gray-300 cursor-not-allowed':'bg-forest hover:bg-opacity-95'} text-white text-xs font-medium transition">${soldOut?'暫時售罄':'選擇規格購買'}</button>
+            </article>`;
+        }
+
+        function renderCatalogProducts(){
+            const showcase=document.getElementById('showcaseContainer'); if(!showcase) return;
+            let rows=Object.values(productsCache).filter(p=>p.active);
+            if(activeCatalogMain) rows=rows.filter(p=>p.mainCategory===activeCatalogMain);
+            if(activeCatalogSub) rows=rows.filter(p=>p.subCategory===activeCatalogSub);
+            rows.sort((a,b)=>a.sortOrder-b.sortOrder || a.name.localeCompare(b.name,'zh-Hant'));
+            showcase.innerHTML=rows.length ? rows.map(productCard).join('') : '<p class="text-sm text-gray-400 text-center py-12 col-span-full">此分類目前尚無上架商品。</p>';
+        }
+
         async function fetchShowcaseProducts() {
-            const showcase = document.getElementById('showcaseContainer');
             try {
                 const snap = await getDocs(collection(db, 'products'));
-                productsCache = {};
-                drawPool = [];
-                if (snap.empty) {
-                    showcase.innerHTML = '<p class="text-sm text-gray-400 text-center py-8 col-span-full">主理人正在籌備新商品，敬請期待！</p>';
-                    prepareDrawCards();
-                    return;
-                }
+                productsCache = {}; drawPool = [];
                 snap.forEach(ds => {
                     const p = normalizeProduct(ds.id, ds.data());
                     if (!p.active) return;
                     productsCache[p.id] = p;
-                    p.flavors.filter(f=>f.active).forEach(f => drawPool.push({
-                        productId:p.id,
-                        productName:p.name,
-                        category:p.category,
-                        flavorName:f.name,
-                        price:f.price,
-                        description:p.description,
-                        imageUrl:p.imageUrl
-                    }));
+                    if(p.mainCategory==='精油') p.flavors.filter(f=>f.active).forEach(f => drawPool.push({productId:p.id,productName:p.name,category:p.subCategory||p.category,flavorName:f.name,price:f.price,description:p.description,imageUrl:p.imageUrl}));
                 });
-                showcase.innerHTML = Object.values(productsCache)
-                    .sort((a,b)=>a.sortOrder-b.sortOrder || a.name.localeCompare(b.name,'zh-Hant'))
-                    .map(p => {
-                    const selectId = `flavor_${p.id}`;
-                    const image = p.imageUrl
-                        ? `<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-48 object-cover rounded-2xl shadow-md mb-4 bg-white border border-gray-100" loading="lazy">`
-                        : '<div class="text-4xl bg-sand p-4 rounded-full mb-4">🌿</div>';
-                    const saleFlavors = p.flavors.filter(f=>f.active);
-                    const options = saleFlavors.map(f => {
-                        const original = f.compareAtPrice && f.compareAtPrice > f.price ? `（原價 $${f.compareAtPrice}）` : '';
-                        return `<option value="${escapeHtml(f.id)}" data-price="${f.price}">${escapeHtml(f.name)} — $${f.price} ${original}</option>`;
-                    }).join('');
-                    const soldOut = saleFlavors.length === 0;
-                    return `<article class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition duration-300">
-                        ${image}
-                        <span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 rounded-full font-bold mb-2">${escapeHtml(p.category)}</span>
-                        <h4 class="text-lg font-bold text-gray-800">${escapeHtml(p.name)}</h4>
-                        <p class="text-xs text-gray-500 text-center leading-relaxed my-3 flex-1 line-clamp-3">${escapeHtml(p.description)}</p>
-                        ${soldOut
-                            ? `<div class="w-full mb-3 px-3 py-2 rounded-xl text-xs bg-gray-100 text-gray-400 text-center">目前所有規格暫停販售</div>`
-                            : `<select id="${selectId}" class="w-full mb-3 px-3 py-2 border rounded-xl text-xs bg-white focus:ring-2 focus:ring-clay outline-none">${options}</select>`
-                        }
-                        <button ${soldOut?'disabled':''} onclick="buyProduct('${p.id}')" class="w-full py-2 ${soldOut?'bg-gray-300 cursor-not-allowed':'bg-forest hover:bg-opacity-95'} text-white text-xs font-medium rounded-lg transition">${soldOut?'暫時售罄':'選擇此香氣購買'}</button>
-                    </article>`;
-                }).join('');
+                renderCatalogMain();
                 prepareDrawCards();
             } catch (error) {
                 console.error(error);
-                showcase.innerHTML = '<p class="text-sm text-red-400 text-center py-8 col-span-full">櫥窗加載失敗，請稍後再試。</p>';
+                const showcase=document.getElementById('showcaseContainer');
+                if(showcase) showcase.innerHTML='<p class="text-sm text-red-400 text-center py-8 col-span-full">櫥窗加載失敗，請稍後再試。</p>';
             }
         }
 

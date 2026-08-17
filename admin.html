@@ -125,7 +125,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b pb-4 mb-5">
                 <div>
                     <h3 class="text-base font-bold text-forest">🛍️ 商品上架與規格管理</h3>
-                    <p class="text-xs text-gray-400 mt-1">先建立商品系列，再用「規格卡」管理每一種香氣與價格；舊商品也可直接編輯升級。</p>
+                    <p class="text-xs text-gray-400 mt-1">以「主分類 → 細分類 → 商品類型」下拉選單上架；不同品類會自動顯示對應資料欄位，規格價格維持手動輸入。</p>
                 </div>
                 <div class="flex gap-2">
                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 新增商品</button>
@@ -153,14 +153,19 @@
                                 <span class="text-[9px] text-gray-400">系列層級</span>
                             </div>
 
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">商品分類</label>
-                                <select id="pCategory" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white">
-                                    <option value="經典單方精油">🌿 經典單方精油</option>
-                                    <option value="複方複和精油">✨ 複方療癒精油</option>
-                                    <option value="水晶擴香套組">🔮 水晶擴香套組</option>
-                                    <option value="限定盲盒體驗">🎁 限定盲盒體驗</option>
-                                </select>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">主分類 *</label>
+                                    <select id="pMainCategory" onchange="refreshSubCategoryOptions(); renderDynamicFields()" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">細分類 *</label>
+                                    <select id="pSubCategory" onchange="refreshDetailCategoryOptions(); renderDynamicFields()" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">商品類型</label>
+                                    <select id="pDetailCategory" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white"></select>
+                                </div>
                             </div>
 
                             <div>
@@ -169,8 +174,8 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">商品介紹／心靈描述</label>
-                                <textarea id="pDesc" required rows="4" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="介紹這個系列，也會作為抽中香氣時的心靈文字來源。"></textarea>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">商品介紹／產品說明</label>
+                                <textarea id="pDesc" required rows="4" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="輸入商品特色、香氣描述、使用情境等；精油商品也會作為命定香氣內容來源。"></textarea>
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
@@ -196,9 +201,16 @@
 
                         <div class="bg-white rounded-xl p-4 border">
                             <div class="flex items-center justify-between mb-3">
+                                <div><h5 class="text-xs font-black text-forest">② 商品詳細資料</h5><p class="text-[9px] text-gray-400 mt-1">依主分類自動切換欄位；精油欄位參考成熟芳療商品頁的資訊結構。</p></div>
+                            </div>
+                            <div id="dynamicProductFields" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                        </div>
+
+                        <div class="bg-white rounded-xl p-4 border">
+                            <div class="flex items-center justify-between mb-3">
                                 <div>
-                                    <h5 class="text-xs font-black text-forest">② 香氣／商品規格</h5>
-                                    <p class="text-[9px] text-gray-400 mt-1">每一張卡片就是前台可選的一個規格。</p>
+                                    <h5 class="text-xs font-black text-forest">③ 規格／容量／款式與價格</h5>
+                                    <p class="text-[9px] text-gray-400 mt-1">每一張卡片就是前台可選的一個規格；售價由你手動輸入。</p>
                                 </div>
                                 <button type="button" onclick="addFlavorRow()" class="text-[10px] bg-clay text-white font-bold px-3 py-1.5 rounded-lg">＋ 新增規格</button>
                             </div>
@@ -223,10 +235,10 @@
                             <p class="text-[10px] text-gray-400 mt-1">建議用「停售」代替刪除，可保留舊訂單與歷史資料的關聯。</p>
                         </div>
                         <div class="flex gap-2">
+                            <select id="productMainFilter" onchange="refreshAdminSubFilter(); loadAdminProducts()" class="px-3 py-2 border rounded-xl text-xs bg-white"><option value="all">全部主分類</option></select>
+                            <select id="productSubFilter" onchange="loadAdminProducts()" class="px-3 py-2 border rounded-xl text-xs bg-white"><option value="all">全部細分類</option></select>
                             <select id="productFilter" onchange="loadAdminProducts()" class="px-3 py-2 border rounded-xl text-xs bg-white">
-                                <option value="all">全部商品</option>
-                                <option value="active">只看上架</option>
-                                <option value="inactive">只看停售</option>
+                                <option value="all">全部狀態</option><option value="active">只看上架</option><option value="inactive">只看停售</option>
                             </select>
                         </div>
                     </div>
@@ -283,6 +295,74 @@
         });
 
         let flavorRowSerial = 0;
+
+
+        const PRODUCT_TAXONOMY = {
+            '精油': {subs:['水氧精油','純精油'], details:['單方精油','複方精油']},
+            '蠟燭': {subs:['融燭燈','香氛蠟燭','薰香燈'], details:[]},
+            '超音波水氧機': {subs:['150ml以下','151ml-250ml','251ml-400ml','401ml-600ml','601ml-1000ml','1000ml以上'], details:[]},
+            '擴香儀': {subs:['可攜式','玻璃','其他擴香儀'], details:[]},
+            '空氣清淨水洗機': {subs:['桌上型','大容量'], details:[]},
+            '香氛': {subs:['空間香氛','織品香氛','其他香氛'], details:[]},
+            'Gonesh': {subs:['線香','擴香瓶','車用香氛'], details:[]}
+        };
+        const DETAIL_FIELD_SETS = {
+            oil:[
+                ['englishName','英文名稱'],['botanicalName','拉丁學名'],['extractionMethod','萃取方式'],['extractionPart','萃取部位'],
+                ['oilOrigin','精油產地'],['plantOrigin','植物產地'],['appearance','外觀色澤'],['composition','成分／結構分析','textarea'],
+                ['usage','使用建議','textarea'],['pairing','推薦搭配','textarea'],['packaging','包裝方式','textarea'],['storage','保存方式','textarea'],['warnings','注意事項與警語','textarea']
+            ],
+            device:[
+                ['model','型號'],['capacity','容量／水箱容量'],['material','材質'],['dimensions','尺寸'],['power','功率'],['voltage','電壓／供電'],
+                ['mistMode','霧化／擴香模式'],['lighting','燈光功能'],['runtime','運轉時間'],['warranty','保固'],['included','包裝內容','textarea'],['usage','使用方式','textarea'],['warnings','注意事項','textarea']
+            ],
+            candle:[
+                ['scent','香調／香味'],['material','材質'],['waxType','蠟材'],['burnTime','燃燒／使用時間'],['dimensions','尺寸'],['included','包裝內容','textarea'],['usage','使用方式','textarea'],['warnings','注意事項','textarea']
+            ],
+            fragrance:[
+                ['scent','香調／香味'],['content','容量／數量'],['duration','香氣持續時間'],['usagePlace','適用空間'],['ingredients','主要成分','textarea'],['usage','使用方式','textarea'],['warnings','注意事項','textarea']
+            ]
+        };
+        let editingDetails = {};
+
+        function currentFieldSet(){
+            const main=document.getElementById('pMainCategory')?.value;
+            if(main==='精油') return DETAIL_FIELD_SETS.oil;
+            if(main==='蠟燭') return DETAIL_FIELD_SETS.candle;
+            if(['超音波水氧機','擴香儀','空氣清淨水洗機'].includes(main)) return DETAIL_FIELD_SETS.device;
+            return DETAIL_FIELD_SETS.fragrance;
+        }
+        function fillMainCategoryOptions(){
+            const el=document.getElementById('pMainCategory'); if(!el) return;
+            el.innerHTML=Object.keys(PRODUCT_TAXONOMY).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
+            const filter=document.getElementById('productMainFilter');
+            if(filter) filter.innerHTML='<option value="all">全部主分類</option>'+Object.keys(PRODUCT_TAXONOMY).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
+            refreshSubCategoryOptions(); refreshAdminSubFilter();
+        }
+        window.refreshSubCategoryOptions=function(selected=''){
+            const main=document.getElementById('pMainCategory')?.value || Object.keys(PRODUCT_TAXONOMY)[0];
+            const el=document.getElementById('pSubCategory'); if(!el) return;
+            const subs=PRODUCT_TAXONOMY[main]?.subs||[];
+            el.innerHTML=subs.map(x=>`<option value="${esc(x)}" ${x===selected?'selected':''}>${esc(x)}</option>`).join('');
+            refreshDetailCategoryOptions();
+        };
+        window.refreshDetailCategoryOptions=function(selected=''){
+            const main=document.getElementById('pMainCategory')?.value;
+            const el=document.getElementById('pDetailCategory'); if(!el) return;
+            const details=PRODUCT_TAXONOMY[main]?.details||[];
+            el.innerHTML='<option value="">— 無額外類型 —</option>'+details.map(x=>`<option value="${esc(x)}" ${x===selected?'selected':''}>${esc(x)}</option>`).join('');
+            el.disabled=!details.length;
+        };
+        window.renderDynamicFields=function(values=editingDetails){
+            const box=document.getElementById('dynamicProductFields'); if(!box) return;
+            box.innerHTML=currentFieldSet().map(([key,label,type])=>`<div class="${type==='textarea'?'sm:col-span-2':''}"><label class="block text-[10px] font-medium text-gray-600 mb-1">${label}</label>${type==='textarea'?`<textarea data-detail-key="${key}" rows="3" class="product-detail-field w-full px-3 py-2 border rounded-xl text-xs" placeholder="請輸入${label}">${esc(values?.[key]||'')}</textarea>`:`<input data-detail-key="${key}" value="${esc(values?.[key]||'')}" class="product-detail-field w-full px-3 py-2 border rounded-xl text-xs" placeholder="請輸入${label}">`}</div>`).join('');
+        };
+        function collectProductDetails(){ const out={}; document.querySelectorAll('.product-detail-field').forEach(el=>{const v=el.value.trim(); if(v) out[el.dataset.detailKey]=v;}); return out; }
+        window.refreshAdminSubFilter=function(){
+            const main=document.getElementById('productMainFilter')?.value||'all', el=document.getElementById('productSubFilter'); if(!el)return;
+            const subs=main==='all' ? [...new Set(Object.values(PRODUCT_TAXONOMY).flatMap(x=>x.subs))] : (PRODUCT_TAXONOMY[main]?.subs||[]);
+            el.innerHTML='<option value="all">全部細分類</option>'+subs.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
+        };
 
         window.scrollToProductForm = function(){
             document.getElementById('productFormPanel')?.scrollIntoView({behavior:'smooth', block:'start'});
@@ -409,17 +489,24 @@
                     imageUrl = await getDownloadURL(uploaded.ref);
                 }
 
+                const mainCategory = document.getElementById('pMainCategory').value;
+                const subCategory = document.getElementById('pSubCategory').value;
+                const detailCategory = document.getElementById('pDetailCategory').value;
                 const data = {
-                    category: document.getElementById('pCategory').value,
+                    mainCategory,
+                    subCategory,
+                    detailCategory,
+                    category: subCategory || mainCategory,
                     name: document.getElementById('pName').value.trim(),
                     description: document.getElementById('pDesc').value.trim(),
+                    details: collectProductDetails(),
                     flavors,
                     defaultPrice: flavors.find(f=>f.active)?.price ?? flavors[0].price,
                     imageUrl,
                     active: document.getElementById('pActive').checked,
                     sortOrder: Number(document.getElementById('pSortOrder').value || 100),
                     updatedAt: new Date().toISOString(),
-                    schemaVersion: 2
+                    schemaVersion: 3
                 };
 
                 if(editId){
@@ -479,6 +566,10 @@
                     return s || String(a.name||'').localeCompare(String(b.name||''), 'zh-Hant');
                 });
 
+                const mainFilter=document.getElementById('productMainFilter')?.value||'all';
+                const subFilter=document.getElementById('productSubFilter')?.value||'all';
+                if(mainFilter!=='all') rows=rows.filter(p=>(p.mainCategory||'精油')===mainFilter);
+                if(subFilter!=='all') rows=rows.filter(p=>(p.subCategory||p.category||'')===subFilter);
                 if(filter==='active') rows = rows.filter(p=>p.active!==false);
                 if(filter==='inactive') rows = rows.filter(p=>p.active===false);
 
@@ -511,7 +602,7 @@
                                 <img src="${esc(p.imageUrl||'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=200')}" alt="${esc(p.name||'商品')}" class="w-20 h-20 object-cover rounded-xl bg-white border shrink-0">
                                 <div class="min-w-0 flex-1">
                                     <div class="flex flex-wrap gap-1 mb-1">
-                                        <span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 rounded-full font-bold">${esc(p.category||'精油系列')}</span>
+                                        <span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 rounded-full font-bold">${esc(p.mainCategory||'精油')} / ${esc(p.subCategory||p.category||'未分類')}${p.detailCategory?' / '+esc(p.detailCategory):''}</span>
                                         <span class="text-[9px] bg-white border px-2 py-0.5 rounded-full text-gray-500">排序 ${Number(p.sortOrder ?? 100)}</span>
                                     </div>
                                     <p class="font-black text-sm text-gray-800 truncate">${esc(p.name||'未命名商品')}</p>
@@ -541,7 +632,11 @@
             const p = productsCache[id];
             if(!p) return;
             document.getElementById('editProductId').value = id;
-            document.getElementById('pCategory').value = p.category || '經典單方精油';
+            document.getElementById('pMainCategory').value = p.mainCategory || '精油';
+            refreshSubCategoryOptions(p.subCategory || (String(p.category||'').includes('水氧')?'水氧精油':'純精油'));
+            refreshDetailCategoryOptions(p.detailCategory || '');
+            editingDetails = p.details || {};
+            renderDynamicFields(editingDetails);
             document.getElementById('pName').value = p.name || '';
             document.getElementById('pDesc').value = p.description || '';
             document.getElementById('existingImageUrl').value = p.imageUrl || '';
@@ -571,6 +666,9 @@
             document.getElementById('existingImageUrl').value = '';
             document.getElementById('pActive').checked = true;
             document.getElementById('pSortOrder').value = 100;
+            editingDetails = {};
+            fillMainCategoryOptions();
+            renderDynamicFields({});
             document.getElementById('flavorContainer').innerHTML = '';
             addFlavorRow();
             document.getElementById('formTitle').textContent = '✨ 建立新商品';
