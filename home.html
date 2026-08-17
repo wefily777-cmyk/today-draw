@@ -3,174 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>玥石之溫 - 尋找你的專屬香氣</title>
+    <title>玥石之溫｜天然芳療・精油・命定香氣</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { clay: '#D0826C', forest: '#2E4A3F', sand: '#FAF8F5' }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { colors: { clay:'#B98373', forest:'#33463D', sand:'#F7F3EE', cream:'#FBF9F6', taupe:'#88796F', mist:'#ECE5DE' }}}}
     </script>
     <style>
-        .card-perspective { perspective: 1000px; }
-        .card-inner { transition: transform 0.6s; transform-style: preserve-3d; }
-        .card-flipped { transform: rotateY(180deg); }
-        .card-front, .card-back { backface-visibility: hidden; }
-        .card-back { transform: rotateY(180deg); }
+        html{scroll-behavior:smooth}.card-perspective{perspective:1000px}.card-inner{transition:transform .6s;transform-style:preserve-3d}.card-flipped{transform:rotateY(180deg)}.card-front,.card-back{backface-visibility:hidden}.card-back{transform:rotateY(180deg)}
+        .serif{font-family:"Noto Serif TC","Songti TC",Georgia,serif}.soft-shadow{box-shadow:0 15px 45px rgba(57,46,38,.08)}
+        .hero-bg{background:radial-gradient(circle at 75% 35%,rgba(255,255,255,.85),transparent 23%),linear-gradient(115deg,#eee5db 0%,#f8f4ef 45%,#ded2c5 100%)}
+        .oil-bottle{width:105px;height:145px;border-radius:12px 12px 18px 18px;background:linear-gradient(90deg,#5a2e13,#a05a24 45%,#4c250f);position:relative;box-shadow:0 18px 35px rgba(67,42,26,.25)}
+        .oil-bottle:before{content:"";position:absolute;left:22px;top:-39px;width:61px;height:44px;border-radius:8px 8px 4px 4px;background:repeating-linear-gradient(90deg,#21170f 0 4px,#3d2b1d 4px 7px)}
+        .oil-bottle:after{content:"玥石之溫\A ESSENTIAL OIL";white-space:pre;position:absolute;left:12px;right:12px;top:53px;padding:13px 4px;background:#efe6d8;color:#51453c;text-align:center;font-size:9px;line-height:1.6;letter-spacing:.08em}
     </style>
 </head>
-<body class="bg-sand min-h-screen font-sans flex flex-col justify-between">
+<body class="bg-cream text-gray-700 min-h-screen">
+    <div class="bg-forest text-white text-[11px] sm:text-xs text-center py-2 tracking-wide">全館滿 NT$1,500 免運 ｜ 加入會員享專屬優惠與香氣推薦</div>
 
-    <!-- 導覽列 -->
-    <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-gray-100 sticky top-0 z-40">
-        <div class="text-xl font-bold text-forest tracking-wider">玥石之溫</div>
-        <div id="navUserStatus" class="space-x-6 text-sm font-medium text-gray-600 flex items-center">
-            <span class="text-gray-400">正在檢查登入狀態...</span>
+    <header class="bg-white/95 sticky top-0 z-40 border-b border-stone-100 backdrop-blur">
+        <div class="max-w-7xl mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+            <a href="home.html" class="flex items-center gap-3 shrink-0">
+                <div class="w-10 h-10 rounded-full border border-forest/30 flex items-center justify-center text-forest">✦</div>
+                <div><div class="serif text-xl tracking-[.18em] text-forest">玥石之溫</div><div class="text-[9px] uppercase tracking-[.2em] text-gray-400">The Warmth of Crystal</div></div>
+            </a>
+            <nav class="hidden lg:flex items-center gap-8 text-sm text-gray-600">
+                <a href="#shop" class="hover:text-forest">產品專區</a><a href="#ritual" class="hover:text-forest">芳療情境</a><a href="#destiny" class="hover:text-forest">命定香氣</a><a href="#knowledge" class="hover:text-forest">芳療知識</a><a href="#story" class="hover:text-forest">品牌故事</a>
+            </nav>
+            <div id="navUserStatus" class="flex items-center gap-3 text-sm"><span class="text-gray-400">正在檢查登入狀態...</span></div>
         </div>
-    </nav>
+    </header>
 
-    <!-- 主要內容區 -->
-    <main class="max-w-5xl mx-auto px-4 py-12 text-center w-full flex-1">
-
-        <!-- 🎂 壽星祝賀條（當月壽星自動觸發） -->
-        <div id="birthdayBanner" class="hidden bg-gradient-to-r from-amber-100 to-pink-100 border border-amber-200 text-amber-900 p-4 rounded-2xl shadow-sm mb-8 text-left flex justify-between items-center max-w-4xl mx-auto">
-            <div class="flex items-center gap-3">
-                <span class="text-3xl">🎂</span>
-                <div>
-                    <h4 class="font-bold text-sm">親愛的壽星，生日快樂！</h4>
-                    <p class="text-xs text-amber-700">玥石之溫為您準備了專屬壽星祝福！結帳輸入折扣碼 <span class="font-mono font-bold bg-white/60 px-2 py-0.5 rounded text-clay">BIRTHDAY100</span> 可現折 $100 元唷！</p>
+    <main>
+        <section class="hero-bg overflow-hidden">
+            <div class="max-w-7xl mx-auto px-5 lg:px-8 min-h-[520px] grid lg:grid-cols-2 items-center gap-12 py-16">
+                <div class="max-w-xl">
+                    <span class="text-[11px] tracking-[.28em] text-clay uppercase font-bold">Natural Aromatherapy</span>
+                    <h1 class="serif text-4xl sm:text-5xl lg:text-6xl leading-[1.35] text-forest mt-5">與香氣相遇<br>遇見更好的自己</h1>
+                    <p class="mt-6 text-gray-600 leading-8 max-w-lg">從天然植萃出發，以氣味、日常儀式與個人化推薦，陪你找到此刻真正需要的香氣。</p>
+                    <div class="mt-8 flex flex-wrap gap-3"><a href="#shop" class="bg-forest text-white px-7 py-3.5 text-sm hover:bg-forest/90">探索精油世界</a><a href="#destiny" class="border border-forest/30 text-forest px-7 py-3.5 text-sm bg-white/50">找我的命定香氣</a></div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 🌱 細胞擴散意向展示中心 (登入後動態秀出) -->
-        <div id="referralCenter" class="hidden bg-white max-w-4xl mx-auto mb-12 p-6 rounded-2xl shadow-sm border border-gray-150 text-left grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
-            <div class="sm:col-span-1 border-r border-gray-100 pr-4">
-                <span class="text-[10px] uppercase font-bold tracking-widest text-clay">Referral Center</span>
-                <h4 class="text-base font-bold text-forest mt-1">🌱 您的推廣中心</h4>
-                <p class="text-xs text-gray-400 mt-1">分享您的專屬編號給朋友註冊，即可獲得養份點數！</p>
-            </div>
-            <div class="bg-sand/60 p-4 rounded-xl text-center">
-                <p class="text-xs text-gray-500 font-medium">您的推廣碼</p>
-                <p id="displayMemberCode" class="text-2xl font-black text-forest mt-1 tracking-wider">------</p>
-            </div>
-            <div class="bg-clay/10 p-4 rounded-xl text-center">
-                <p class="text-xs text-clay font-medium">目前累積養份點數</p>
-                <p id="displayPoints" class="text-2xl font-black text-clay mt-1">0 點</p>
-            </div>
-        </div>
-
-        <!-- 👤 會員中心：訂單 / 預約 / 推薦紀錄 -->
-        <section id="memberCenter" class="hidden max-w-4xl mx-auto mb-12 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-left">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                <div>
-                    <span class="text-[10px] uppercase font-bold tracking-widest text-clay">Member Center</span>
-                    <h3 class="text-lg font-bold text-forest mt-1">👤 我的玥石紀錄</h3>
-                </div>
-                <button onclick="refreshMemberCenter()" class="text-xs bg-sand px-3 py-2 rounded-lg text-forest font-bold hover:bg-gray-100">重新整理</button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <h4 class="text-xs font-bold text-gray-700 mb-2">📦 我的訂單</h4>
-                    <div id="myOrders" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div>
-                </div>
-                <div>
-                    <h4 class="text-xs font-bold text-gray-700 mb-2">📅 我的預約</h4>
-                    <div id="myBookings" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div>
-                </div>
-                <div>
-                    <h4 class="text-xs font-bold text-gray-700 mb-2">🌱 我的推薦</h4>
-                    <div id="myReferrals" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div>
+                <div class="relative h-[390px] hidden sm:block">
+                    <div class="absolute w-80 h-80 rounded-full bg-white/45 right-16 top-10"></div>
+                    <div class="oil-bottle absolute right-40 top-130"></div>
+                    <div class="oil-bottle absolute right-10 top-28 scale-125"></div>
+                    <div class="absolute right-0 bottom-8 text-7xl opacity-40">🌿</div><div class="absolute left-10 bottom-12 text-7xl opacity-40">🪻</div><div class="absolute right-52 bottom-0 text-5xl opacity-60">◇</div>
                 </div>
             </div>
         </section>
-        
-        <!-- 🛍️ 商品展示區 -->
-        <section class="mb-20">
-            <header class="mb-10">
-                <span class="text-xs font-bold uppercase tracking-widest bg-forest/10 text-forest px-3 py-1 rounded-full">Aroma Showcase</span>
-                <h2 class="text-3xl font-bold text-forest mt-3 mb-2">本季精選單品</h2>
-                <p class="text-gray-500 text-sm">玥石之溫嚴選天然植萃，為生活點燃溫潤的療癒能量</p>
-            </header>
-            
-            <div id="showcaseContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                <p class="text-sm text-gray-400 text-center py-8 col-span-full">正在從雲端櫥窗調度商品中...</p>
+
+        <section id="ritual" class="max-w-7xl mx-auto px-5 lg:px-8 py-16">
+            <div class="text-center mb-9"><p class="text-[11px] tracking-[.25em] text-clay font-bold uppercase">Shop by Mood</p><h2 class="serif text-3xl text-forest mt-2">依此刻的你，選一種香氣</h2></div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <a href="#shop" class="bg-[#F4ECE9] p-6 min-h-40 hover:-translate-y-1 transition"><div class="text-3xl">☾</div><h3 class="serif text-lg text-forest mt-5">睡前放鬆</h3><p class="text-xs text-gray-500 mt-2">讓夜晚慢下來</p></a>
+                <a href="#shop" class="bg-[#F2EDE3] p-6 min-h-40 hover:-translate-y-1 transition"><div class="text-3xl">☀</div><h3 class="serif text-lg text-forest mt-5">早晨提振</h3><p class="text-xs text-gray-500 mt-2">清新開啟一天</p></a>
+                <a href="#shop" class="bg-[#E8EEE8] p-6 min-h-40 hover:-translate-y-1 transition"><div class="text-3xl">⌘</div><h3 class="serif text-lg text-forest mt-5">工作專注</h3><p class="text-xs text-gray-500 mt-2">整理思緒節奏</p></a>
+                <a href="#shop" class="bg-[#F3E9E7] p-6 min-h-40 hover:-translate-y-1 transition"><div class="text-3xl">♡</div><h3 class="serif text-lg text-forest mt-5">情緒陪伴</h3><p class="text-xs text-gray-500 mt-2">給自己一點溫柔</p></a>
+                <a href="#shop" class="bg-[#EEE8E1] p-6 min-h-40 hover:-translate-y-1 transition col-span-2 md:col-span-1"><div class="text-3xl">⌂</div><h3 class="serif text-lg text-forest mt-5">居家香氛</h3><p class="text-xs text-gray-500 mt-2">打造舒服空間</p></a>
             </div>
         </section>
 
-        <!-- 🎁 試聞瓶免費索取專區 -->
-        <section class="bg-gradient-to-br from-emerald-900 to-forest text-white p-8 rounded-3xl shadow-lg max-w-4xl mx-auto mb-20 text-left flex flex-col sm:flex-row justify-between items-center gap-6">
-            <div>
-                <span class="text-xs font-bold uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full text-emerald-200">Free Sample</span>
-                <h3 class="text-2xl font-bold mt-3">🎁 體驗植萃原香・試聞瓶體驗計畫</h3>
-                <p class="text-xs text-emerald-100/80 mt-2 leading-relaxed">想先體驗香氣嗎？只需負擔基礎運費 $60 元，即可索取命定香氣試聞瓶乙份！（單筆消費滿 $1,000 免運費免費加贈）</p>
+        <div class="max-w-7xl mx-auto px-5 lg:px-8">
+            <div id="birthdayBanner" class="hidden bg-gradient-to-r from-amber-50 to-rose-50 border border-amber-100 text-amber-900 p-4 mb-7 flex justify-between items-center"><div class="flex items-center gap-3"><span class="text-2xl">🎂</span><div><h4 class="font-bold text-sm">親愛的壽星，生日快樂！</h4><p class="text-xs text-amber-700">結帳輸入 <span class="font-mono font-bold">BIRTHDAY100</span> 可現折 $100。</p></div></div></div>
+            <div id="referralCenter" class="hidden bg-white mb-7 p-6 border border-stone-100 grid grid-cols-1 sm:grid-cols-3 gap-6 items-center soft-shadow"><div><span class="text-[10px] uppercase font-bold tracking-widest text-clay">Referral Center</span><h4 class="text-base font-bold text-forest mt-1">您的推廣中心</h4><p class="text-xs text-gray-400 mt-1">分享專屬編號，累積會員養份點數。</p></div><div class="bg-sand p-4 text-center"><p class="text-xs text-gray-500">您的推廣碼</p><p id="displayMemberCode" class="text-2xl font-black text-forest mt-1">------</p></div><div class="bg-clay/10 p-4 text-center"><p class="text-xs text-clay">目前點數</p><p id="displayPoints" class="text-2xl font-black text-clay mt-1">0 點</p></div></div>
+            <section id="memberCenter" class="hidden mb-12 bg-white border border-stone-100 p-6 soft-shadow"><div class="flex justify-between gap-3 mb-4"><div><span class="text-[10px] uppercase font-bold tracking-widest text-clay">Member Center</span><h3 class="text-lg font-bold text-forest mt-1">我的玥石紀錄</h3></div><button onclick="refreshMemberCenter()" class="text-xs bg-sand px-3 py-2 text-forest font-bold">重新整理</button></div><div class="grid md:grid-cols-3 gap-4"><div><h4 class="text-xs font-bold mb-2">📦 我的訂單</h4><div id="myOrders" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div></div><div><h4 class="text-xs font-bold mb-2">📅 我的預約</h4><div id="myBookings" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div></div><div><h4 class="text-xs font-bold mb-2">🌱 我的推薦</h4><div id="myReferrals" class="space-y-2 text-xs text-gray-500"><p>尚未載入</p></div></div></div></section>
+        </div>
+
+        <section id="shop" class="bg-white py-16 border-y border-stone-100">
+            <div class="max-w-7xl mx-auto px-5 lg:px-8">
+                <div class="flex items-end justify-between mb-9"><div><p class="text-[11px] tracking-[.25em] text-clay font-bold uppercase">Pure Essential Oils</p><h2 class="serif text-3xl text-forest mt-2">精選天然精油</h2><p class="text-sm text-gray-500 mt-2">由後台商品資料即時載入，保留原有規格、價格與購買功能。</p></div><span class="hidden sm:block text-xs text-gray-400">探索全部 →</span></div>
+                <div id="showcaseContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7"><p class="text-sm text-gray-400 text-center py-8 col-span-full">正在從雲端櫥窗調度商品中...</p></div>
             </div>
-            <button onclick="openSampleModal()" class="whitespace-nowrap bg-clay hover:bg-opacity-90 text-white px-6 py-3 rounded-xl font-bold text-sm transition shadow-md">
-                索取試聞瓶 ($60 運費)
-            </button>
         </section>
 
-        <hr class="border-gray-200 my-16 max-w-2xl mx-auto">
-
-        <!-- 🔮 抽籤三選一盲盒區 -->
-        <section class="mb-16">
-            <header class="mb-12">
-                <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">Interactive Game</span>
-                <h2 class="text-3xl font-bold text-forest mb-3">今天，想抽什麼精油？</h2>
-                <p class="text-gray-500 max-w-md mx-auto text-sm">靜下心來，深呼吸三次，憑直覺挑選一張香氣卡片。</p>
-            </header>
-
-            <div id="drawCardsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-8 card-perspective">
-                <p class="text-sm text-gray-400 col-span-full py-10">正在準備今日香氣卡片...</p>
+        <section class="max-w-7xl mx-auto px-5 lg:px-8 py-16">
+            <div class="grid lg:grid-cols-2 gap-5">
+                <div class="bg-forest text-white p-9 lg:p-12 min-h-64 flex flex-col justify-between"><div><span class="text-[10px] tracking-[.25em] uppercase text-white/60">Scent Sample</span><h3 class="serif text-3xl mt-3">先聞，再決定</h3><p class="text-sm text-white/70 mt-4 leading-7 max-w-lg">第一次接觸玥石之溫？先從試聞開始。只需負擔基礎運費，即可體驗香氣。</p></div><button onclick="openSampleModal()" class="mt-7 bg-white text-forest px-6 py-3 text-sm w-fit">索取試聞瓶・$60 運費</button></div>
+                <div class="bg-[#EDE4DC] p-9 lg:p-12 min-h-64 flex flex-col justify-between"><div><span class="text-[10px] tracking-[.25em] uppercase text-clay">Workshop</span><h3 class="serif text-3xl text-forest mt-3">把香氣調成自己的樣子</h3><p class="text-sm text-gray-600 mt-4 leading-7 max-w-lg">預約玥石之溫調香體驗課，從認識氣味開始，完成屬於自己的日常香氣。</p></div><button onclick="openBookingModal()" class="mt-7 border border-forest text-forest px-6 py-3 text-sm w-fit bg-white/40">預約體驗課</button></div>
             </div>
-            <button id="redrawBtn" onclick="prepareDrawCards()" class="mb-12 text-xs bg-white border border-gray-200 text-gray-500 px-4 py-2 rounded-xl hover:bg-gray-50 transition">🔄 重新洗牌</button>
+        </section>
 
-            <div id="resultSection" class="hidden bg-white rounded-2xl p-8 shadow-lg max-w-xl mx-auto border border-gray-100">
-                <span class="text-xs font-bold uppercase tracking-widest bg-clay/10 text-clay px-3 py-1 rounded-full">今日命定香氣</span>
-                <h3 id="resultTitle" class="text-2xl font-bold text-forest mt-4 mb-2">精油名稱</h3>
-                <p id="resultDesc" class="text-gray-600 text-sm leading-relaxed mb-6">精油功效...</p>
-                
-                <div class="bg-sand p-4 rounded-xl text-left text-xs text-gray-600 mb-8 border border-gray-100">
-                    <p class="font-bold text-forest mb-1">🔮 本季五行運勢與水晶商配：</p>
-                    <p id="crystalSuggest">建議搭配【紫水晶】或【白水晶】擴香飾品，能補足本季缺水木能量，增進心靈平靜。</p>
-                </div>
-
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button id="buyBtn" onclick="handleAction('buy')" class="bg-clay text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">🛍️ 購買這款精油</button>
-                    <button onclick="handleAction('book')" class="bg-forest text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition shadow-md">📅 報名玥石之溫體驗課</button>
-                </div>
+        <section id="destiny" class="bg-[#F2E9E5] py-16">
+            <div class="max-w-5xl mx-auto px-5 text-center"><p class="text-[11px] tracking-[.25em] text-clay font-bold uppercase">Destiny Scent</p><h2 class="serif text-3xl sm:text-4xl text-forest mt-2">今天，你的命定香氣是？</h2><p class="text-sm text-gray-600 mt-4">深呼吸三次，憑直覺挑選一張香氣卡。</p>
+                <div id="drawCardsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mt-10 mb-6 card-perspective"><p class="text-sm text-gray-400 col-span-full py-10">正在準備今日香氣卡片...</p></div>
+                <button id="redrawBtn" onclick="prepareDrawCards()" class="mb-10 text-xs bg-white/70 border border-stone-200 text-gray-500 px-4 py-2">↻ 重新洗牌</button>
+                <div id="resultSection" class="hidden bg-white p-8 soft-shadow max-w-xl mx-auto border border-stone-100"><span class="text-[10px] font-bold uppercase tracking-widest text-clay">今日命定香氣</span><h3 id="resultTitle" class="serif text-2xl text-forest mt-4 mb-2">精油名稱</h3><p id="resultDesc" class="text-gray-600 text-sm leading-7 mb-6">精油介紹...</p><div class="bg-sand p-4 text-left text-xs text-gray-600 mb-8"><p class="font-bold text-forest mb-1">五行 × 水晶搭配</p><p id="crystalSuggest">建議搭配紫水晶或白水晶擴香飾品。</p></div><div class="flex flex-col sm:flex-row gap-3 justify-center"><button id="buyBtn" onclick="handleAction('buy')" class="bg-clay text-white px-6 py-3 text-sm">購買這款精油</button><button onclick="handleAction('book')" class="bg-forest text-white px-6 py-3 text-sm">預約體驗課</button></div></div>
             </div>
+        </section>
+
+        <section id="knowledge" class="max-w-7xl mx-auto px-5 lg:px-8 py-16"><div class="grid md:grid-cols-4 gap-4 mb-14"><div class="bg-white border p-5 text-center"><div class="text-2xl">♧</div><h4 class="font-bold text-sm text-forest mt-2">天然植萃</h4><p class="text-xs text-gray-400 mt-1">來源與批次資訊逐步透明化</p></div><div class="bg-white border p-5 text-center"><div class="text-2xl">◇</div><h4 class="font-bold text-sm text-forest mt-2">安全安心</h4><p class="text-xs text-gray-400 mt-1">建立每款精油安全使用卡</p></div><div class="bg-white border p-5 text-center"><div class="text-2xl">✦</div><h4 class="font-bold text-sm text-forest mt-2">專屬芳療</h4><p class="text-xs text-gray-400 mt-1">依生活情境找到適合香氣</p></div><div class="bg-white border p-5 text-center"><div class="text-2xl">♡</div><h4 class="font-bold text-sm text-forest mt-2">會員陪伴</h4><p class="text-xs text-gray-400 mt-1">紀錄訂單、預約與推薦點數</p></div></div>
+            <div class="grid md:grid-cols-2 gap-5"><article class="bg-[#EEE7DE] p-9 min-h-64"><p class="text-[10px] tracking-[.24em] text-clay uppercase">Aroma Journal</p><h3 class="serif text-2xl text-forest mt-3">芳療知識</h3><p class="text-sm leading-7 text-gray-600 mt-4">從精油來源、萃取方式、香調，到居家使用與安全注意事項，建立容易理解的芳療知識庫。</p><a href="#" class="inline-block mt-7 text-sm text-forest border-b border-forest/40">閱讀文章 →</a></article><article id="story" class="bg-[#DDD1C5] p-9 min-h-64"><p class="text-[10px] tracking-[.24em] text-clay uppercase">Our Story</p><h3 class="serif text-2xl text-forest mt-3">品牌故事</h3><p class="text-sm leading-7 text-gray-600 mt-4">玥石之溫，希望讓每一次聞香，都成為照顧自己的短暫停留。這裡將放入你的正式品牌故事。</p><a href="#" class="inline-block mt-7 text-sm text-forest border-b border-forest/40">了解更多 →</a></article></div>
         </section>
     </main>
 
-    <!-- 🌐 生態圈快捷選單（網頁最下方） -->
-    <footer class="bg-white border-t border-gray-200 pt-10 pb-12 mt-20 text-center">
-        <div class="max-w-4xl mx-auto px-4">
-            <span class="text-[10px] uppercase font-bold tracking-widest text-gray-400 block mb-4">療癒生活生態圈探索</span>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto mb-8">
-                <a href="https://starjhan.github.io/blood-pressure-tracker/" target="_blank" class="bg-sand/60 hover:bg-sand p-3 rounded-xl border border-gray-100 transition flex flex-col items-center justify-center">
-                    <span class="text-lg">🩺</span>
-                    <span class="text-xs font-medium text-gray-700 mt-1">血壓日記</span>
-                </a>
-                <a href="https://wefily777-cmyk.github.io/365-savings/" target="_blank" class="bg-sand/60 hover:bg-sand p-3 rounded-xl border border-gray-100 transition flex flex-col items-center justify-center">
-                    <span class="text-lg">💰</span>
-                    <span class="text-xs font-medium text-gray-700 mt-1">365存錢</span>
-                </a>
-                <a href="https://astrofortune-star.firebaseapp.com" target="_blank" class="bg-sand/60 hover:bg-sand p-3 rounded-xl border border-gray-100 transition flex flex-col items-center justify-center">
-                    <span class="text-lg">🔮</span>
-                    <span class="text-xs font-medium text-gray-700 mt-1">五行算命</span>
-                </a>
-                <div class="bg-gray-100/50 p-3 rounded-xl text-center border border-gray-200/50 flex flex-col items-center justify-center opacity-60 relative">
-                    <span class="text-lg">💬</span>
-                    <span class="text-xs font-medium text-gray-500 mt-1">交友空間</span>
-                    <span class="absolute -top-2 bg-clay text-white text-[8px] px-1 rounded-full scale-90">預留</span>
-                </div>
-            </div>
-            <p class="text-xs text-gray-400">© 玥石之溫 Aura Gem. All rights reserved.</p>
-        </div>
+    <footer class="bg-[#75645D] text-white/80 pt-14 pb-8">
+        <div class="max-w-7xl mx-auto px-5 lg:px-8 grid sm:grid-cols-2 lg:grid-cols-5 gap-10 text-sm"><div class="lg:col-span-2"><div class="serif text-2xl tracking-[.15em] text-white">玥石之溫</div><div class="text-[9px] uppercase tracking-[.2em] text-white/50 mt-1">The Warmth of Crystal</div><p class="text-xs leading-6 text-white/55 mt-5 max-w-sm">天然芳療 × 個人化香氣 × 日常儀式。陪伴你在每個需要自己的時刻，遇見適合此刻的氣味。</p></div><div><h4 class="text-white font-bold mb-4">購物指南</h4><div class="space-y-2 text-xs"><a href="#shop" class="block">購物須知</a><a href="#" class="block">配送方式</a><a href="#" class="block">付款方式</a><a href="#" class="block">退換貨政策</a></div></div><div><h4 class="text-white font-bold mb-4">精油產品</h4><div class="space-y-2 text-xs"><a href="#shop" class="block">單方精油</a><a href="#shop" class="block">複方精油</a><a href="#destiny" class="block">命定香氣</a><a href="#" class="block">禮盒組合</a></div></div><div><h4 class="text-white font-bold mb-4">關於我們</h4><div class="space-y-2 text-xs"><a href="#story" class="block">品牌故事</a><a href="#knowledge" class="block">芳療知識</a><a href="#" class="block">聯絡我們</a><a href="#" class="block">隱私政策</a></div></div></div>
+        <div class="max-w-7xl mx-auto px-5 lg:px-8 mt-12 pt-6 border-t border-white/15 flex flex-col sm:flex-row justify-between gap-3 text-[11px] text-white/45"><span>© 2026 玥石之溫 The Warmth of Crystal. All Rights Reserved.</span><span>品牌資訊／聯絡方式待補</span></div>
     </footer>
 
     <!-- 💳 雙軌結帳與完整配送位址對帳視窗 -->
