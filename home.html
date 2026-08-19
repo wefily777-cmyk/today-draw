@@ -29,7 +29,7 @@
             <nav class="hidden lg:flex items-center gap-8 text-sm text-gray-600">
                 <a href="#shop" class="hover:text-forest">產品專區</a><a href="#ritual" class="hover:text-forest">芳療情境</a><a href="#destiny" class="hover:text-forest">命定香氣</a><a href="#knowledge" class="hover:text-forest">芳療知識</a><a href="#story" class="hover:text-forest">品牌故事</a>
             </nav>
-            <div id="navUserStatus" class="flex items-center gap-3 text-sm"><span class="text-gray-400">正在檢查登入狀態...</span></div>
+            <div class="flex items-center gap-3"><button type="button" onclick="openCart()" class="relative text-forest border border-stone-200 px-3 py-2 text-xs bg-white">🛒 購物車 <span id="cartCount" class="ml-1 bg-clay text-white rounded-full px-1.5 py-0.5 text-[9px]">0</span></button><div id="navUserStatus" class="flex items-center gap-3 text-sm"><span class="text-gray-400">正在檢查登入狀態...</span></div></div>
         </div>
     </header>
 
@@ -133,6 +133,37 @@
         <div class="max-w-7xl mx-auto px-5 lg:px-8 mt-12 pt-6 border-t border-white/15 flex flex-col sm:flex-row justify-between gap-3 text-[11px] text-white/45"><span>© 2026 玥石之溫 The Warmth of Crystal. All Rights Reserved.</span><span>品牌資訊／聯絡方式待補</span></div>
     </footer>
 
+
+    <!-- 商品詳情 / 規格選擇 -->
+    <div id="productDetailModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+      <div class="bg-white max-w-5xl w-full max-h-[92vh] overflow-y-auto relative shadow-2xl">
+        <button onclick="closeProductDetail()" class="absolute top-4 right-4 z-10 text-2xl text-gray-500 bg-white/90 w-9 h-9 rounded-full">&times;</button>
+        <div class="grid md:grid-cols-2">
+          <div id="productDetailImage" class="bg-sand min-h-[380px] flex items-center justify-center"></div>
+          <div class="p-7 md:p-10">
+            <div id="productDetailTags" class="flex flex-wrap gap-1 mb-3"></div>
+            <h2 id="productDetailName" class="serif text-3xl text-forest"></h2>
+            <p id="productDetailDesc" class="text-sm text-gray-500 leading-7 mt-4"></p>
+            <div class="mt-6 space-y-4">
+              <div><label class="block text-xs font-bold text-gray-600 mb-2">氣味 / 款式</label><select id="detailScent" onchange="refreshDetailSizes()" class="w-full border px-3 py-3 bg-white text-sm"></select></div>
+              <div><label class="block text-xs font-bold text-gray-600 mb-2">大小 / 容量</label><select id="detailSize" onchange="refreshDetailPrice()" class="w-full border px-3 py-3 bg-white text-sm"></select></div>
+              <div class="grid grid-cols-2 gap-3 items-end"><div><label class="block text-xs font-bold text-gray-600 mb-2">數量</label><input id="detailQty" type="number" min="1" value="1" class="w-full border px-3 py-3 text-sm"></div><div class="text-right"><p class="text-[10px] text-gray-400">商品金額</p><p class="serif text-2xl text-forest">NT$ <span id="detailPrice">0</span></p><p id="detailStock" class="text-[10px] text-gray-400 mt-1"></p></div></div>
+              <button onclick="addDetailToCart()" class="w-full bg-forest text-white py-3.5 text-sm font-bold">加入購物車</button>
+            </div>
+            <div id="productDetailSpecs" class="mt-8 border-t pt-6 space-y-3 text-xs text-gray-600"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 購物車 -->
+    <div id="cartModal" class="fixed inset-0 bg-black/40 hidden z-50">
+      <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl p-6 overflow-y-auto">
+        <div class="flex justify-between items-center"><h3 class="serif text-2xl text-forest">購物車</h3><button onclick="closeCart()" class="text-2xl text-gray-400">&times;</button></div>
+        <div id="cartItems" class="mt-6 space-y-3"></div>
+        <div class="border-t mt-6 pt-5"><div class="flex justify-between font-bold text-forest"><span>商品小計</span><span>NT$ <span id="cartSubtotal">0</span></span></div><p class="text-[10px] text-gray-400 mt-2">折扣碼將在結帳畫面套用。</p><button onclick="checkoutCart()" class="w-full bg-forest text-white py-3.5 mt-5 text-sm font-bold">前往結帳</button></div>
+      </div>
+    </div>
     <!-- 💳 雙軌結帳與完整配送位址對帳視窗 -->
     <div id="paymentModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl text-center border border-gray-100 max-h-[90vh] overflow-y-auto">
@@ -362,45 +393,19 @@
         };
 
         function normalizeProduct(id, data) {
-            let flavors = Array.isArray(data.flavors) ? data.flavors
-                .map((f, index) => ({
-                    id: `${id}_${index}`,
-                    name: String(f.name || '').trim(),
-                    price: Number(f.price ?? 0),
-                    compareAtPrice: f.compareAtPrice == null ? null : Number(f.compareAtPrice),
-                    sku: String(f.sku || ''),
-                    active: f.active !== false,
-                    sortOrder: Number(f.sortOrder ?? index)
-                }))
-                .filter(f => f.name && f.price >= 0)
-                .sort((a,b) => a.sortOrder - b.sortOrder) : [];
-            if (!flavors.length) {
-                const fallbackName = data.codeName || data.code || data.name || '預設香氣';
-                flavors = [{
-                    id: `${id}_0`,
-                    name: fallbackName,
-                    price: Number(data.price ?? data.defaultPrice ?? 580),
-                    compareAtPrice: null,
-                    sku: String(data.code || ''),
-                    active: true,
-                    sortOrder: 0
-                }];
-            }
-            return {
-                id,
-                category: data.category || data.subCategory || data.mainCategory || '精油',
-                mainCategory: data.mainCategory || '精油',
-                subCategory: data.subCategory || (data.category?.includes('水氧') ? '水氧精油' : '純精油'),
-                detailCategory: data.detailCategory || '',
-                details: data.details || {},
-                name: data.name || '未命名商品',
-                description: data.description || '讓今天的香氣陪你回到自己的節奏。',
-                imageUrl: data.imageUrl || '',
-                active: data.active !== false,
-                sortOrder: Number(data.sortOrder ?? 100),
-                flavors,
-                defaultPrice: Number(data.defaultPrice ?? flavors.find(f=>f.active)?.price ?? flavors[0]?.price ?? data.price ?? 580)
-            };
+            let variants = Array.isArray(data.variants) ? data.variants : (Array.isArray(data.flavors) ? data.flavors : []);
+            let flavors = variants.map((f,index)=>({
+                id:`${id}_${index}`,
+                name:String(f.name || f.scent || '預設').trim(),
+                scent:String(f.scent || f.name || '預設').trim(),
+                size:String(f.size || f.capacity || '單一規格').trim(),
+                price:Number(f.price ?? 0),
+                compareAtPrice:f.compareAtPrice==null?null:Number(f.compareAtPrice),
+                stock:f.stock==null?999999:Number(f.stock),
+                sku:String(f.sku||''), active:f.active!==false, sortOrder:Number(f.sortOrder??index)
+            })).filter(f=>f.name).sort((a,b)=>a.sortOrder-b.sortOrder);
+            if(!flavors.length){ flavors=[{id:`${id}_0`,name:data.codeName||data.name||'預設',scent:data.codeName||data.name||'預設',size:'單一規格',price:Number(data.price??data.defaultPrice??0),compareAtPrice:null,stock:999999,sku:String(data.code||''),active:true,sortOrder:0}]; }
+            return { id, category:data.category||data.subCategory||data.mainCategory||'精油', mainCategory:data.mainCategory||'精油', subCategory:data.subCategory||(data.category?.includes('水氧')?'水氧精油':'純精油'), detailCategory:data.detailCategory||'', details:data.details||{}, name:data.name||'未命名商品', description:data.description||'', imageUrl:data.imageUrl||'', gallery:Array.isArray(data.gallery)?data.gallery:[], active:data.active!==false, sortOrder:Number(data.sortOrder??100), flavors, defaultPrice:Number(data.defaultPrice??flavors.find(f=>f.active)?.price??0) };
         }
 
         function catalogCard(item, onClick, isMain=false){
@@ -463,24 +468,11 @@
         };
 
         function productCard(p){
-            const selectId = `flavor_${p.id}`;
-            const image = p.imageUrl
-                ? `<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-56 object-cover mb-4 bg-white" loading="lazy">`
-                : '<div class="w-full h-56 bg-sand flex items-center justify-center text-5xl mb-4">🌿</div>';
-            const saleFlavors = p.flavors.filter(f=>f.active);
-            const options = saleFlavors.map(f => {
-                const original = f.compareAtPrice && f.compareAtPrice > f.price ? `（原價 $${f.compareAtPrice}）` : '';
-                return `<option value="${escapeHtml(f.id)}" data-price="${f.price}">${escapeHtml(f.name)} — $${f.price} ${original}</option>`;
-            }).join('');
-            const soldOut = saleFlavors.length === 0;
+            const image=p.imageUrl?`<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-64 object-cover mb-4 bg-white" loading="lazy">`:'<div class="w-full h-64 bg-sand flex items-center justify-center text-5xl mb-4">🌿</div>';
+            const sale=p.flavors.filter(f=>f.active&&f.stock!==0);
+            const prices=sale.map(f=>f.price).filter(Number.isFinite); const priceText=prices.length?(Math.min(...prices)===Math.max(...prices)?`NT$${Math.min(...prices)}`:`NT$${Math.min(...prices)} – NT$${Math.max(...prices)}`):'價格請洽詢';
             const tags=[p.mainCategory,p.subCategory,p.detailCategory].filter(Boolean).map(t=>`<span class="text-[9px] bg-forest/10 text-forest px-2 py-0.5 font-bold">${escapeHtml(t)}</span>`).join(' ');
-            return `<article class="bg-white border border-stone-100 p-5 flex flex-col hover:shadow-md transition duration-300">
-                ${image}<div class="flex flex-wrap gap-1 mb-2">${tags}</div>
-                <h4 class="serif text-xl text-forest">${escapeHtml(p.name)}</h4>
-                <p class="text-xs text-gray-500 leading-6 my-3 flex-1 line-clamp-3">${escapeHtml(p.description)}</p>
-                ${soldOut ? `<div class="w-full mb-3 px-3 py-2 text-xs bg-gray-100 text-gray-400 text-center">目前所有規格暫停販售</div>` : `<select id="${selectId}" class="w-full mb-3 px-3 py-2.5 border text-xs bg-white focus:ring-2 focus:ring-clay outline-none">${options}</select>`}
-                <button ${soldOut?'disabled':''} onclick="buyProduct('${p.id}')" class="w-full py-3 ${soldOut?'bg-gray-300 cursor-not-allowed':'bg-forest hover:bg-opacity-95'} text-white text-xs font-medium transition">${soldOut?'暫時售罄':'選擇規格購買'}</button>
-            </article>`;
+            return `<article class="bg-white border border-stone-100 p-5 flex flex-col hover:shadow-md transition duration-300 cursor-pointer" onclick="openProductDetail('${p.id}')">${image}<div class="flex flex-wrap gap-1 mb-2">${tags}</div><h4 class="serif text-xl text-forest">${escapeHtml(p.name)}</h4><p class="text-xs text-gray-500 leading-6 my-3 flex-1 line-clamp-3">${escapeHtml(p.description)}</p><p class="font-bold text-forest mb-3">${priceText}</p><button type="button" class="w-full py-3 bg-forest text-white text-xs font-medium">選擇規格</button></article>`;
         }
 
         function renderCatalogProducts(){
@@ -782,6 +774,7 @@
                     customerName: currentUserData?.fullName || currentUserData?.name || '會員',
                     phone: currentUserData?.phone || '',
                     productName: document.getElementById('payOilName').textContent,
+                    items: cart.length ? cart : [],
                     originalPrice: currentProductPrice,
                     finalPrice: finalPayPrice,
                     discountAmount: activeDiscount,
@@ -801,6 +794,7 @@
                     createdAt: new Date().toISOString()
                 });
                 alert('🎉 對帳單已送出！點數會在主理人確認入帳後自動發放。');
+                if(cart.length){ cart=[]; saveCart(); }
                 closePaymentModal();
                 document.getElementById('orderReportForm').reset();
                 toggleShipInput();
@@ -845,6 +839,7 @@
         // 避免選到過去日期
         document.getElementById('bookDate').min = new Date().toISOString().slice(0,10);
         toggleShipInput();
+        renderCart();
         fetchShowcaseProducts();
     </script>
 
