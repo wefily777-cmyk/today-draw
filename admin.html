@@ -172,7 +172,7 @@
                                 <div class="flex items-center justify-between gap-3 mb-2">
                                     <div>
                                         <label class="block text-xs font-black text-forest">📚 已搬移商品快速選擇</label>
-                                        <p id="presetProgress" class="text-[9px] text-gray-400 mt-0.5">純精油／單方精油：已完成 4 / 25</p>
+                                        <p id="presetProgress" class="text-[9px] text-gray-400 mt-0.5">純精油／單方精油：已完成 7 / 22</p>
                                     </div>
                                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="text-[10px] bg-white border px-2.5 py-1.5 rounded-lg text-gray-500">手動新增空白商品</button>
                                 </div>
@@ -314,31 +314,52 @@
         // 售價與庫存刻意不預填，管理員上架時自行設定。
         const PRESET_PRODUCTS = [
             {
-                id:'pure-single-bergamot-fcr', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                id:'pure-single-bergamot-fcr', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2025/10/%E5%96%AE%E6%96%B9%E7%B2%BE%E6%B2%B9-%E4%BD%9B%E6%89%8B%E6%9F%91FCR-%E9%A6%96-600x600.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
                 name:'佛手柑FCR精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/bergamot-ess-oil/',
                 description:'來自義大利的佛手柑 FCR 精油，擁有清新明亮的柑橘果香，帶有細緻花香氣息，香氣輕盈愉悅，是日常擴香中極受歡迎的香氛之一。\n具有多種功效，特別是提亮心情、緩解壓力，同時營造清新氣味，帶來舒適空間。\nFCR（Furanocoumarin-Free）版本，已移除光敏成分，使用上更加安心。適合全家日常擴香、空間清新應用。\n\n本品以 Citrus bergamia 果皮低溫冷壓萃取，富含檸檬烯與乙酸芳樟酯，香氣圓潤飽滿，能為空間注入活潑明亮氛圍，亦常用於調香作為中調核心香材，增添整體香氣層次感。',
                 details:{englishName:'Bergamot FCR',botanicalName:'Citrus bergamia RISSO et POITEAU',extractionMethod:'冷壓',extractionPart:'果皮',oilOrigin:'義大利',plantOrigin:'義大利',appearance:'無色至淡黃色',composition:'1. Limonene（檸檬烯）：約 41.2%｜提亮情緒，增添明亮氛圍\n2. Linalyl acetate（乙酸芳樟酯）：約 32.1%｜香氣清新優雅、放鬆心靈\n3. Linalool（芳樟醇）：約 11.1%｜消除異味、提升清新感受',usage:'擴香機：滴入 4–6 滴精油，適合日常居家擴香，營造明亮清新的氛圍\n空間噴霧：製作芳香噴霧，提升空氣清新感與舒適度\n芳香飾品：滴於香氛飾品，隨身攜帶愉悅清新氣息\n香氛搭配：與其他精油調和，提升香氣層次，增添活潑氛圍',pairing:'保加利亞真正薰衣草（1:1）：心緒安放於溫柔果香。佛手柑果香前調襯托，薰衣草花香溫柔包覆，協調溫潤。作為日常擴香使用，能轉換心情，也能平靜情緒波動。\n\n有機大西洋雪松 × 苦橙葉（1:1:1）：沉靜午後的清新茶香。雪松溫潤木香，苦橙葉綠意清新，佛手柑果香點亮溫暖，帶來伯爵茶的香氣。有放鬆紓壓、心情平靜的功效，適合日常使用。\n\n印度乳香（1:1）：穩重的一抹晨光。乳香的沉靜木質，而佛手柑則帶著清爽果香，清新與沉穩平衡。滴入熱水中，蒸氣能夠調整氛圍，帶來和緩呼吸的靜心空間。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，亦勿接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試，若出現不適請停止使用。\n孕婦（尤其孕期前三個月）、哺乳期間、三歲以下嬰幼兒建議避免使用。\n氣喘、花粉熱及過敏體質者，使用前請先諮詢專業芳療師或醫師建議。\n老年人及身體較虛弱者，建議減量使用，並諮詢專業意見。\n請妥善保存於陰涼乾燥處，避免兒童與寵物誤取誤用。\n本商品僅供芳香用途，所有描述為香氛參考建議，不具醫療功效。'},
                 specs:['10ml','60ml']
             },
             {
-                id:'pure-single-bulgarian-lavender', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                id:'pure-single-bulgarian-lavender', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2025/10/%E5%96%AE%E6%96%B9%E7%B2%BE%E6%B2%B9-%E4%BF%9D%E5%8A%A0%E5%88%A9%E4%BA%9E%E7%9C%9F%E6%AD%A3%E8%96%B0%E8%A1%A3%E8%8D%89-%E9%A6%96-600x600.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
                 name:'保加利亞真正薰衣草精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/bulgarian-lavender-ess-oil/',
                 description:'來自保加利亞的真正薰衣草精油，擁有優雅細膩的花香氣息，清新中帶有溫潤的草本基調，層次豐富且溫和宜人。\n作為芳香界中最經典的花香基調之一，以其多種功效而聞名，特別是放鬆情緒和安定紓壓的效果。\n適合作為居家空間營造舒適氛圍的主角，也可靈活搭配多種精油，打造專屬香氛風格。\n\n本品採用 Lavandula angustifolia 花朵蒸餾萃取，含有豐富的乙酸芳樟酯與芳樟醇，香氣純淨自然，為日常擴香、睡前閱讀、沐浴時光中極為推薦的香氛選擇。',
                 details:{englishName:'Bulgarian Lavender',botanicalName:'Lavandula angustifolia',extractionMethod:'蒸餾法（Steam Distillation）',extractionPart:'花朵',oilOrigin:'保加利亞',plantOrigin:'保加利亞山區天然農場',appearance:'透明至淡黃色液體',composition:'1. Linalyl acetate（乙酸芳樟酯）：約 26.69%｜放鬆心靈，營造深度安心感\n2. Linalool（芳樟醇）：約 25.62%｜情緒舒緩，增添沉穩氣息\n3. Ocimene（羅勒烯）：約 10%｜喚醒思緒，療癒心情',usage:'擴香機：滴入 4–6 滴精油，適合夜間放鬆與靜心閱讀\n空間噴霧：可自製芳香噴霧，營造柔和溫潤的空氣氛圍\n芳香飾品：滴於香氛飾品中，隨身散發細膩花香氣息\n香氛搭配：可與木質、柑橘、草本精油調和，柔化整體香氣、提升層次',pairing:'佛手柑 FCR × 苦橙葉（3:3:4薰衣草）：涼風輕拂的高山花田。薰衣草溫柔；佛手柑明亮，苦橙葉的綠意層次，讓整體香氣柔和清新。是一款平衡情緒、紓緩壓力的香氛選擇。\n\n甜橙 × 檸檬（1:1:2薰衣草）：花果交融的溫柔擁抱。甜橙與檸檬的清新果香，明亮愉悅；薰衣草帶出細膩花香，溫潤平衡。能提振心情與緩解壓力，使心情愉悅自在。\n\n印度乳香（1:1）：靜心之香，溫柔平衡。乳香沉穩的煙香與微甜木質，與薰衣草細緻的花香，帶來穩重溫柔的能量。調和兩款靜心穩定的精油，有安定情緒、平衡身心的效用。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，亦勿接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試，若出現不適請停止使用。\n孕婦（尤其孕期前三個月）、哺乳期間、三歲以下嬰幼兒建議避免使用。\n氣喘、花粉熱及過敏體質者，使用前請先諮詢專業芳療師或醫師建議。\n老年人及身體較虛弱者，建議減量使用，並諮詢專業意見。\n請妥善保存於陰涼乾燥處，避免兒童與寵物誤取誤用。\n本商品僅供芳香用途，所有描述為香氛參考建議，不具醫療功效。'},
                 specs:['10ml','60ml']
             },
             {
-                id:'pure-single-vetiver-indonesia', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                id:'pure-single-vetiver-indonesia', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2026/03/%E5%8D%B0%E5%B0%BC%E5%B2%A9%E8%98%AD%E8%8D%89_10ml%E7%B2%BE%E6%B2%B9-600x599.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
                 name:'印尼岩蘭草精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/vetiver-indonesia-ess-oil/',
                 description:'岩蘭草精油是一款極具「大地屬性」的經典木質精油，香氣深沉、濕潤而穩重，帶有土壤、根系與煙燻木質的層次感。氣味厚實卻不刺鼻，如同雨後土地釋放出的自然氣息，為空間注入沉靜、安定與安全感。\n\n特別適合在夜晚放鬆、冥想、閱讀或需要情緒穩定與專注的時刻使用，常被芳療師用於打造「接地感」與平衡氛圍，是調香與複方中不可或缺的基底精油之一。',
                 details:{englishName:'Vetiver Indonesia Oil',botanicalName:'Vetiveria zizaniodes Stapf',extractionMethod:'蒸餾法（Steam Distillation）',extractionPart:'根部',oilOrigin:'印尼',plantOrigin:'印尼',appearance:'黃褐色至深紅褐色黏稠液體',composition:'岩蘭草精油屬於天然植物來源之複合芳香物質（UVCB），其組成會依產地、氣候與萃取條件而有所差異。依品質規格與產業資料，其主要芳香結構以倍半萜類醇與酮類化合物為主。\n1. Vetivone（岩蘭草酮類）：為岩蘭草精油的關鍵香氣結構之一，賦予其深沉、木質與微煙燻的大地氣息。\n2. Vetiverol（岩蘭草醇類）：帶來溫潤、厚實且持久的底蘊香調，使整體香氣穩定而不浮躁。\n3. 其他天然倍半萜類芳香分子：共同構築出岩蘭草精油層次豐富、留香時間長、極具安定感的氣味特性。\n※ 本產品為天然精油原料，其成分比例並非固定數值，屬正常天然變異範圍。',usage:'擴香機：滴入 3–5 滴，適合夜晚放鬆、冥想或靜心時使用，營造沉穩安定的空間氛圍\n空間噴霧：可搭配柑橘或花香精油製作芳香噴霧，平衡厚重木質調性\n芳香飾品：少量滴於香氛飾品，作為低調內斂的個人香氣\n香氛搭配：作為複方基底精油，提升整體香氣的深度與持香度',pairing:'佛手柑FCR（2：1）：沉穩平衡。清新柑橘調平衡岩蘭草的厚實木質，適合日常放鬆與情緒穩定。\n有機大西洋雪松（1：1）：大地根基。雙重木質調堆疊，強化接地感與空間穩定氛圍。\n廣藿香（2：1）：深層靜心。濕潤土壤氣息交織，適合冥想、瑜伽與靜心時刻。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品為高濃度天然精油原料，使用前請適當稀釋。\n請勿直接塗抹於皮膚，避免接觸眼睛、黏膜或傷口。\n初次使用建議先進行局部敏感測試。\n孕婦（尤其孕期前三個月）、哺乳期間及三歲以下嬰幼兒建議避免使用。\n氣喘、過敏體質者使用前請先諮詢專業芳療師或醫師。\n請妥善保存，避免兒童與寵物誤取。\n本產品僅供芳香用途，所有描述為香氛與氣味特性參考，不具醫療功效。'},
                 specs:['10ml','60ml']
             },
             {
-                id:'pure-single-geranium', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                id:'pure-single-geranium', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2026/03/%E5%A4%A9%E7%AB%BA%E8%91%B5_10ml%E7%B2%BE%E6%B2%B9-600x599.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
                 name:'天竺葵精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/geranium-ess-oil/',
                 description:'天竺葵精油是一種「像玫瑰、又更清新」的花香：前段帶著綠葉與草本的乾淨感，中段透出柔美的玫瑰花香，尾韻乾爽不黏膩、很耐聞。\n特別適合用在日常空間擴香——想要溫柔、有質感、又不過度甜美的氛圍，天竺葵就是最穩的主角。\n\n在複方裡，天竺葵也很擅長「把香氣拉圓」：讓柑橘更有層次、讓木質更柔和、讓花香更耐聞，是許多調香師很愛用的中段花香骨架。\n\n香氣特性：香調位置為中調（Heart note），花香柔美、過渡自然；主要氣味印象為玫瑰花香／清新綠葉／淡淡草本感／乾淨不甜膩；調香角色為讓香氣更圓潤、更柔和，也能平衡柑橘與木質的銳利感。',
                 details:{englishName:'Geranium Oil',botanicalName:'Pelargonium graveolens',extractionMethod:'蒸餾法（Steam Distillation）',extractionPart:'開花部位（Flowering parts）',oilOrigin:'埃及',plantOrigin:'埃及',appearance:'淡黃綠色',composition:'1. Citronellol（香茅醇）：約 35%｜甜潤柔和的玫瑰花香主體，讓整體氛圍更溫柔、親膚感更高。\n2. Geraniol（香葉醇）：約 12%｜清新玫瑰與微果香調性，讓花香更明亮、更有質感層次。\n3. Monoterpene Alcohols（單萜醇類香氣骨架）：以單萜醇為主要結構類型，讓天竺葵呈現「花香＋綠感」的乾淨輪廓，並帶來圓潤、柔和、不厚重的香氣走向。',usage:'擴香機：滴入 4–6 滴，適合客廳、臥室、書房，營造溫柔花香且乾淨的居家氛圍\n空間噴霧：可自製芳香噴霧，使用於衣櫃、玄關、房間，增添清爽花香與好感氣息\n芳香飾品：滴於香氛飾品，隨身帶著柔和花香與清新綠感，讓心情更舒展\n香氛搭配：適合作為複方「中段花香核心」，建議占比 20–45% 最好控制、最耐聞',pairing:'情緒平衡｜溫柔安定配方：保加利亞真正薰衣草 35%＋佛手柑FCR 25%＋天竺葵 40%。玫瑰般的柔美花香作主體，搭配乾淨薰衣草過渡，再用佛手柑點亮前段氣息；整體是「溫柔、舒服、很耐聞」的日常擴香配方。\n\n清新淨味｜空間清爽配方：檸檬 40%＋茶樹 30%＋天竺葵 30%。檸檬的清透感讓空間更明亮，茶樹帶出俐落乾淨的氣息，天竺葵把尾韻拉得更柔和、更不刺鼻；很適合玄關、廚房或需要「清爽感」的空間。\n\n專注沉穩｜閱讀與專注時光：有機大西洋雪松 40%＋印度乳香 25%＋天竺葵 35%。雪松的乾燥木質打底，乳香帶出溫潤沉靜的質感，天竺葵讓木質更柔順、少了距離感；適合書房、工作區，打造沉穩但不沉重的氛圍。\n\n甜暖好感｜會客好氣場：甜橙 50%＋廣藿香 20%＋天竺葵 30%。甜橙先帶出溫暖愉悅的果香，天竺葵把香氣變得更有質感與花香層次，廣藿香收尾讓留香更久、更像高級香水底韻；適合客廳、會客室，營造舒服放鬆、心情愉悅的空間。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，亦勿接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試，若出現不適請停止使用。\n孕婦（尤其孕期前三個月）、哺乳期間、三歲以下嬰幼兒建議避免使用。\n請妥善保存於陰涼乾燥處，避免兒童與寵物誤取誤用。\n本商品僅供芳香用途，所有描述為香氛參考建議，不具醫療功效。'},
+                specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-frankincense-india', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2025/10/%E5%96%AE%E6%96%B9%E7%B2%BE%E6%B2%B9-%E5%8D%B0%E5%BA%A6%E4%B9%B3%E9%A6%99-%E9%A6%96-600x600.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'印度乳香精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/frankincense-ess-oil/',
+                description:'來自印度的印度乳香精油，散發濃郁木質、煙燻與微甜柑橘氣息，香氣沉穩、內斂，層次豐富溫潤。\n被應用在許多芳香療法及宗教儀式上，有「精油之王」、「液體黃金」等美譽。有平靜心情、放鬆情緒的效用。\n適合作為居家靜心、冥想氛圍的香氛主角，亦適合搭配花香、柑橘類精油增添空間質感。\n\n本品以 Boswellia serrata 樹脂為原料，採用蒸餾法細緻萃取，高比例含有側柏烯等天然活性成分，香氣醇厚而不刺激，適合日常擴香、靜心時光使用。',
+                details:{englishName:'Frankincense',botanicalName:'Boswellia serrata',extractionMethod:'蒸餾法（Steam Distillation）',extractionPart:'樹脂',oilOrigin:'印度',plantOrigin:'印度天然林區',appearance:'透明至淡黃色液體',composition:'1. α-Pinene（α-蒎烯）：約 60%｜轉換心情，帶來清新氣息\n2. Limonene（檸檬烯）：約 10%｜氣味清爽，增添明亮氛圍\n3. α-Thujene（α-側柏烯）：約 5%｜放鬆心靈，帶來安心感',usage:'擴香機：滴入 4–6 滴精油，適合冥想、靜心、夜間放鬆等使用\n空間噴霧：製作芳香噴霧，提升空間層次與溫潤感\n芳香飾品：滴於飾品中，隨身營造沉穩氣息\n香氛搭配：搭配柑橘或花香精油，提升層次與舒適感',pairing:'佛手柑 FCR × 保加利亞真正薰衣草（3:2:3乳香）：柔光與清晨的神性氣息。\n甜橙 × 檸檬（1:1:2乳香）：深呼吸一片溫暖陽光。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，亦勿接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試，若出現不適請停止使用。\n孕婦（尤其孕期前三個月）、哺乳期間、三歲以下嬰幼兒建議避免使用。\n氣喘、花粉熱及過敏體質者，使用前請先諮詢專業芳療師或醫師建議。\n老年人及身體較虛弱者，建議減量使用，並諮詢專業意見。\n請妥善保存於陰涼乾燥處，避免兒童與寵物誤取誤用。\n本商品僅供芳香用途，所有描述為香氛參考建議，不具醫療功效。'},
+                specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-benzoin-resinoid', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2025/10/%E5%96%AE%E6%96%B9%E7%B2%BE%E6%B2%B9-%E5%AE%89%E6%81%AF%E9%A6%99%E5%8E%9F%E7%B2%BE-%E9%A6%96-600x600.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'安息香原精', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/benzoin-resinoid-ess-oil/',
+                description:'安息香原精擁有飽滿厚實的香草琥珀氣息，帶點焦糖與奶油香調，如黃昏中微光斜照的老屋木櫃，靜靜散發著熟成歲月的溫度。\n樹脂原料經傳統溶劑萃取，保留濃郁香氣與溫暖特質，是調香中經典的「安撫基底」之一。\n可作為精油搭配中的甜潤元素，適合夜晚擴香、放鬆靜心或作為空間氛圍的底色。',
+                details:{englishName:'Benzoin Resinoid',botanicalName:'Styrax benzoin Dryand',extractionMethod:'溶劑萃取',extractionPart:'樹脂',oilOrigin:'印尼',plantOrigin:'印尼',appearance:'深琥珀色',composition:'Benzoin Resinoid（安息香樹脂原精）：50%｜香草甜香與樹脂氣息，定香與營造安撫氛圍。\nDipropylene Glycol（雙丙甘醇）：50%｜作為溶劑，提升香氣揮發，便於擴香與調香。',usage:'擴香機：滴入 4–6 滴，適合夜晚放鬆、閱讀、冬日空間等情境\n空間噴霧：可自製芳香噴霧，使用於臥室、冥想角落、書房等營造沉穩氛圍\n芳香飾品：滴於香氛石、木片中，讓甜潤香氣常伴左右\n香氛搭配：可與木質、樹脂、柑橘或花香調性精油調和',pairing:'有機大西洋雪松（1:1）：古木與琥珀的低語呢喃。\n印度乳香 × 甜橙（2:3:2安息香）：心靈的溫馨搖籃曲。\n迷迭香 × 檸檬（2:3:2安息香）：草本日出，提振晨光。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，亦勿接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試，若出現不適請停止使用。\n孕婦（尤其孕期前三個月）、哺乳期間、三歲以下嬰幼兒建議避免使用。\n氣喘、花粉熱及過敏體質者，使用前請先諮詢專業芳療師或醫師建議。\n老年人及身體較虛弱者，建議減量使用，並諮詢專業意見。\n請妥善保存於陰涼乾燥處，避免兒童與寵物誤取誤用。\n本商品僅供芳香用途，所有描述為香氛參考建議，不具醫療功效。'},
+                specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-patchouli', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2026/03/%E5%BB%A3%E8%97%BF%E9%A6%9910ml%E7%B2%BE%E6%B2%B9-600x599.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'廣藿香精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/patchouli-ess-oil/',
+                description:'深沉泥土木質＋微麝香的「基調定香」代表。香氣厚實、留香久，適合打造沉穩氛圍、空間香氣更有層次；也很適合拿來當作複方的「收尾底韻」。\n\n廣藿香精油是香氣世界裡最具「土地感」的存在：濕潤泥土、木質、微煙燻與淡淡麝香交織，一滴就能讓整體香氣更沉穩、更耐聞。它常被用在東方調、木質調香氛裡，擔任基調與定香角色。',
+                details:{englishName:'Patchouli Indonesia Oil',botanicalName:'Pogostemon cablin Benth.',extractionMethod:'蒸餾法（Steam Distillation）',extractionPart:'葉片',oilOrigin:'印尼',plantOrigin:'印尼',appearance:'淡黃色至紅棕色液體',composition:'Patchoulol / Patchouli alcohol（廣藿香醇）：提供厚實、柔沉、帶木質麝香感的主體底韻。\nα/β-Patchoulene（廣藿香烯）：帶出乾燥木質與草本輪廓。\nβ-Caryophyllene（石竹烯）：增添溫暖辛香與木質厚度。\nα-Bulnesene（布烯烯）：強化深沉乾燥木質尾韻。',usage:'擴香機：4–6 滴（想更沉穩可加入 1–2 滴廣藿香作基底）\n空間噴霧：清新柑橘搭配 1 滴廣藿香，尾韻更持久\n複方比例建議：廣藿香佔比 10–35% 較易控制香氣平衡',pairing:'保加利亞真正薰衣草 45%＋佛手柑FCR 30%＋廣藿香 25%：沉穩放鬆。\n檸檬 45%＋茶樹 30%＋廣藿香 25%：清爽淨味。\n大西洋雪松 40%＋乳香 30%＋廣藿香 30%：木質靜心。\n甜橙 50%＋天竺葵 30%＋廣藿香 20%：溫柔甜暖。',packaging:'容量：10ml / 60ml',storage:'陰涼乾燥處，避免陽光直射',warnings:'請適當稀釋後使用，避免直接接觸眼睛與敏感部位。\n請勿內服。\n初次使用建議先局部測試。\n孕期與幼兒使用前請先評估。\n僅供芳香用途，非醫療產品。'},
                 specs:['10ml','60ml']
             }
         ];
@@ -358,7 +379,7 @@
             if(!id) return;
             const p=PRESET_PRODUCTS.find(x=>x.id===id); if(!p) return;
             document.getElementById('editProductId').value='';
-            document.getElementById('existingImageUrl').value='';
+            document.getElementById('existingImageUrl').value=p.imageUrl||'';
             document.getElementById('pMainCategory').value=p.mainCategory;
             refreshSubCategoryOptions(p.subCategory);
             refreshDetailCategoryOptions(p.detailCategory);
@@ -370,10 +391,14 @@
             document.getElementById('flavorContainer').innerHTML='';
             (p.specs||[]).forEach(spec=>addFlavorRow(spec,'','',true,'',''));
             document.getElementById('pActive').checked=true;
+            const preview=document.getElementById('imagePreview');
+            if(preview){
+                preview.innerHTML=p.imageUrl?`<img src="${esc(p.imageUrl)}" class="w-24 h-24 object-cover rounded-xl border" alt="${esc(p.name)}"><span class="text-xs text-gray-400">已帶入來源主圖；重新選檔即可替換</span>`:'';
+            }
             document.getElementById('pSortOrder').value=100;
             document.getElementById('formTitle').textContent='📚 從已搬移商品建立';
-            document.getElementById('formModeHint').textContent='商品內容已帶入；請上傳自己的商品圖，並填寫每個規格的價格與庫存後再上架。';
-            alert(`✅ 已帶入「${p.name}」資料。\n請填寫價格、庫存並上傳商品圖片後再儲存。`);
+            document.getElementById('formModeHint').textContent='商品內容與來源主圖已帶入；小編可直接保留或手動換圖。請填寫每個規格的價格與庫存後再上架。';
+            alert(`✅ 已帶入「${p.name}」資料與來源主圖。\n請填寫價格、庫存；如需換圖可由小編手動選檔後再儲存。`);
         };
 
         const PRODUCT_TAXONOMY = {
