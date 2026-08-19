@@ -147,9 +147,6 @@
                         <input type="hidden" id="editProductId" value="">
                         <input type="hidden" id="existingImageUrl" value="">
 
-                        <div class="bg-white rounded-xl p-4 border mb-4">
-                            <div class="flex items-center justify-between gap-3"><div><h5 class="text-xs font-black text-forest">上架方式</h5><p class="text-[9px] text-gray-400 mt-1">可用分類篩選建立商品，也可切換手動新增。</p></div><select id="entryMode" class="border rounded-lg px-3 py-2 text-xs bg-white"><option value="guided">分類篩選上架</option><option value="manual">手動新增</option></select></div>
-                        </div>
                         <div class="bg-white rounded-xl p-4 border space-y-3">
                             <div class="flex items-center justify-between">
                                 <h5 class="text-xs font-black text-forest">① 商品基本資料</h5>
@@ -167,16 +164,28 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1">商品類型</label>
-                                    <select id="pDetailCategory" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white"></select>
+                                    <select id="pDetailCategory" onchange="refreshPresetOptions()" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white"></select>
                                 </div>
+                            </div>
+
+                            <div class="rounded-xl border border-clay/20 bg-clay/5 p-3">
+                                <div class="flex items-center justify-between gap-3 mb-2">
+                                    <div>
+                                        <label class="block text-xs font-black text-forest">📚 已搬移商品快速選擇</label>
+                                        <p id="presetProgress" class="text-[9px] text-gray-400 mt-0.5">純精油／單方精油：已完成 4 / 25</p>
+                                    </div>
+                                    <button type="button" onclick="resetForm(); scrollToProductForm()" class="text-[10px] bg-white border px-2.5 py-1.5 rounded-lg text-gray-500">手動新增空白商品</button>
+                                </div>
+                                <select id="presetProductSelect" onchange="applyPresetProduct(this.value)" class="w-full px-3 py-2.5 border rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-clay">
+                                    <option value="">— 從已搬移商品選擇 —</option>
+                                </select>
+                                <p class="text-[9px] text-gray-400 mt-2">選擇後會自動帶入商品名稱、學名、產地、萃取資料、商品介紹、成分、使用建議、搭配、保存與警語；價格及庫存不會自動填入。</p>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 mb-1">商品／系列名稱</label>
                                 <input type="text" id="pName" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="例如：植萃經典單方系列">
                             </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label class="block text-xs font-medium text-gray-700 mb-1">來源商品網址（內部參考）</label><input type="url" id="pSourceUrl" class="w-full px-3 py-2 border rounded-xl text-sm" placeholder="https://www.whaletree.com.tw/shop/..."></div><div><label class="block text-xs font-medium text-gray-700 mb-1">來源商品代號／備註</label><input type="text" id="pSourceRef" class="w-full px-3 py-2 border rounded-xl text-sm" placeholder="方便核對搬移內容"></div></div>
 
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 mb-1">商品介紹／產品說明</label>
@@ -214,8 +223,8 @@
                         <div class="bg-white rounded-xl p-4 border">
                             <div class="flex items-center justify-between mb-3">
                                 <div>
-                                    <h5 class="text-xs font-black text-forest">③ 氣味 × 大小 × 售價 × 庫存</h5>
-                                    <p class="text-[9px] text-gray-400 mt-1">內容可預先建立；售價與庫存由你上架時自行輸入。客人前台會先選氣味，再選大小。</p>
+                                    <h5 class="text-xs font-black text-forest">③ 規格／容量／款式與價格</h5>
+                                    <p class="text-[9px] text-gray-400 mt-1">每一張卡片就是前台可選的一個規格；售價由你手動輸入。</p>
                                 </div>
                                 <button type="button" onclick="addFlavorRow()" class="text-[10px] bg-clay text-white font-bold px-3 py-1.5 rounded-lg">＋ 新增規格</button>
                             </div>
@@ -301,6 +310,69 @@
 
         let flavorRowSerial = 0;
 
+        // 授權來源商品搬移資料庫：每一批核對後再加入，避免一次大量搬移造成欄位錯置。
+        // 售價與庫存刻意不預填，管理員上架時自行設定。
+        const PRESET_PRODUCTS = [
+            {
+                id:'pure-single-bergamot-fcr', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'佛手柑FCR精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/bergamot-ess-oil/',
+                description:'來自義大利的佛手柑 FCR 精油，擁有清新明亮的柑橘果香，帶有細緻花香氣息，香氣輕盈愉悅，是日常擴香中極受歡迎的香氛之一。\n具有多種功效，特別是提亮心情、緩解壓力，同時營造清新氣味，帶來舒適空間。\nFCR（Furanocoumarin-Free）版本，已移除光敏成分，使用上更加安心。適合全家日常擴香、空間清新應用。\n\n本品以 Citrus bergamia 果皮低溫冷壓萃取，富含檸檬烯與乙酸芳樟酯，香氣圓潤飽滿，能為空間注入活潑明亮氛圍，亦常用於調香作為中調核心香材，增添整體香氣層次感。',
+                details:{englishName:'Bergamot FCR',botanicalName:'Citrus bergamia RISSO et POITEAU',extractionMethod:'冷壓',extractionPart:'果皮',oilOrigin:'義大利',plantOrigin:'義大利',appearance:'無色至淡黃色',composition:'1. Limonene（檸檬烯）：約 41.2%｜提亮情緒，增添明亮氛圍\n2. Linalyl acetate（乙酸芳樟酯）：約 32.1%｜香氣清新優雅、放鬆心靈\n3. Linalool（芳樟醇）：約 11.1%｜消除異味、提升清新感受',usage:'擴香機：滴入 4–6 滴精油，適合日常居家擴香，營造明亮清新的氛圍\n空間噴霧：製作芳香噴霧，提升空氣清新感與舒適度\n芳香飾品：滴於香氛飾品，隨身攜帶愉悅清新氣息\n香氛搭配：與其他精油調和，提升香氣層次，增添活潑氛圍',pairing:'保加利亞真正薰衣草（1:1）：心緒安放於溫柔果香。佛手柑果香前調襯托，薰衣草花香溫柔包覆，協調溫潤。作為日常擴香使用，能轉換心情，也能平靜情緒波動。\n\n有機大西洋雪松 × 苦橙葉（1:1:1）：沉靜午後的清新茶香。雪松溫潤木香，苦橙葉綠意清新，佛手柑果香點亮溫暖，帶來伯爵茶的香氣。有放鬆紓壓、心情平靜的功效，適合日常使用。\n\n印度乳香（1:1）：穩重的一抹晨光。乳香的沉靜木質，而佛手柑則帶著清爽果香，清新與沉穩平衡。滴入熱水中，蒸氣能夠調整氛圍，帶來和緩呼吸的靜心空間。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，亦勿接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試，若出現不適請停止使用。\n孕婦（尤其孕期前三個月）、哺乳期間、三歲以下嬰幼兒建議避免使用。\n氣喘、花粉熱及過敏體質者，使用前請先諮詢專業芳療師或醫師建議。\n老年人及身體較虛弱者，建議減量使用，並諮詢專業意見。\n請妥善保存於陰涼乾燥處，避免兒童與寵物誤取誤用。\n本商品僅供芳香用途，所有描述為香氛參考建議，不具醫療功效。'},
+                specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-bulgarian-lavender', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'保加利亞真正薰衣草精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/bulgarian-lavender-ess-oil/',
+                description:'來自保加利亞的真正薰衣草精油，擁有優雅細膩的花香氣息，清新中帶有溫潤的草本基調，層次豐富且溫和宜人。\n作為芳香界中最經典的花香基調之一，以其多種功效而聞名，特別是放鬆情緒和安定紓壓的效果。\n適合作為居家空間營造舒適氛圍的主角，也可靈活搭配多種精油，打造專屬香氛風格。\n\n本品採用 Lavandula angustifolia 花朵蒸餾萃取，含有豐富的乙酸芳樟酯與芳樟醇，香氣純淨自然，為日常擴香、睡前閱讀、沐浴時光中極為推薦的香氛選擇。',
+                details:{englishName:'Bulgarian Lavender',botanicalName:'Lavandula angustifolia',extractionMethod:'蒸餾法（Steam Distillation）',extractionPart:'花朵',oilOrigin:'保加利亞',plantOrigin:'保加利亞山區天然農場',appearance:'透明至淡黃色液體',composition:'1. Linalyl acetate（乙酸芳樟酯）：約 26.69%｜放鬆心靈，營造深度安心感\n2. Linalool（芳樟醇）：約 25.62%｜情緒舒緩，增添沉穩氣息\n3. Ocimene（羅勒烯）：約 10%｜喚醒思緒，療癒心情',usage:'擴香機：滴入 4–6 滴精油，適合夜間放鬆與靜心閱讀\n空間噴霧：可自製芳香噴霧，營造柔和溫潤的空氣氛圍\n芳香飾品：滴於香氛飾品中，隨身散發細膩花香氣息\n香氛搭配：可與木質、柑橘、草本精油調和，柔化整體香氣、提升層次',pairing:'佛手柑 FCR × 苦橙葉（3:3:4薰衣草）：涼風輕拂的高山花田。薰衣草溫柔；佛手柑明亮，苦橙葉的綠意層次，讓整體香氣柔和清新。是一款平衡情緒、紓緩壓力的香氛選擇。\n\n甜橙 × 檸檬（1:1:2薰衣草）：花果交融的溫柔擁抱。甜橙與檸檬的清新果香，明亮愉悅；薰衣草帶出細膩花香，溫潤平衡。能提振心情與緩解壓力，使心情愉悅自在。\n\n印度乳香（1:1）：靜心之香，溫柔平衡。乳香沉穩的煙香與微甜木質，與薰衣草細緻的花香，帶來穩重溫柔的能量。調和兩款靜心穩定的精油，有安定情緒、平衡身心的效用。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，亦勿接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試，若出現不適請停止使用。\n孕婦（尤其孕期前三個月）、哺乳期間、三歲以下嬰幼兒建議避免使用。\n氣喘、花粉熱及過敏體質者，使用前請先諮詢專業芳療師或醫師建議。\n老年人及身體較虛弱者，建議減量使用，並諮詢專業意見。\n請妥善保存於陰涼乾燥處，避免兒童與寵物誤取誤用。\n本商品僅供芳香用途，所有描述為香氛參考建議，不具醫療功效。'},
+                specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-vetiver-indonesia', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'印尼岩蘭草精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/vetiver-indonesia-ess-oil/',
+                description:'岩蘭草精油是一款極具「大地屬性」的經典木質精油，香氣深沉、濕潤而穩重，帶有土壤、根系與煙燻木質的層次感。氣味厚實卻不刺鼻，如同雨後土地釋放出的自然氣息，為空間注入沉靜、安定與安全感。\n\n特別適合在夜晚放鬆、冥想、閱讀或需要情緒穩定與專注的時刻使用，常被芳療師用於打造「接地感」與平衡氛圍，是調香與複方中不可或缺的基底精油之一。',
+                details:{englishName:'Vetiver Indonesia Oil',botanicalName:'Vetiveria zizaniodes Stapf',extractionMethod:'蒸餾法（Steam Distillation）',extractionPart:'根部',oilOrigin:'印尼',plantOrigin:'印尼',appearance:'黃褐色至深紅褐色黏稠液體',composition:'岩蘭草精油屬於天然植物來源之複合芳香物質（UVCB），其組成會依產地、氣候與萃取條件而有所差異。依品質規格與產業資料，其主要芳香結構以倍半萜類醇與酮類化合物為主。\n1. Vetivone（岩蘭草酮類）：為岩蘭草精油的關鍵香氣結構之一，賦予其深沉、木質與微煙燻的大地氣息。\n2. Vetiverol（岩蘭草醇類）：帶來溫潤、厚實且持久的底蘊香調，使整體香氣穩定而不浮躁。\n3. 其他天然倍半萜類芳香分子：共同構築出岩蘭草精油層次豐富、留香時間長、極具安定感的氣味特性。\n※ 本產品為天然精油原料，其成分比例並非固定數值，屬正常天然變異範圍。',usage:'擴香機：滴入 3–5 滴，適合夜晚放鬆、冥想或靜心時使用，營造沉穩安定的空間氛圍\n空間噴霧：可搭配柑橘或花香精油製作芳香噴霧，平衡厚重木質調性\n芳香飾品：少量滴於香氛飾品，作為低調內斂的個人香氣\n香氛搭配：作為複方基底精油，提升整體香氣的深度與持香度',pairing:'佛手柑FCR（2：1）：沉穩平衡。清新柑橘調平衡岩蘭草的厚實木質，適合日常放鬆與情緒穩定。\n有機大西洋雪松（1：1）：大地根基。雙重木質調堆疊，強化接地感與空間穩定氛圍。\n廣藿香（2：1）：深層靜心。濕潤土壤氣息交織，適合冥想、瑜伽與靜心時刻。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品為高濃度天然精油原料，使用前請適當稀釋。\n請勿直接塗抹於皮膚，避免接觸眼睛、黏膜或傷口。\n初次使用建議先進行局部敏感測試。\n孕婦（尤其孕期前三個月）、哺乳期間及三歲以下嬰幼兒建議避免使用。\n氣喘、過敏體質者使用前請先諮詢專業芳療師或醫師。\n請妥善保存，避免兒童與寵物誤取。\n本產品僅供芳香用途，所有描述為香氛與氣味特性參考，不具醫療功效。'},
+                specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-geranium', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'天竺葵精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/geranium-ess-oil/',
+                description:'天竺葵精油是一種「像玫瑰、又更清新」的花香：前段帶著綠葉與草本的乾淨感，中段透出柔美的玫瑰花香，尾韻乾爽不黏膩、很耐聞。\n特別適合用在日常空間擴香——想要溫柔、有質感、又不過度甜美的氛圍，天竺葵就是最穩的主角。\n\n在複方裡，天竺葵也很擅長「把香氣拉圓」：讓柑橘更有層次、讓木質更柔和、讓花香更耐聞，是許多調香師很愛用的中段花香骨架。\n\n香氣特性：香調位置為中調（Heart note），花香柔美、過渡自然；主要氣味印象為玫瑰花香／清新綠葉／淡淡草本感／乾淨不甜膩；調香角色為讓香氣更圓潤、更柔和，也能平衡柑橘與木質的銳利感。',
+                details:{englishName:'Geranium Oil',botanicalName:'Pelargonium graveolens',extractionMethod:'蒸餾法（Steam Distillation）',extractionPart:'開花部位（Flowering parts）',oilOrigin:'埃及',plantOrigin:'埃及',appearance:'淡黃綠色',composition:'1. Citronellol（香茅醇）：約 35%｜甜潤柔和的玫瑰花香主體，讓整體氛圍更溫柔、親膚感更高。\n2. Geraniol（香葉醇）：約 12%｜清新玫瑰與微果香調性，讓花香更明亮、更有質感層次。\n3. Monoterpene Alcohols（單萜醇類香氣骨架）：以單萜醇為主要結構類型，讓天竺葵呈現「花香＋綠感」的乾淨輪廓，並帶來圓潤、柔和、不厚重的香氣走向。',usage:'擴香機：滴入 4–6 滴，適合客廳、臥室、書房，營造溫柔花香且乾淨的居家氛圍\n空間噴霧：可自製芳香噴霧，使用於衣櫃、玄關、房間，增添清爽花香與好感氣息\n芳香飾品：滴於香氛飾品，隨身帶著柔和花香與清新綠感，讓心情更舒展\n香氛搭配：適合作為複方「中段花香核心」，建議占比 20–45% 最好控制、最耐聞',pairing:'情緒平衡｜溫柔安定配方：保加利亞真正薰衣草 35%＋佛手柑FCR 25%＋天竺葵 40%。玫瑰般的柔美花香作主體，搭配乾淨薰衣草過渡，再用佛手柑點亮前段氣息；整體是「溫柔、舒服、很耐聞」的日常擴香配方。\n\n清新淨味｜空間清爽配方：檸檬 40%＋茶樹 30%＋天竺葵 30%。檸檬的清透感讓空間更明亮，茶樹帶出俐落乾淨的氣息，天竺葵把尾韻拉得更柔和、更不刺鼻；很適合玄關、廚房或需要「清爽感」的空間。\n\n專注沉穩｜閱讀與專注時光：有機大西洋雪松 40%＋印度乳香 25%＋天竺葵 35%。雪松的乾燥木質打底，乳香帶出溫潤沉靜的質感，天竺葵讓木質更柔順、少了距離感；適合書房、工作區，打造沉穩但不沉重的氛圍。\n\n甜暖好感｜會客好氣場：甜橙 50%＋廣藿香 20%＋天竺葵 30%。甜橙先帶出溫暖愉悅的果香，天竺葵把香氣變得更有質感與花香層次，廣藿香收尾讓留香更久、更像高級香水底韻；適合客廳、會客室，營造舒服放鬆、心情愉悅的空間。',packaging:'容量選擇：10ml / 60ml 精油玻璃瓶裝\n包裝方式：紙盒＋標籤＋使用建議卡',storage:'請置於陰涼乾燥處，避免陽光直射，開封後建議一年內使用完畢',warnings:'本產品使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，亦勿接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試，若出現不適請停止使用。\n孕婦（尤其孕期前三個月）、哺乳期間、三歲以下嬰幼兒建議避免使用。\n請妥善保存於陰涼乾燥處，避免兒童與寵物誤取誤用。\n本商品僅供芳香用途，所有描述為香氛參考建議，不具醫療功效。'},
+                specs:['10ml','60ml']
+            }
+        ];
+
+        function refreshPresetOptions(){
+            const sel=document.getElementById('presetProductSelect'); if(!sel) return;
+            const main=document.getElementById('pMainCategory')?.value;
+            const sub=document.getElementById('pSubCategory')?.value;
+            const detail=document.getElementById('pDetailCategory')?.value;
+            const rows=PRESET_PRODUCTS.filter(p=>(!main||p.mainCategory===main)&&(!sub||p.subCategory===sub)&&(!detail||p.detailCategory===detail));
+            sel.innerHTML='<option value="">— 從已搬移商品選擇 —</option>'+rows.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+            if(!rows.length) sel.innerHTML+='<option value="" disabled>此分類尚未完成搬移</option>';
+        }
+        window.applyPresetProduct=function(id){
+            if(!id) return;
+            const p=PRESET_PRODUCTS.find(x=>x.id===id); if(!p) return;
+            document.getElementById('editProductId').value='';
+            document.getElementById('existingImageUrl').value='';
+            document.getElementById('pMainCategory').value=p.mainCategory;
+            refreshSubCategoryOptions(p.subCategory);
+            refreshDetailCategoryOptions(p.detailCategory);
+            document.getElementById('pDetailCategory').value=p.detailCategory;
+            document.getElementById('pName').value=p.name;
+            document.getElementById('pDesc').value=p.description;
+            editingDetails={...p.details,sourceUrl:p.sourceUrl};
+            renderDynamicFields(editingDetails);
+            document.getElementById('flavorContainer').innerHTML='';
+            (p.specs||[]).forEach(spec=>addFlavorRow(spec,'','',true,'',''));
+            document.getElementById('pActive').checked=true;
+            document.getElementById('pSortOrder').value=100;
+            document.getElementById('formTitle').textContent='📚 從已搬移商品建立';
+            document.getElementById('formModeHint').textContent='商品內容已帶入；請上傳自己的商品圖，並填寫每個規格的價格與庫存後再上架。';
+            alert(`✅ 已帶入「${p.name}」資料。\n請填寫價格、庫存並上傳商品圖片後再儲存。`);
+        };
 
         const PRODUCT_TAXONOMY = {
             '精油': {subs:['水氧精油','純精油'], details:['單方精油','複方精油']},
@@ -314,7 +386,7 @@
         const DETAIL_FIELD_SETS = {
             oil:[
                 ['englishName','英文名稱'],['botanicalName','拉丁學名'],['extractionMethod','萃取方式'],['extractionPart','萃取部位'],
-                ['oilOrigin','精油產地'],['plantOrigin','植物產地'],['appearance','外觀色澤'],['composition','成分／結構分析','textarea'],
+                ['oilOrigin','精油產地'],['plantOrigin','植物產地'],['appearance','外觀色澤'],['sourceUrl','授權資料來源網址'],['composition','成分／結構分析','textarea'],
                 ['usage','使用建議','textarea'],['pairing','推薦搭配','textarea'],['packaging','包裝方式','textarea'],['storage','保存方式','textarea'],['warnings','注意事項與警語','textarea']
             ],
             device:[
@@ -342,7 +414,7 @@
             el.innerHTML=Object.keys(PRODUCT_TAXONOMY).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
             const filter=document.getElementById('productMainFilter');
             if(filter) filter.innerHTML='<option value="all">全部主分類</option>'+Object.keys(PRODUCT_TAXONOMY).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
-            refreshSubCategoryOptions(); refreshAdminSubFilter();
+            refreshSubCategoryOptions(); refreshAdminSubFilter(); refreshPresetOptions();
         }
         window.refreshSubCategoryOptions=function(selected=''){
             const main=document.getElementById('pMainCategory')?.value || Object.keys(PRODUCT_TAXONOMY)[0];
@@ -350,6 +422,7 @@
             const subs=PRODUCT_TAXONOMY[main]?.subs||[];
             el.innerHTML=subs.map(x=>`<option value="${esc(x)}" ${x===selected?'selected':''}>${esc(x)}</option>`).join('');
             refreshDetailCategoryOptions();
+            refreshPresetOptions();
         };
         window.refreshDetailCategoryOptions=function(selected=''){
             const main=document.getElementById('pMainCategory')?.value;
@@ -374,7 +447,45 @@
         };
 
         window.addFlavorRow = function(name='', price='', options={}){
-            const box=document.getElementById('flavorContainer'); const rowId=`flavorRow_${++flavorRowSerial}`; const scent=options.scent??name; const size=options.size??'10ml'; const stock=options.stock??''; const compareAtPrice=options.compareAtPrice??''; const sku=options.sku??''; const active=options.active!==false; const card=document.createElement('div'); card.className='flavor-row border rounded-xl p-3 bg-sand/40'; card.id=rowId; card.innerHTML=`<div class="flex justify-between items-center mb-2"><span class="text-[10px] font-black text-forest">商品變體</span><div class="flex items-center gap-2"><label class="text-[10px] flex items-center gap-1"><input type="checkbox" class="flavor-active" ${active?'checked':''}> 可販售</label><button type="button" onclick="duplicateFlavorRow('${rowId}')" class="text-[10px] border px-2 py-1 rounded">複製</button><button type="button" onclick="removeFlavorRow('${rowId}')" class="text-[10px] text-red-500 border px-2 py-1 rounded">移除</button></div></div><div class="grid grid-cols-2 gap-2"><div><label class="text-[9px] text-gray-500">氣味 / 款式 *</label><input type="text" value="${esc(scent)}" class="flavor-scent w-full px-2.5 py-2 border rounded-lg text-xs" placeholder="真正薰衣草" required></div><div><label class="text-[9px] text-gray-500">大小 / 容量 *</label><input type="text" value="${esc(size)}" class="flavor-size w-full px-2.5 py-2 border rounded-lg text-xs" placeholder="10ml" required></div><div><label class="text-[9px] text-gray-500">售價 *</label><input type="number" min="0" value="${price!==''?Number(price):''}" class="flavor-price w-full px-2.5 py-2 border rounded-lg text-xs" placeholder="請手動輸入" required></div><div><label class="text-[9px] text-gray-500">庫存數量 *</label><input type="number" min="0" value="${stock!==''?Number(stock):''}" class="flavor-stock w-full px-2.5 py-2 border rounded-lg text-xs" placeholder="請手動輸入" required></div><div><label class="text-[9px] text-gray-500">原價（選填）</label><input type="number" min="0" value="${compareAtPrice!==''?Number(compareAtPrice):''}" class="flavor-compare-price w-full px-2.5 py-2 border rounded-lg text-xs"></div><div><label class="text-[9px] text-gray-500">SKU（選填）</label><input type="text" value="${esc(sku)}" class="flavor-sku w-full px-2.5 py-2 border rounded-lg text-xs"></div></div>`; box.appendChild(card);
+            const box = document.getElementById('flavorContainer');
+            const rowId = `flavorRow_${++flavorRowSerial}`;
+            const compareAtPrice = options.compareAtPrice ?? '';
+            const sku = options.sku ?? '';
+            const active = options.active !== false;
+            const card = document.createElement('div');
+            card.className = 'flavor-row border rounded-xl p-3 bg-sand/40';
+            card.id = rowId;
+            card.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black text-forest">香氣規格</span>
+                    <div class="flex items-center gap-2">
+                        <label class="text-[10px] flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" class="flavor-active" ${active ? 'checked' : ''}> 可販售
+                        </label>
+                        <button type="button" onclick="duplicateFlavorRow('${rowId}')" class="text-[10px] text-forest bg-white border px-2 py-1 rounded">複製</button>
+                        <button type="button" onclick="removeFlavorRow('${rowId}')" class="text-[10px] text-red-500 bg-white border px-2 py-1 rounded">移除</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="col-span-2">
+                        <label class="text-[9px] text-gray-500">規格／香氣名稱 *</label>
+                        <input type="text" value="${esc(name)}" class="flavor-name w-full px-2.5 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="例如：真正薰衣草" required>
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-gray-500">售價 *</label>
+                        <input type="number" min="0" value="${price !== '' ? Number(price) : ''}" class="flavor-price w-full px-2.5 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="580" required>
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-gray-500">原價（選填）</label>
+                        <input type="number" min="0" value="${compareAtPrice !== '' ? Number(compareAtPrice) : ''}" class="flavor-compare-price w-full px-2.5 py-2 border rounded-lg text-xs outline-none" placeholder="680">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] text-gray-500">SKU／內部代號（選填）</label>
+                        <input type="text" value="${esc(sku)}" class="flavor-sku w-full px-2.5 py-2 border rounded-lg text-xs outline-none" placeholder="例如 LAV-10ML">
+                    </div>
+                </div>
+            `;
+            box.appendChild(card);
         };
 
         window.removeFlavorRow = function(rowId){
@@ -386,9 +497,35 @@
             document.getElementById(rowId)?.remove();
         };
 
-        window.duplicateFlavorRow=function(rowId){const row=document.getElementById(rowId);if(!row)return;addFlavorRow(row.querySelector('.flavor-scent')?.value||'',row.querySelector('.flavor-price')?.value||'',{scent:row.querySelector('.flavor-scent')?.value||'',size:row.querySelector('.flavor-size')?.value||'',stock:row.querySelector('.flavor-stock')?.value||'',compareAtPrice:row.querySelector('.flavor-compare-price')?.value||'',sku:row.querySelector('.flavor-sku')?.value||'',active:row.querySelector('.flavor-active')?.checked!==false});};
+        window.duplicateFlavorRow = function(rowId){
+            const row = document.getElementById(rowId);
+            if(!row) return;
+            addFlavorRow(
+                row.querySelector('.flavor-name')?.value || '',
+                row.querySelector('.flavor-price')?.value || '',
+                {
+                    compareAtPrice: row.querySelector('.flavor-compare-price')?.value || '',
+                    sku: row.querySelector('.flavor-sku')?.value || '',
+                    active: row.querySelector('.flavor-active')?.checked !== false
+                }
+            );
+        };
 
-        function collectFlavors(){return [...document.querySelectorAll('.flavor-row')].map((row,index)=>{const scent=row.querySelector('.flavor-scent').value.trim(); const size=row.querySelector('.flavor-size').value.trim(); const priceRaw=row.querySelector('.flavor-price').value; const stockRaw=row.querySelector('.flavor-stock').value; const compareRaw=row.querySelector('.flavor-compare-price').value; return {name:scent,scent,size,price:Number(priceRaw),stock:Number(stockRaw),compareAtPrice:compareRaw===''?null:Number(compareRaw),sku:row.querySelector('.flavor-sku').value.trim(),active:row.querySelector('.flavor-active').checked,sortOrder:index};}).filter(f=>f.scent&&f.size&&Number.isFinite(f.price)&&f.price>=0&&Number.isFinite(f.stock)&&f.stock>=0);}
+        function collectFlavors(){
+            return [...document.querySelectorAll('.flavor-row')].map((row, index)=>{
+                const name = row.querySelector('.flavor-name').value.trim();
+                const priceRaw = row.querySelector('.flavor-price').value;
+                const compareRaw = row.querySelector('.flavor-compare-price').value;
+                return {
+                    name,
+                    price: Number(priceRaw),
+                    compareAtPrice: compareRaw === '' ? null : Number(compareRaw),
+                    sku: row.querySelector('.flavor-sku').value.trim(),
+                    active: row.querySelector('.flavor-active').checked,
+                    sortOrder: index
+                };
+            }).filter(f=>f.name && Number.isFinite(f.price) && f.price >= 0);
+        }
 
         document.getElementById('uploadForm').addEventListener('submit', async e=>{
             e.preventDefault();
@@ -409,9 +546,9 @@
 
             const seen = new Set();
             for(const f of flavors){
-                const key = `${f.scent}|${f.size}`.toLowerCase();
+                const key = f.name.toLowerCase();
                 if(seen.has(key)){
-                    alert(`規格「${f.scent} / ${f.size}」重複，請調整後再儲存。`);
+                    alert(`規格名稱「${f.name}」重複，請調整後再儲存。`);
                     return;
                 }
                 seen.add(key);
@@ -440,11 +577,8 @@
                     category: subCategory || mainCategory,
                     name: document.getElementById('pName').value.trim(),
                     description: document.getElementById('pDesc').value.trim(),
-                    sourceUrl: document.getElementById('pSourceUrl').value.trim(),
-                    sourceRef: document.getElementById('pSourceRef').value.trim(),
                     details: collectProductDetails(),
                     flavors,
-                    variants: flavors,
                     defaultPrice: flavors.find(f=>f.active)?.price ?? flavors[0].price,
                     imageUrl,
                     active: document.getElementById('pActive').checked,
@@ -472,7 +606,26 @@
             }
         });
 
-        function normalizeAdminFlavors(p){const rows=Array.isArray(p.variants)&&p.variants.length?p.variants:p.flavors; if(Array.isArray(rows)&&rows.length){return rows.map((f,index)=>({name:String(f.name||f.scent||'').trim()||`規格 ${index+1}`,scent:String(f.scent||f.name||'').trim(),size:String(f.size||f.capacity||'單一規格').trim(),price:Number(f.price??0),stock:f.stock==null?0:Number(f.stock),compareAtPrice:f.compareAtPrice??null,sku:f.sku||'',active:f.active!==false,sortOrder:Number(f.sortOrder??index)})).sort((a,b)=>a.sortOrder-b.sortOrder);} return [{name:p.codeName||p.name||'預設',scent:p.codeName||p.name||'預設',size:'單一規格',price:Number(p.price??p.defaultPrice??0),stock:0,compareAtPrice:null,sku:p.code||'',active:p.active!==false,sortOrder:0}];}
+        function normalizeAdminFlavors(p){
+            if(Array.isArray(p.flavors) && p.flavors.length){
+                return p.flavors.map((f,index)=>({
+                    name: String(f.name || '').trim() || `規格 ${index+1}`,
+                    price: Number(f.price ?? 0),
+                    compareAtPrice: f.compareAtPrice ?? null,
+                    sku: f.sku || '',
+                    active: f.active !== false,
+                    sortOrder: Number(f.sortOrder ?? index)
+                })).sort((a,b)=>a.sortOrder-b.sortOrder);
+            }
+            return [{
+                name: p.codeName || p.code || p.name || '預設規格',
+                price: Number(p.price ?? p.defaultPrice ?? 580),
+                compareAtPrice: null,
+                sku: p.code || '',
+                active: true,
+                sortOrder: 0
+            }];
+        }
 
         async function loadAdminProducts(){
             const list = document.getElementById('adminProductList');
@@ -564,8 +717,6 @@
             renderDynamicFields(editingDetails);
             document.getElementById('pName').value = p.name || '';
             document.getElementById('pDesc').value = p.description || '';
-            document.getElementById('pSourceUrl').value = p.sourceUrl || '';
-            document.getElementById('pSourceRef').value = p.sourceRef || '';
             document.getElementById('existingImageUrl').value = p.imageUrl || '';
             document.getElementById('pActive').checked = p.active !== false;
             document.getElementById('pSortOrder').value = Number(p.sortOrder ?? 100);
