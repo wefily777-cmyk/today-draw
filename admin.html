@@ -179,7 +179,7 @@
                                 <select id="presetProductSelect" onchange="applyPresetProduct(this.value)" class="w-full px-3 py-2.5 border rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-clay">
                                     <option value="">— 從已搬移商品選擇 —</option>
                                 </select>
-                                <p class="text-[9px] text-gray-400 mt-2">選擇後會自動帶入商品名稱、學名、產地、萃取資料、商品介紹、成分、使用建議、搭配、保存與警語；價格及庫存不會自動填入。</p>
+                                <p class="text-[9px] text-gray-400 mt-2">不必先選對細分類：直接選擇已搬移商品，系統會自動切換到正確的主分類／細分類／商品類型，並帶入完整資料；價格及庫存仍由你手動填寫。</p>
                             </div>
 
                             <div>
@@ -348,9 +348,11 @@
             const main=document.getElementById('pMainCategory')?.value;
             const sub=document.getElementById('pSubCategory')?.value;
             const detail=document.getElementById('pDetailCategory')?.value;
-            const rows=PRESET_PRODUCTS.filter(p=>(!main||p.mainCategory===main)&&(!sub||p.subCategory===sub)&&(!detail||p.detailCategory===detail));
-            sel.innerHTML='<option value="">— 從已搬移商品選擇 —</option>'+rows.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
-            if(!rows.length) sel.innerHTML+='<option value="" disabled>此分類尚未完成搬移</option>';
+            // 預設商品只依「主分類」篩選；選中商品後會自動切換到正確的細分類／商品類型。
+            // 這樣即使畫面目前停在「水氧精油」，仍可直接選擇已搬移的「純精油」商品，不會誤判為尚未搬移。
+            const rows=PRESET_PRODUCTS.filter(p=>(!main||p.mainCategory===main));
+            sel.innerHTML='<option value="">— 從已搬移商品選擇（選後自動分類）—</option>'+rows.map(p=>`<option value="${esc(p.id)}">${esc(p.subCategory)}｜${esc(p.detailCategory)}｜${esc(p.name)}</option>`).join('');
+            if(!rows.length) sel.innerHTML+='<option value="" disabled>此主分類尚未完成搬移</option>';
         }
         window.applyPresetProduct=function(id){
             if(!id) return;

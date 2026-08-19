@@ -492,7 +492,7 @@
                     const p = normalizeProduct(ds.id, ds.data());
                     if (!p.active) return;
                     productsCache[p.id] = p;
-                    if(p.mainCategory==='精油') p.flavors.filter(f=>f.active).forEach(f => drawPool.push({productId:p.id,productName:p.name,category:p.subCategory||p.category,flavorName:f.name,price:f.price,description:p.description,imageUrl:p.imageUrl}));
+                    if(p.mainCategory==='精油') p.flavors.filter(f=>f.active&&f.stock!==0).forEach(f => drawPool.push({productId:p.id,variantId:f.id,productName:p.name,category:p.subCategory||p.category,flavorName:f.scent||f.name,size:f.size||'',price:f.price,stock:f.stock,description:p.description,imageUrl:p.imageUrl}));
                 });
                 renderCatalogMain();
                 prepareDrawCards();
@@ -562,7 +562,7 @@
             setTimeout(() => {
                 document.getElementById('resultTitle').textContent = `${selectedDrawItem.productName}・${selectedDrawItem.flavorName}`;
                 document.getElementById('resultDesc').textContent = selectedDrawItem.description;
-                document.getElementById('buyBtn').textContent = `🛍️ 購買這款香氣 ($${selectedDrawItem.price})`;
+                document.getElementById('buyBtn').textContent = Number(selectedDrawItem.price)>0 ? `🛍️ 加入購物車（NT$${selectedDrawItem.price}）` : '🛍️ 加入購物車';
                 const resultSection = document.getElementById('resultSection');
                 resultSection.classList.remove('hidden');
                 resultSection.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -642,6 +642,84 @@
                 const referrals = referralSnap.docs.map(d => d.data()).sort((a,b) => String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,8);
                 document.getElementById('myReferrals').innerHTML = referrals.length ? referrals.map(r => `<div class="p-2 rounded-lg bg-sand/70 border"><b>${escapeHtml(r.invitedName || '新會員')}</b><br><span class="text-clay font-bold">+${Number(r.rewardPoints || 0)} 點</span><br><span class="text-[10px] text-gray-400">${formatDate(r.createdAt)}</span></div>`).join('') : '<p>還沒有推薦紀錄，分享你的推廣碼給朋友吧！</p>';
             } else document.getElementById('myReferrals').innerHTML = '<p>尚未建立推廣碼。</p>';
+        };
+
+        // ===== V5 修復：商品詳情、購物車、結帳與抽牌串接 =====
+        let cart = [];
+        let detailProductId = '';
+        try { cart = JSON.parse(localStorage.getItem('warmCrystalCart') || '[]'); if(!Array.isArray(cart)) cart=[]; } catch(_) { cart=[]; }
+
+        function saveCart(){
+            localStorage.setItem('warmCrystalCart', JSON.stringify(cart));
+            renderCart();
+        }
+        window.openCart=function(){ document.getElementById('cartModal')?.classList.remove('hidden'); renderCart(); };
+        window.closeCart=function(){ document.getElementById('cartModal')?.classList.add('hidden'); };
+        window.renderCart=function(){
+            const box=document.getElementById('cartItems'), count=document.getElementById('cartCount'), subtotalEl=document.getElementById('cartSubtotal');
+            const totalQty=cart.reduce((s,x)=>s+Number(x.qty||0),0);
+            const subtotal=cart.reduce((s,x)=>s+Number(x.price||0)*Number(x.qty||0),0);
+            if(count) count.textContent=totalQty;
+            if(subtotalEl) subtotalEl.textContent=subtotal.toLocaleString('zh-TW');
+            if(!box) return;
+            if(!cart.length){ box.innerHTML='<p class="text-sm text-gray-400 py-10 text-center">購物車目前是空的。</p>'; return; }
+            box.innerHTML=cart.map((x,i)=>`<div class="border border-stone-100 p-4"><div class="flex justify-between gap-3"><div><b class="text-sm text-forest">${escapeHtml(x.productName)}</b><p class="text-xs text-gray-500 mt-1">${escapeHtml(x.scent||'')} ${x.size?'・'+escapeHtml(x.size):''}</p><p class="text-xs font-bold mt-2">NT$ ${Number(x.price||0).toLocaleString('zh-TW')}</p></div><button onclick="removeCartItem(${i})" class="text-xs text-gray-400">移除</button></div><div class="flex items-center gap-2 mt-3"><button onclick="changeCartQty(${i},-1)" class="border w-8 h-8">−</button><span class="text-sm min-w-8 text-center">${Number(x.qty||1)}</span><button onclick="changeCartQty(${i},1)" class="border w-8 h-8">＋</button></div></div>`).join('');
+        };
+        window.removeCartItem=function(i){ cart.splice(i,1); saveCart(); };
+        window.changeCartQty=function(i,delta){
+            if(!cart[i]) return;
+            const max=Number.isFinite(Number(cart[i].stock)) ? Number(cart[i].stock) : 999999;
+            cart[i].qty=Math.max(1,Math.min(max,Number(cart[i].qty||1)+delta)); saveCart();
+        };
+
+        window.openProductDetail=function(productId){
+            const p=productsCache[productId]; if(!p) return;
+            detailProductId=productId;
+            const modal=document.getElementById('productDetailModal');
+            document.getElementById('productDetailName').textContent=p.name;
+            document.getElementById('productDetailDesc').textContent=p.description||'';
+            document.getElementById('productDetailTags').innerHTML=[p.mainCategory,p.subCategory,p.detailCategory].filter(Boolean).map(t=>`<span class="text-[9px] bg-forest/10 text-forest px-2 py-1 font-bold">${escapeHtml(t)}</span>`).join('');
+            document.getElementById('productDetailImage').innerHTML=p.imageUrl?`<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-full min-h-[380px] object-cover">`:'<div class="text-7xl">🌿</div>';
+            const details=p.details||{};
+            const labels={englishName:'英文名稱',botanicalName:'拉丁學名',extractionMethod:'萃取方式',extractionPart:'萃取部位',oilOrigin:'精油產地',plantOrigin:'植物產地',appearance:'外觀',composition:'成分／結構',usage:'使用建議',pairing:'推薦搭配',packaging:'包裝',storage:'保存',warnings:'注意事項'};
+            document.getElementById('productDetailSpecs').innerHTML=Object.entries(labels).filter(([k])=>details[k]).map(([k,l])=>`<div><b class="text-forest">${l}</b><p class="whitespace-pre-line leading-6 mt-1">${escapeHtml(details[k])}</p></div>`).join('');
+            const scents=[...new Set(p.flavors.filter(v=>v.active&&v.stock!==0).map(v=>v.scent||v.name))];
+            document.getElementById('detailScent').innerHTML=scents.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+            document.getElementById('detailQty').value=1;
+            refreshDetailSizes();
+            modal?.classList.remove('hidden'); modal?.classList.add('flex');
+        };
+        window.closeProductDetail=function(){ const m=document.getElementById('productDetailModal'); m?.classList.add('hidden'); m?.classList.remove('flex'); };
+        window.refreshDetailSizes=function(){
+            const p=productsCache[detailProductId]; if(!p) return;
+            const scent=document.getElementById('detailScent').value;
+            const vars=p.flavors.filter(v=>v.active&&v.stock!==0&&(v.scent||v.name)===scent);
+            document.getElementById('detailSize').innerHTML=vars.map(v=>`<option value="${escapeHtml(v.id)}">${escapeHtml(v.size||v.name)}</option>`).join('');
+            refreshDetailPrice();
+        };
+        window.refreshDetailPrice=function(){
+            const p=productsCache[detailProductId]; if(!p) return;
+            const id=document.getElementById('detailSize').value, v=p.flavors.find(x=>x.id===id);
+            document.getElementById('detailPrice').textContent=Number(v?.price||0).toLocaleString('zh-TW');
+            document.getElementById('detailStock').textContent=v ? (Number(v.stock)>=999999?'現貨供應':`庫存 ${Math.max(0,Number(v.stock||0))}`) : '目前無可選規格';
+            const qty=document.getElementById('detailQty'); if(v&&qty) qty.max=Math.max(1,Number(v.stock||999999));
+        };
+        window.addDetailToCart=function(){
+            const p=productsCache[detailProductId]; if(!p) return;
+            const id=document.getElementById('detailSize').value, v=p.flavors.find(x=>x.id===id); if(!v) return alert('請先選擇可購買的規格。');
+            const qty=Math.max(1,Number(document.getElementById('detailQty').value||1));
+            if(v.stock===0) return alert('此規格目前沒有庫存。');
+            const key=`${p.id}|${v.id}`, existing=cart.find(x=>x.key===key);
+            if(existing) existing.qty=Math.min(Number(v.stock||999999),existing.qty+qty);
+            else cart.push({key,productId:p.id,variantId:v.id,productName:p.name,scent:v.scent||v.name,size:v.size||'',price:Number(v.price||0),stock:Number(v.stock??999999),qty});
+            saveCart(); closeProductDetail(); openCart();
+        };
+        window.checkoutCart=function(){
+            if(!cart.length) return alert('購物車目前是空的。');
+            if(!auth.currentUser){ localStorage.setItem('pendingAction','cartCheckout'); alert('結帳前請先登入會員，購物車會為你保留。'); location.href='login.html'; return; }
+            const subtotal=cart.reduce((s,x)=>s+Number(x.price||0)*Number(x.qty||0),0);
+            const summary=cart.map(x=>`${x.productName}・${x.scent}${x.size?' '+x.size:''} ×${x.qty}`).join(' / ');
+            closeCart(); triggerProductBuy(summary,subtotal);
         };
 
         window.toggleShipInput = function() {
@@ -744,7 +822,13 @@
                 return;
             }
             if (actionType === 'book') openBookingModal();
-            else if (selectedDrawItem) requestPurchase(selectedDrawItem);
+            else if (selectedDrawItem) {
+                const key=`${selectedDrawItem.productId}|${selectedDrawItem.variantId||selectedDrawItem.flavorName}`;
+                const existing=cart.find(x=>x.key===key);
+                if(existing) existing.qty+=1;
+                else cart.push({key,productId:selectedDrawItem.productId,variantId:selectedDrawItem.variantId||'',productName:selectedDrawItem.productName,scent:selectedDrawItem.flavorName,size:selectedDrawItem.size||'',price:Number(selectedDrawItem.price||0),stock:Number(selectedDrawItem.stock??999999),qty:1});
+                saveCart(); openCart();
+            }
         };
 
         document.getElementById('orderReportForm').addEventListener('submit', async e => {
