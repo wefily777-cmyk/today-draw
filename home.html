@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- POLICY CENTER v1｜消費者政策＋結帳同意機制 -->
 <!-- PAYMENT PRODUCTION｜BANK TRANSFER ONLY + SERVER VERIFIED ORDER -->
 <!-- PRODUCTION READY｜MASTER CATALOG FRONTEND -->
 <!-- V82 QA5｜商品專區分類圖片雲端覆寫 -->
@@ -133,8 +134,33 @@
     </main>
 
     <footer class="bg-[#75645D] text-white/80 pt-14 pb-8">
-        <div class="max-w-7xl mx-auto px-5 lg:px-8 grid sm:grid-cols-2 lg:grid-cols-5 gap-10 text-sm"><div class="lg:col-span-2"><div class="serif text-2xl tracking-[.15em] text-white">玥石之溫</div><div class="text-[9px] uppercase tracking-[.2em] text-white/50 mt-1">The Warmth of Crystal</div><p class="text-xs leading-6 text-white/55 mt-5 max-w-sm">天然芳療 × 個人化香氣 × 日常儀式。陪伴你在每個需要自己的時刻，遇見適合此刻的氣味。</p></div><div><h4 class="text-white font-bold mb-4">購物指南</h4><div class="space-y-2 text-xs"><a href="#shop" class="block">購物須知</a><a href="#" class="block">配送方式</a><a href="#" class="block">付款方式</a><a href="#" class="block">退換貨政策</a></div></div><div><h4 class="text-white font-bold mb-4">精油產品</h4><div class="space-y-2 text-xs"><a href="#shop" class="block">單方精油</a><a href="#shop" class="block">複方精油</a><a href="#destiny" class="block">命定香氣</a><a href="#" class="block">禮盒組合</a></div></div><div><h4 class="text-white font-bold mb-4">關於我們</h4><div class="space-y-2 text-xs"><a href="#story" class="block">品牌故事</a><a href="#knowledge" class="block">芳療知識</a><a href="#" class="block">聯絡我們</a><a href="#" class="block">隱私政策</a></div></div></div>
-        <div class="max-w-7xl mx-auto px-5 lg:px-8 mt-12 pt-6 border-t border-white/15 flex flex-col sm:flex-row justify-between gap-3 text-[11px] text-white/45"><span>© 2026 玥石之溫 The Warmth of Crystal. All Rights Reserved.</span><span>品牌資訊／聯絡方式待補</span></div>
+        <div class="max-w-7xl mx-auto px-5 lg:px-8 grid sm:grid-cols-2 lg:grid-cols-5 gap-10 text-sm">
+            <div class="lg:col-span-2">
+                <div class="serif text-2xl tracking-[.15em] text-white">玥石之溫</div>
+                <div class="text-[9px] uppercase tracking-[.2em] text-white/50 mt-1">The Warmth of Crystal</div>
+                <p class="text-xs leading-6 text-white/55 mt-5 max-w-sm">天然芳療 × 個人化香氣 × 日常儀式。陪伴你在每個需要自己的時刻，遇見適合此刻的氣味。</p>
+                <p class="text-[10px] leading-5 text-white/45 mt-4">商城品牌與正式商家登記資訊目前仍在確認中；正式營運資料將於完成後更新。</p>
+            </div>
+            <div><h4 class="text-white font-bold mb-4">購物指南</h4><div class="space-y-2 text-xs">
+                <button onclick="openPolicy('shopping')" class="block hover:text-white">購物須知</button>
+                <button onclick="openPolicy('shipping')" class="block hover:text-white">付款與配送</button>
+                <button onclick="openPolicy('returns')" class="block hover:text-white">退換貨政策</button>
+            </div></div>
+            <div><h4 class="text-white font-bold mb-4">會員與安全</h4><div class="space-y-2 text-xs">
+                <button onclick="openPolicy('privacy')" class="block hover:text-white">隱私權政策</button>
+                <button onclick="openPolicy('member')" class="block hover:text-white">會員／點數／推薦碼</button>
+                <button onclick="openPolicy('rights')" class="block hover:text-white">智慧財產與禁止濫用</button>
+            </div></div>
+            <div><h4 class="text-white font-bold mb-4">聯絡與聲明</h4><div class="space-y-2 text-xs">
+                <button onclick="openPolicy('contact')" class="block hover:text-white">聯絡我們</button>
+                <button onclick="openPolicy('aroma')" class="block hover:text-white">香氛／精油內容聲明</button>
+                <button onclick="openPolicy('all')" class="block hover:text-white">完整政策中心</button>
+            </div></div>
+        </div>
+        <div class="max-w-7xl mx-auto px-5 lg:px-8 border-t border-white/10 mt-10 pt-6 text-[10px] text-white/45 leading-5">
+            <p>客服 Email：a0937034596@gmail.com ｜ 客服電話：0937-034-596 ｜ 客服時間：12:00–22:00</p>
+            <p class="mt-1">© 2026 玥石之溫。網站品牌名稱目前為工作名稱；正式商業登記資訊完成後更新。</p>
+        </div>
     </footer>
 
 
@@ -168,6 +194,21 @@
         <div class="border-t mt-6 pt-5"><div class="flex justify-between font-bold text-forest"><span>商品小計</span><span>NT$ <span id="cartSubtotal">0</span></span></div><p class="text-[10px] text-gray-400 mt-2">折扣碼將在結帳畫面套用。</p><button onclick="checkoutCart()" class="w-full bg-forest text-white py-3.5 mt-5 text-sm font-bold">前往結帳</button></div>
       </div>
     </div>
+
+    <!-- 🛡️ 消費者政策中心 -->
+    <div id="policyModal" class="fixed inset-0 bg-black/55 hidden items-center justify-center p-4 z-[80]">
+        <div class="bg-white rounded-3xl max-w-3xl w-full shadow-2xl max-h-[90vh] overflow-hidden border">
+            <div class="flex items-center justify-between px-5 py-4 border-b bg-sand/50">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[.2em] text-clay font-bold">Consumer Policy Center</p>
+                    <h3 id="policyTitle" class="text-lg font-black text-forest mt-1">網站政策中心</h3>
+                </div>
+                <button onclick="closePolicy()" class="text-2xl text-gray-400 hover:text-gray-700">&times;</button>
+            </div>
+            <div id="policyBody" class="p-5 md:p-7 overflow-y-auto max-h-[75vh] text-sm text-gray-700 leading-7"></div>
+        </div>
+    </div>
+
     <!-- 💳 雙軌結帳與完整配送位址對帳視窗 -->
     <div id="paymentModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl text-center border border-gray-100 max-h-[90vh] overflow-y-auto">
@@ -265,6 +306,17 @@
                             <label class="block text-[11px] font-bold text-gray-700 mb-1">完整宅配收件地址</label>
                             <input type="text" id="shipAddress" class="w-full px-3 py-1.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay" placeholder="縣市 / 鄉鎮市區 / 路街 / 號 / 樓">
                         </div>
+
+
+                        <label class="flex items-start gap-2 text-left bg-white border rounded-xl p-3">
+                            <input type="checkbox" id="policyConsent" class="mt-1" required>
+                            <span class="text-[10px] leading-5 text-gray-600">我已閱讀並同意
+                                <button type="button" onclick="openPolicy('shopping')" class="text-clay font-bold underline">購物須知</button>、
+                                <button type="button" onclick="openPolicy('returns')" class="text-clay font-bold underline">退換貨政策</button>及
+                                <button type="button" onclick="openPolicy('privacy')" class="text-clay font-bold underline">隱私權政策</button>。
+                                我了解香味喜好具有主觀差異，商品瑕疵與通訊交易解除權仍依相關法令及實際情形處理。
+                            </span>
+                        </label>
 
                         <button type="submit" id="reportBtn" class="w-full bg-forest text-white py-2.5 rounded-xl text-xs font-bold hover:bg-opacity-95 transition shadow-md mt-2">
                             送出對帳並通知主理人出貨
@@ -909,9 +961,91 @@
             }
         };
 
+
+        const POLICY_SECTIONS = {
+            shopping: {
+                title:'購物須知',
+                html:`<h4 class="font-black text-forest text-base mb-2">購物與訂單成立</h4>
+                <p>商品名稱、規格、售價與庫存以結帳當下網站顯示及訂單確認內容為準。若因系統、庫存同步、明顯標價錯誤或不可歸責之因素無法履約，將主動聯繫處理退款、取消或其他可行方案。</p>
+                <p class="mt-3">目前採銀行／郵局轉帳。送出對帳資料不代表款項已確認；以實際入帳核對完成後，訂單才進入待出貨流程。</p>
+                <p class="mt-3">請勿利用系統漏洞、重複優惠、虛假資料、惡意訂購或其他不正方式取得利益。涉及異常時，商店得暫停處理並聯繫確認，但不影響消費者依法享有之權利。</p>`
+            },
+            shipping: {
+                title:'付款與配送',
+                html:`<h4 class="font-black text-forest text-base mb-2">付款</h4>
+                <p>目前付款方式為銀行／郵局轉帳。網站僅要求轉帳帳號後五碼供對帳；客服不會要求提款卡密碼、網銀密碼、OTP 驗證碼或遠端操作裝置。</p>
+                <h4 class="font-black text-forest text-base mt-5 mb-2">配送</h4>
+                <p>配送方式：7-11、全家、宅配。一般運費 NT$130；單筆商品金額滿 NT$1,000 免運。付款確認後原則上 3–5 個工作天出貨；例假日、預購、客製或不可抗力情況可能順延，若有重大延誤將另行通知。</p>`
+            },
+            returns: {
+                title:'退換貨與退款政策',
+                html:`<h4 class="font-black text-forest text-base mb-2">通訊交易解除權</h4>
+                <p>一般通訊交易依消費者保護法及相關規定辦理。依法得行使解除權之商品，消費者得於法定期間內依規定提出；依法屬合理例外情事且已事前告知者，依其規定辦理。</p>
+                <h4 class="font-black text-forest text-base mt-5 mb-2">精油與香氛商品</h4>
+                <p>香氣感受具有個人主觀差異，「不喜歡味道」本身不當然等同商品瑕疵。本店不以「精油拆封」一概排除法定解除權；實際退換貨將依商品狀態、必要檢查程度、是否有使用耗損及相關法令判斷。</p>
+                <h4 class="font-black text-forest text-base mt-5 mb-2">客製化水晶手鍊</h4>
+                <p>若商品確實依消費者個別要求製作，例如特殊尺寸、指定設計或其他個人化內容，且於下單前已明確告知排除解除權，可能屬法定合理例外。僅從既有標準規格中選擇，不當然視為客製化給付。</p>
+                <p class="mt-3">如收到錯誤商品、運送損壞或疑似商品瑕疵，請保留商品、包裝及相關照片並儘速聯絡客服，以利確認處理。</p>`
+            },
+            privacy: {
+                title:'隱私權政策',
+                html:`<h4 class="font-black text-forest text-base mb-2">我們可能處理的資料</h4>
+                <p>為提供會員、訂單、配送、客服、優惠、點數及推薦碼功能，系統可能處理帳號識別資訊、姓名、電話、Email、收件人與配送資訊、訂單內容、轉帳後五碼、優惠／推薦碼使用紀錄、點數與必要的系統紀錄。</p>
+                <h4 class="font-black text-forest text-base mt-5 mb-2">使用目的</h4>
+                <p>上述資料僅於會員管理、履行交易、付款核對、配送、售後服務、詐欺與濫用防制、帳務及依法應辦事項等必要範圍使用。轉帳對帳僅收集後五碼，不要求網銀密碼、OTP 或完整登入資料。</p>
+                <h4 class="font-black text-forest text-base mt-5 mb-2">資料保護與第三方</h4>
+                <p>網站使用雲端服務處理登入、資料庫與檔案。因完成配送、付款或依法必要時，資料可能在必要範圍提供予配送、金流／金融機構、雲端服務或依法有權機關。除法令或履約必要外，不任意出售個人資料。</p>
+                <h4 class="font-black text-forest text-base mt-5 mb-2">你的權利</h4>
+                <p>你可透過客服聯絡方式，就依法得行使之查詢、閱覽、複製、更正、停止蒐集／處理／利用或刪除等權利提出申請；但依法或履行契約所必須保存之資料，可能無法立即刪除。</p>`
+            },
+            member: {
+                title:'會員／點數／推薦碼規則',
+                html:`<p>會員、點數、優惠與推薦碼僅限依網站正常流程使用。點數及優惠不具現金價值，除網站另有明示外不得要求兌換現金、轉售或以自動化／多帳號方式大量取得。</p>
+                <p class="mt-3">若訂單取消、退款、未付款、異常交易或優惠取得基礎消失，與該筆交易相關的點數或優惠得依實際交易結果調整或撤回。</p>
+                <p class="mt-3">發現冒用身分、重複濫用推薦碼、建立大量帳號、自我推薦或利用漏洞取得不當利益時，得暫停相關優惠並進行人工查核；合法消費權益不因此被任意剝奪。</p>`
+            },
+            rights: {
+                title:'智慧財產與禁止濫用',
+                html:`<p>除另有標示外，網站自行製作之版面、程式介面、原創文字、圖像與內容，其權利由權利人依法享有；來源品牌之商標、商品圖或資料仍歸各該權利人所有，不因刊載於本網站而移轉。</p>
+                <p class="mt-3">未經授權，不得大量擷取、鏡像、重製、轉售網站資料，不得冒用會員或他人身分，不得繞過存取控制、干擾服務、探測漏洞或利用漏洞取得未授權資料、點數、優惠或其他利益。</p>
+                <p class="mt-3">本條不限制法律允許的合理使用、消費者依法行使權利或善意安全通報。</p>`
+            },
+            aroma: {
+                title:'香氛／精油內容聲明',
+                html:`<p>本站香氛、精油、芳療及心靈相關內容主要作為商品資訊、氣味描述與一般生活使用參考，不作為疾病診斷、治療、預防或醫療建議。</p>
+                <p class="mt-3">商品請依標示、使用說明與警語使用；特殊族群、孕期、嬰幼兒、寵物環境或有特定健康需求者，使用前宜依個別情況諮詢合格專業人員。</p>
+                <p class="mt-3">網站不以一般香氛商品宣稱醫療效能；商品實際標示與法定資訊以商品包裝及依法應揭露內容為準。</p>`
+            },
+            contact: {
+                title:'聯絡我們與商家資訊',
+                html:`<p><strong>客服 Email：</strong>a0937034596@gmail.com<br>
+                <strong>客服電話：</strong>0937-034-596<br>
+                <strong>客服時間：</strong>12:00–22:00</p>
+                <p class="mt-4"><strong>商城品牌：</strong>待確認（目前網站使用「玥石之溫」作為工作名稱）<br>
+                <strong>正式商家名稱：</strong>待確認<br>
+                <strong>統一編號：</strong>目前無</p>
+                <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-amber-800 text-xs leading-6"><strong>正式營運前待補：</strong>依法應揭露之企業經營者名稱、代表人、事務所或營業所等資訊，將於確認登記與適當揭露方式後補齊。為避免公開私人住家地址，目前不在網站展示完整住址。</div>`
+            }
+        };
+
+        window.openPolicy=function(key='all'){
+            const modal=document.getElementById('policyModal'), title=document.getElementById('policyTitle'), body=document.getElementById('policyBody');
+            if(key==='all'){
+                title.textContent='完整政策中心';
+                body.innerHTML=Object.values(POLICY_SECTIONS).map(s=>`<section class="mb-7"><h3 class="text-lg font-black text-forest border-b pb-2 mb-3">${s.title}</h3>${s.html}</section>`).join('');
+            }else{
+                const s=POLICY_SECTIONS[key]||POLICY_SECTIONS.shopping;
+                title.textContent=s.title; body.innerHTML=s.html;
+            }
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        };
+        window.closePolicy=function(){const m=document.getElementById('policyModal');m.classList.add('hidden');m.classList.remove('flex');};
+        document.getElementById('policyModal')?.addEventListener('click',e=>{if(e.target.id==='policyModal')closePolicy();});
+
         document.getElementById('orderReportForm').addEventListener('submit', async e => {
             e.preventDefault();
             if (!auth.currentUser) return alert('請先登入會員。');
+            if(!document.getElementById('policyConsent')?.checked) return alert('請先閱讀並同意購物須知、退換貨政策與隱私權政策。');
             const reportBtn=document.getElementById('reportBtn');
             const fiveCode=document.getElementById('payFiveCode').value.trim();
             if(!/^\d{5}$/.test(fiveCode)) return alert('請輸入正確的轉帳帳號後五碼（5 位數字）。');
