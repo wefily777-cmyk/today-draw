@@ -74,7 +74,7 @@
         <div class="text-center mb-10">
             <p class="text-[11px] tracking-[.25em] text-clay font-bold uppercase">Product Categories</p>
             <h2 class="serif text-3xl text-forest mt-2">商品專區</h2>
-            <p class="text-sm text-gray-500 mt-3">先選擇主題，再進入細分類與商品。分類與商品會由後台資料自動對應。</p>
+            <p class="text-sm text-gray-500 mt-3">先選你想看的商品。只有真正需要的類別才會再分類；設備類直接看商品，再用快速篩選縮小範圍。</p>
         </div>
 
         <div id="catalogMainGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5"></div>
@@ -94,13 +94,14 @@
         <div id="catalogProductSection" class="hidden mt-14">
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7">
                 <div>
-                    <button type="button" onclick="backToCatalogSub()" class="text-xs text-gray-400 hover:text-forest">← 回細分類</button>
+                    <button type="button" onclick="backToCatalogSub()" class="text-xs text-gray-400 hover:text-forest">← 回商品分類</button>
                     <p id="catalogBreadcrumb" class="text-[10px] tracking-[.18em] text-clay font-bold uppercase mt-3">PRODUCTS</p>
                     <h3 id="catalogProductTitle" class="serif text-3xl text-forest mt-1">商品</h3>
-                    <p class="text-sm text-gray-500 mt-2">商品規格、價格與上架狀態均由後台即時載入。</p>
+                    <p class="text-sm text-gray-500 mt-2">直接選商品；需要縮小範圍時，再使用上方快速篩選。</p>
                 </div>
                 <button type="button" onclick="showAllCatalogProducts()" class="text-xs border border-stone-200 bg-white px-4 py-2 text-gray-500 hover:text-forest">顯示全部商品</button>
             </div>
+            <div id="catalogQuickFilters" class="hidden flex flex-wrap gap-2 mb-7"></div>
             <div id="showcaseContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
                 <p class="text-sm text-gray-400 text-center py-8 col-span-full">正在從雲端櫥窗調度商品中...</p>
             </div>
@@ -344,45 +345,26 @@
 
 
         const CATALOG_TAXONOMY = [
-            {name:'精油', desc:'從水氧擴香到純精油，依使用方式找到適合的香氣。', image:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200&auto=format&fit=crop&q=82', subs:[
-                {name:'水氧精油', desc:'適合搭配水氧機使用的香氛精油。', image:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=900&auto=format&fit=crop&q=82'},
-                {name:'純精油', desc:'單方與複方純精油，依香氣與植物來源選擇。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'}
+            {name:'精油', dataMain:'精油', desc:'水氧精油、純精油；需要時再分單方與複方。', image:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200&auto=format&fit=crop&q=82', subs:[
+                {name:'水氧精油', dataSub:'水氧精油', desc:'搭配水氧機使用的香氛精油。', image:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=900&auto=format&fit=crop&q=82'},
+                {name:'純精油', dataSub:'純精油', desc:'單方與複方純精油。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'}
             ]},
-            {name:'蠟燭', desc:'從融燭、燃燭到薰香燈，打造有層次的居家香氣。', image:'https://images.unsplash.com/photo-1602874801006-e26d0d93730f?w=1200&auto=format&fit=crop&q=82', subs:[
-                {name:'融燭燈', desc:'無明火融蠟，享受穩定香氣。', image:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=900&auto=format&fit=crop&q=82'},
-                {name:'香氛蠟燭', desc:'以燭光與香氣營造生活儀式感。', image:'https://images.unsplash.com/photo-1608181831718-c9ffd66e08df?w=900&auto=format&fit=crop&q=82'},
-                {name:'薰香燈', desc:'適合精油或香氛蠟片使用的薰香器具。', image:'https://images.unsplash.com/photo-1608831540955-35094d48694a?w=900&auto=format&fit=crop&q=82'}
-            ]},
-            {name:'超音波水氧機', desc:'依空間大小與水箱容量選擇合適機型。', image:'https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=1200&auto=format&fit=crop&q=82', subs:[
-                {name:'150ml以下', desc:'小空間與桌面使用。', image:'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=900&auto=format&fit=crop&q=82'},
-                {name:'151ml-250ml', desc:'房間、辦公桌的輕量選擇。', image:'https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=900&auto=format&fit=crop&q=82'},
-                {name:'251ml-400ml', desc:'日常居家空間主流容量。', image:'https://images.unsplash.com/photo-1603905179139-db12ab535ca5?w=900&auto=format&fit=crop&q=82'},
-                {name:'401ml-600ml', desc:'適合較長時間使用。', image:'https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?w=900&auto=format&fit=crop&q=82'},
-                {name:'601ml-1000ml', desc:'大空間與長時間擴香。', image:'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=900&auto=format&fit=crop&q=82'},
-                {name:'1000ml以上', desc:'商空或大坪數空間使用。', image:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=900&auto=format&fit=crop&q=82'}
-            ]},
-            {name:'擴香儀', desc:'無水霧化、玻璃與可攜式擴香設備。', image:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200&auto=format&fit=crop&q=82', subs:[
-                {name:'可攜式', desc:'適合桌面、旅行與移動使用。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'},
-                {name:'玻璃', desc:'玻璃霧化設計，兼具氣味與視覺質感。', image:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=900&auto=format&fit=crop&q=82'},
-                {name:'其他擴香儀', desc:'商空與特殊空間使用機型。', image:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=900&auto=format&fit=crop&q=82'}
-            ]},
-            {name:'空氣清淨水洗機', desc:'以水洗方式帶走空氣中的微粒並搭配香氛使用。', image:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=1200&auto=format&fit=crop&q=82', subs:[
-                {name:'桌上型', desc:'居家房間與辦公桌使用。', image:'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=900&auto=format&fit=crop&q=82'},
-                {name:'大容量', desc:'客廳、工作室與較大空間。', image:'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=900&auto=format&fit=crop&q=82'}
-            ]},
-            {name:'香氛', desc:'將喜歡的香氣帶進空間、織品與每日生活。', image:'https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1200&auto=format&fit=crop&q=82', subs:[
-                {name:'空間香氛', desc:'適合居家與工作空間。', image:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=900&auto=format&fit=crop&q=82'},
-                {name:'織品香氛', desc:'為衣物與布品增添日常氣味。', image:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=900&auto=format&fit=crop&q=82'},
-                {name:'其他香氛', desc:'更多生活香氛品項。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'}
-            ]},
-            {name:'Gonesh', desc:'經典美式線香與生活香氛系列。', image:'https://images.unsplash.com/photo-1602874801006-e26d0d93730f?w=1200&auto=format&fit=crop&q=82', subs:[
-                {name:'線香', desc:'經典線香系列。', image:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=900&auto=format&fit=crop&q=82'},
-                {name:'擴香瓶', desc:'讓香氣自然擴散在生活空間。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'},
-                {name:'車用香氛', desc:'適合車內空間的香氣選擇。', image:'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=900&auto=format&fit=crop&q=82'}
+            {name:'香氛蠟燭・融燭燈', dataMain:'香氛蠟燭/融燭燈', direct:true, filterGroup:'candle', desc:'蠟燭與融燭設備放在同一頁，一鍵切換。', image:'https://images.unsplash.com/photo-1602874801006-e26d0d93730f?w=1200&auto=format&fit=crop&q=82'},
+            {name:'超音波水氧機', dataMain:'超音波水氧機', direct:true, filterGroup:'humidifier', desc:'直接看全部機型，再依容量快速篩選。', image:'https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=1200&auto=format&fit=crop&q=82'},
+            {name:'精油擴香儀', dataMain:'精油擴香儀', direct:true, filterGroup:'diffuser', desc:'直接瀏覽全部擴香儀，可快速切換可攜式與玻璃類型。', image:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200&auto=format&fit=crop&q=82'},
+            {name:'空氣清淨水洗機', dataMain:'空氣清淨水洗機', direct:true, desc:'商品數量清楚，直接瀏覽最快。', image:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=1200&auto=format&fit=crop&q=82'},
+            {name:'香氛', dataMain:'香氛', direct:true, filterGroup:'fragrance', desc:'空間、織品等生活香氛集中瀏覽。', image:'https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1200&auto=format&fit=crop&q=82'},
+            {name:'Gonesh', dataMain:'Gonesh', desc:'使用方式差異明確，保留線香、擴香瓶、車用香氛三類。', image:'https://images.unsplash.com/photo-1602874801006-e26d0d93730f?w=1200&auto=format&fit=crop&q=82', subs:[
+                {name:'線香', dataSub:'線香', desc:'經典線香系列。', image:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=900&auto=format&fit=crop&q=82'},
+                {name:'擴香瓶', dataSub:'擴香瓶', desc:'自然擴散於生活空間。', image:'https://images.unsplash.com/photo-1595150358733-9a5f2a0c9b4c?w=900&auto=format&fit=crop&q=82'},
+                {name:'車用香氛', dataSub:'車用香氛', desc:'車內使用的香氣選擇。', image:'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=900&auto=format&fit=crop&q=82'}
             ]}
         ];
         let activeCatalogMain = '';
         let activeCatalogSub = '';
+        let activeCatalogLabel = '';
+        let activeCatalogFilter = '';
+        let activeCatalogFilterGroup = '';
 
         const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
         const formatDate = (value) => value ? new Date(value).toLocaleString('zh-TW', {hour12:false}) : '---';
@@ -405,7 +387,7 @@
                 sku:String(f.sku||''), active:f.active!==false, sortOrder:Number(f.sortOrder??index)
             })).filter(f=>f.name).sort((a,b)=>a.sortOrder-b.sortOrder);
             if(!flavors.length){ flavors=[{id:`${id}_0`,name:data.codeName||data.name||'預設',scent:data.codeName||data.name||'預設',size:'單一規格',price:Number(data.price??data.defaultPrice??0),compareAtPrice:null,stock:999999,sku:String(data.code||''),active:true,sortOrder:0}]; }
-            return { id, category:data.category||data.subCategory||data.mainCategory||'精油', mainCategory:data.mainCategory||'精油', subCategory:data.subCategory||(data.category?.includes('水氧')?'水氧精油':'純精油'), detailCategory:data.detailCategory||'', details:data.details||{}, name:data.name||'未命名商品', description:data.description||'', imageUrl:data.imageUrl||'', gallery:Array.isArray(data.gallery)?data.gallery:[], active:data.active!==false, sortOrder:Number(data.sortOrder??100), flavors, defaultPrice:Number(data.defaultPrice??flavors.find(f=>f.active)?.price??0) };
+            return { id, category:data.category||data.subCategory||data.mainCategory||'精油', mainCategory:data.mainCategory||'精油', subCategory:data.subCategory||(data.category?.includes('水氧')?'水氧精油':'純精油'), detailCategory:data.detailCategory||'', details:data.details||{}, filterTags:Array.isArray(data.filterTags)?data.filterTags:[], name:data.name||'未命名商品', description:data.description||'', imageUrl:data.imageUrl||'', gallery:Array.isArray(data.gallery)?data.gallery:[], active:data.active!==false, sortOrder:Number(data.sortOrder??100), flavors, defaultPrice:Number(data.defaultPrice??flavors.find(f=>f.active)?.price??0) };
         }
 
         function catalogCard(item, onClick, isMain=false){
@@ -421,17 +403,67 @@
             grid.innerHTML = CATALOG_TAXONOMY.map((item,index)=>catalogCard(item, `openCatalogMain(${index})`, true)).join('');
         }
 
+        function getQuickFilterOptions(group){
+            if(group==='humidifier') return [
+                ['','全部'],['輕巧','輕巧 ≤250ml'],['日常','日常 251–400ml'],['長效','長效 401–1000ml'],['大容量','大容量 >1000ml']
+            ];
+            if(group==='diffuser') return [['','全部'],['可攜式','可攜式'],['玻璃','玻璃']];
+            if(group==='candle') return [['','全部'],['香氛蠟燭','香氛蠟燭'],['融燭燈','融燭燈']];
+            if(group==='fragrance') return [['','全部'],['空間','空間香氛'],['織品','織品香氛']];
+            return [];
+        }
+
+        function renderQuickFilters(){
+            const box=document.getElementById('catalogQuickFilters');
+            if(!box) return;
+            const options=getQuickFilterOptions(activeCatalogFilterGroup);
+            if(!options.length){ box.classList.add('hidden'); box.innerHTML=''; return; }
+            box.classList.remove('hidden');
+            box.innerHTML=options.map(([value,label])=>{
+                const active=value===activeCatalogFilter;
+                return `<button type="button" onclick="setCatalogQuickFilter('${escapeHtml(value)}')" class="px-4 py-2 text-xs border ${active?'bg-forest text-white border-forest':'bg-white text-gray-500 border-stone-200 hover:text-forest'}">${escapeHtml(label)}</button>`;
+            }).join('');
+        }
+
+        window.setCatalogQuickFilter=function(value){
+            activeCatalogFilter=value||'';
+            renderQuickFilters();
+            renderCatalogProducts();
+        };
+
+        function showProductSection(label,breadcrumb){
+            document.getElementById('catalogMainGrid')?.classList.add('hidden');
+            document.getElementById('catalogSubSection')?.classList.add('hidden');
+            document.getElementById('catalogProductSection')?.classList.remove('hidden');
+            document.getElementById('catalogBreadcrumb').textContent=breadcrumb||'PRODUCTS';
+            document.getElementById('catalogProductTitle').textContent=label||'商品';
+            renderQuickFilters();
+            renderCatalogProducts();
+            document.getElementById('catalogProductSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+        }
+
         window.showCatalogMain = function(){
-            activeCatalogMain=''; activeCatalogSub='';
+            activeCatalogMain=''; activeCatalogSub=''; activeCatalogLabel=''; activeCatalogFilter=''; activeCatalogFilterGroup='';
             document.getElementById('catalogMainGrid')?.classList.remove('hidden');
             document.getElementById('catalogSubSection')?.classList.add('hidden');
             document.getElementById('catalogProductSection')?.classList.add('hidden');
+            document.getElementById('catalogQuickFilters')?.classList.add('hidden');
             document.getElementById('shop')?.scrollIntoView({behavior:'smooth',block:'start'});
         };
 
         window.openCatalogMain = function(index){
             const item = CATALOG_TAXONOMY[index]; if(!item) return;
-            activeCatalogMain=item.name; activeCatalogSub='';
+            activeCatalogMain=item.dataMain||item.name;
+            activeCatalogSub='';
+            activeCatalogLabel=item.name;
+            activeCatalogFilter='';
+            activeCatalogFilterGroup=item.filterGroup||'';
+
+            if(item.direct || !item.subs?.length){
+                showProductSection(item.name,item.name.toUpperCase());
+                return;
+            }
+
             document.getElementById('catalogMainGrid')?.classList.add('hidden');
             document.getElementById('catalogProductSection')?.classList.add('hidden');
             document.getElementById('catalogSubSection')?.classList.remove('hidden');
@@ -443,29 +475,54 @@
 
         window.openCatalogSub = function(mainIndex,subIndex){
             const main = CATALOG_TAXONOMY[mainIndex], sub = main?.subs?.[subIndex]; if(!main||!sub) return;
-            activeCatalogMain=main.name; activeCatalogSub=sub.name;
-            document.getElementById('catalogSubSection')?.classList.add('hidden');
-            document.getElementById('catalogProductSection')?.classList.remove('hidden');
-            document.getElementById('catalogBreadcrumb').textContent=`${main.name} / ${sub.name}`;
-            document.getElementById('catalogProductTitle').textContent=sub.name;
-            renderCatalogProducts();
-            document.getElementById('catalogProductSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+            activeCatalogMain=main.dataMain||main.name;
+            activeCatalogSub=sub.dataSub||sub.name;
+            activeCatalogLabel=sub.name;
+            activeCatalogFilter='';
+            activeCatalogFilterGroup='';
+            showProductSection(sub.name,`${main.name} / ${sub.name}`);
         };
 
         window.backToCatalogSub = function(){
-            const idx = CATALOG_TAXONOMY.findIndex(x=>x.name===activeCatalogMain);
-            if(idx>=0) openCatalogMain(idx); else showCatalogMain();
+            const idx = CATALOG_TAXONOMY.findIndex(x=>(x.dataMain||x.name)===activeCatalogMain);
+            const item=CATALOG_TAXONOMY[idx];
+            if(idx>=0 && item?.subs?.length) openCatalogMain(idx); else showCatalogMain();
         };
 
         window.showAllCatalogProducts = function(){
-            activeCatalogMain=''; activeCatalogSub='';
-            document.getElementById('catalogMainGrid')?.classList.add('hidden');
-            document.getElementById('catalogSubSection')?.classList.add('hidden');
-            document.getElementById('catalogProductSection')?.classList.remove('hidden');
-            document.getElementById('catalogBreadcrumb').textContent='ALL PRODUCTS';
-            document.getElementById('catalogProductTitle').textContent='全部商品';
-            renderCatalogProducts();
+            activeCatalogMain=''; activeCatalogSub=''; activeCatalogLabel='全部商品'; activeCatalogFilter=''; activeCatalogFilterGroup='';
+            showProductSection('全部商品','ALL PRODUCTS');
         };
+
+        function fallbackFilterTags(p){
+            const tags=[...(p.filterTags||[])];
+            if(p.mainCategory==='超音波水氧機' && !tags.length){
+                const raw=String(p.details?.capacity||'');
+                const m=raw.match(/([\d.]+)/); const ml=m?Number(m[1]):NaN;
+                if(Number.isFinite(ml)){
+                    if(ml<=250) tags.push('輕巧');
+                    else if(ml<=400) tags.push('日常');
+                    else if(ml<=1000) tags.push('長效');
+                    else tags.push('大容量');
+                }
+            }
+            if(p.mainCategory==='精油擴香儀'){
+                const t=String(p.details?.diffuserType||p.subCategory||'');
+                if(t.includes('可攜')) tags.push('可攜式');
+                if(t.includes('玻璃')) tags.push('玻璃');
+            }
+            if(p.mainCategory==='香氛蠟燭/融燭燈'){
+                const t=String(p.details?.productType||p.subCategory||'');
+                if(t.includes('融燭')) tags.push('融燭燈');
+                if(t.includes('蠟燭') || (!t && !p.subCategory)) tags.push('香氛蠟燭');
+            }
+            if(p.mainCategory==='香氛'){
+                const t=String(p.details?.fragranceType||p.subCategory||'');
+                if(t.includes('空間')) tags.push('空間');
+                if(t.includes('織品')) tags.push('織品');
+            }
+            return [...new Set(tags)];
+        }
 
         function productCard(p){
             const image=p.imageUrl?`<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-64 object-cover mb-4 bg-white" loading="lazy">`:'<div class="w-full h-64 bg-sand flex items-center justify-center text-5xl mb-4">🌿</div>';
@@ -480,6 +537,7 @@
             let rows=Object.values(productsCache).filter(p=>p.active);
             if(activeCatalogMain) rows=rows.filter(p=>p.mainCategory===activeCatalogMain);
             if(activeCatalogSub) rows=rows.filter(p=>p.subCategory===activeCatalogSub);
+            if(activeCatalogFilter) rows=rows.filter(p=>fallbackFilterTags(p).some(t=>String(t).includes(activeCatalogFilter)));
             rows.sort((a,b)=>a.sortOrder-b.sortOrder || a.name.localeCompare(b.name,'zh-Hant'));
             showcase.innerHTML=rows.length ? rows.map(productCard).join('') : '<p class="text-sm text-gray-400 text-center py-12 col-span-full">此分類目前尚無上架商品。</p>';
         }
