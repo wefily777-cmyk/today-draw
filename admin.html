@@ -309,6 +309,20 @@
                     <select id="wbPageSize" onchange="wbState.page=1;renderMerchantWorkbench()" class="border rounded-xl px-3 py-2 text-sm"><option value="20">每頁 20 筆</option><option value="40">每頁 40 筆</option><option value="80">每頁 80 筆</option></select>
                 </div>
 
+                <div class="mt-3 rounded-2xl border bg-gray-50 p-3">
+                    <div class="flex flex-col xl:flex-row xl:items-center gap-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-[11px] font-bold text-forest">⚡ 批次操作</span>
+                            <input id="wbBatchStock" type="number" min="0" step="1" class="w-24 border rounded-lg px-2 py-2 text-xs" placeholder="庫存數量">
+                            <button type="button" onclick="batchSetVisibleStock()" class="border rounded-lg px-3 py-2 text-xs font-bold bg-white">套用到本頁規格</button>
+                            <button type="button" onclick="batchSetVisibleActive(true)" class="border rounded-lg px-3 py-2 text-xs font-bold bg-white">本頁全部上架</button>
+                            <button type="button" onclick="batchSetVisibleActive(false)" class="border rounded-lg px-3 py-2 text-xs font-bold bg-white">本頁全部下架</button>
+                        </div>
+                        <label class="xl:ml-auto inline-flex items-center gap-2 text-xs font-bold text-forest"><input id="wbDirtyOnly" type="checkbox" onchange="wbState.page=1;renderMerchantWorkbench()"> 只看本次已修改商品</label>
+                    </div>
+                    <div id="wbDirtySummary" class="mt-2 text-[11px] text-gray-500">目前沒有未儲存修改。</div>
+                </div>
+
                 <div id="wbMissingStockNotice" class="hidden mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800"></div>
 
                 <div class="mt-4 overflow-x-auto border rounded-2xl">
@@ -2712,6 +2726,7 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
                 const c=classifyWorkbenchProduct(p);
                 if(cat&&(p.mainCategory||'未分類')!==cat)return false;
                 if(q&&!`${p.name||''} ${p.mainCategory||''} ${p.subCategory||''}`.toLowerCase().includes(q))return false;
+                if(document.getElementById('wbDirtyOnly')?.checked && ![...wbState.dirty.values()].some(x=>x.productId===p.id))return false;
                 if(wbState.filter==='price'&&!c.missingPrice)return false;
                 if(wbState.filter==='nostock'&&!c.missingStock)return false;
                 if(wbState.filter==='zero'&&!c.zeroStock)return false;
@@ -2726,12 +2741,46 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
             const key=`${productId}::${index}`,old=wbState.dirty.get(key)||{productId,index};
             let value=input.value;if(field==='price'||field==='stock')value=value===''?'':Number(value);
             wbState.dirty.set(key,{...old,[field]:value});
-            document.getElementById('workbenchSaveBtn').textContent=`💾 儲存修改（${wbState.dirty.size}）`;
+            updateWorkbenchDirtySummary();
         };
 
         window.wbToggleProduct=function(productId,checked){
             wbState.dirty.set(`product::${productId}`,{productId,productActive:checked});
-            document.getElementById('workbenchSaveBtn').textContent=`💾 儲存修改（${wbState.dirty.size}）`;
+            updateWorkbenchDirtySummary();
+        };
+
+        function updateWorkbenchDirtySummary(){
+            const changes=[...wbState.dirty.values()];
+            const productIds=new Set(changes.map(x=>x.productId));
+            const price=changes.filter(x=>x.price!==undefined).length;
+            const stock=changes.filter(x=>x.stock!==undefined).length;
+            const active=changes.filter(x=>x.productActive!==undefined).length;
+            const el=document.getElementById('wbDirtySummary');
+            if(el) el.innerHTML=changes.length?`未儲存：<strong>${productIds.size}</strong> 件商品・價格 ${price} 筆・庫存 ${stock} 筆・上架狀態 ${active} 筆`:'目前沒有未儲存修改。';
+            const btn=document.getElementById('workbenchSaveBtn');
+            if(btn&&!btn.disabled) btn.textContent=changes.length?`💾 儲存修改（${productIds.size} 件）`:'💾 儲存修改';
+        }
+
+        function visibleWorkbenchPageItems(){
+            const items=filteredWorkbenchItems(),pageSize=Number(document.getElementById('wbPageSize')?.value||20);
+            return items.slice((wbState.page-1)*pageSize,wbState.page*pageSize);
+        }
+
+        window.batchSetVisibleStock=function(){
+            const raw=document.getElementById('wbBatchStock')?.value;
+            if(raw===''||!Number.isInteger(Number(raw))||Number(raw)<0)return alert('請先輸入 0 以上的整數庫存。');
+            const value=Number(raw),items=visibleWorkbenchPageItems();
+            let n=0;
+            items.forEach(p=>{const fs=Array.isArray(p.flavors)?p.flavors:[];fs.forEach((f,i)=>{const key=`${p.id}::${i}`,old=wbState.dirty.get(key)||{productId:p.id,index:i};wbState.dirty.set(key,{...old,stock:value});n++;});});
+            updateWorkbenchDirtySummary();renderMerchantWorkbench();
+            alert(`已將庫存 ${value} 套用到本頁 ${n} 個規格。\n尚未寫入 Firestore，確認後請按「儲存修改」。`);
+        };
+
+        window.batchSetVisibleActive=function(active){
+            const items=visibleWorkbenchPageItems();
+            items.forEach(p=>wbState.dirty.set(`product::${p.id}`,{productId:p.id,productActive:active}));
+            updateWorkbenchDirtySummary();renderMerchantWorkbench();
+            alert(`本頁 ${items.length} 件商品已標記為${active?'上架':'下架'}。\n尚未寫入 Firestore，確認後請按「儲存修改」。`);
         };
 
         window.renderMerchantWorkbench=function(){
@@ -2749,9 +2798,9 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
             items.slice((wbState.page-1)*pageSize,wbState.page*pageSize).forEach(p=>{
                 const fs=Array.isArray(p.flavors)&&p.flavors.length?p.flavors:[{name:'單一規格',scent:p.name||'',size:'',price:'',stock:''}],c=classifyWorkbenchProduct(p);
                 fs.forEach((f,i)=>{
-                    const first=i===0,price=Number(f.price)>0?Number(f.price):'',stock=(f.stock===undefined||f.stock===null||f.stock==='')?'':Number(f.stock);
+                    const first=i===0,dirty=wbState.dirty.get(`${p.id}::${i}`)||{},price=dirty.price!==undefined?dirty.price:(Number(f.price)>0?Number(f.price):''),stock=dirty.stock!==undefined?dirty.stock:((f.stock===undefined||f.stock===null||f.stock==='')?'':Number(f.stock)),productDirty=wbState.dirty.get(`product::${p.id}`),displayActive=productDirty?.productActive!==undefined?productDirty.productActive:p.active;
                     rows.push(`<tr class="border-t ${c.needs?'bg-amber-50/30':''}">
-                        <td class="px-3 py-3 align-top">${first?`<div class="font-bold text-forest">${esc(p.name||'未命名')}</div><div class="text-[10px] text-gray-400">${esc(p.mainCategory||'未分類')} / ${esc(p.subCategory||'')}</div><label class="mt-2 inline-flex items-center gap-1 text-[10px]"><input type="checkbox" ${p.active?'checked':''} onchange="wbToggleProduct('${esc(p.id)}',this.checked)"> 商品上架</label>`:'↳'}</td>
+                        <td class="px-3 py-3 align-top">${first?`<div class="font-bold text-forest">${esc(p.name||'未命名')}</div><div class="text-[10px] text-gray-400">${esc(p.mainCategory||'未分類')} / ${esc(p.subCategory||'')}</div><label class="mt-2 inline-flex items-center gap-1 text-[10px]"><input type="checkbox" ${displayActive?'checked':''} onchange="wbToggleProduct('${esc(p.id)}',this.checked)"> 商品上架</label>`:'↳'}</td>
                         <td class="px-3 py-3 align-top"><div class="font-semibold">${esc(f.size||f.name||'單一規格')}</div></td>
                         <td class="px-3 py-3 align-top"><input type="number" min="0" step="1" value="${price}" placeholder="手動填價" oninput="wbVariantChanged('${esc(p.id)}',${i},'price',this)" class="w-28 border rounded-lg px-2 py-2 ${price===''?'border-amber-300 bg-amber-50':''}"></td>
                         <td class="px-3 py-3 align-top"><input type="number" min="0" step="1" value="${stock}" placeholder="庫存" oninput="wbVariantChanged('${esc(p.id)}',${i},'stock',this)" class="w-24 border rounded-lg px-2 py-2 ${stock===''?'border-red-300 bg-red-50':Number(stock)===0?'border-amber-300 bg-amber-50':''}"></td>
@@ -2762,12 +2811,16 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
             });
             tbody.innerHTML=rows.join('')||'<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">此篩選沒有商品。</td></tr>';
             document.getElementById('workbenchPageInfo').textContent=`第 ${wbState.page} / ${totalPages} 頁・符合 ${items.length} 筆商品`;
+            updateWorkbenchDirtySummary();
         };
 
         window.changeWorkbenchPage=function(delta){wbState.page=Math.max(1,wbState.page+delta);renderMerchantWorkbench();};
 
         window.saveMerchantWorkbench=async function(){
             if(!wbState.dirty.size)return alert('目前沒有修改。');
+            const pending=[...wbState.dirty.values()],pendingProducts=new Set(pending.map(x=>x.productId)).size;
+            const priceCount=pending.filter(x=>x.price!==undefined).length,stockCount=pending.filter(x=>x.stock!==undefined).length,activeCount=pending.filter(x=>x.productActive!==undefined).length;
+            if(!confirm(`準備儲存 ${pendingProducts} 件商品的修改：\n\n手動售價：${priceCount} 筆\n庫存：${stockCount} 筆\n上架狀態：${activeCount} 筆\n\n確定寫入 Firestore？`))return;
             const btn=document.getElementById('workbenchSaveBtn');btn.disabled=true;btn.textContent='⏳ 儲存中...';
             let ok=0,fail=0;
             try{
