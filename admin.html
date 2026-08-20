@@ -125,7 +125,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b pb-4 mb-5">
                 <div>
                     <h3 class="text-base font-bold text-forest">🛍️ 商品上架與規格管理</h3>
-                    <p class="text-xs text-gray-400 mt-1">分類骨架依來源站校正：有細分類才顯示細分類；無細分類的商品可直接掛在主分類。水氧機依容量區間分類，規格／顏色／款式仍於商品規格中管理。</p>
+                    <p class="text-xs text-gray-400 mt-1">V16 簡化：只有「精油」與「Gonesh」需要細分類；水氧機、擴香儀、水洗機、蠟燭與香氛直接選主分類即可。</p>
                 </div>
                 <div class="flex gap-2">
                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 新增商品</button>
@@ -159,7 +159,7 @@
                                     <select id="pMainCategory" onchange="refreshSubCategoryOptions(); renderDynamicFields()" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white"></select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-700 mb-1">細分類 *</label>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">細分類</label>
                                     <select id="pSubCategory" onchange="refreshDetailCategoryOptions(); renderDynamicFields()" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white"></select>
                                 </div>
                                 <div>
@@ -167,6 +167,8 @@
                                     <select id="pDetailCategory" onchange="refreshPresetOptions()" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-clay bg-white"></select>
                                 </div>
                             </div>
+
+                            <p class="text-[10px] text-gray-400 -mt-2">💡 水氧機、擴香儀、水洗機、蠟燭與香氛不需要選細分類；直接填商品屬性即可，前台會自動產生篩選。</p>
 
                             <div class="rounded-xl border border-clay/20 bg-clay/5 p-3">
                                 <div class="flex items-center justify-between gap-3 mb-2">
@@ -222,7 +224,7 @@
 
                         <div class="bg-white rounded-xl p-4 border">
                             <div class="flex items-center justify-between mb-3">
-                                <div><h5 class="text-xs font-black text-forest">② 商品詳細資料</h5><p class="text-[9px] text-gray-400 mt-1">依商品主分類切換專屬欄位：精油、蠟燭／融燭燈、水氧機、擴香儀、水洗機各自使用不同資料模板。</p></div>
+                                <div><h5 class="text-xs font-black text-forest">② 商品詳細資料</h5><p class="text-[9px] text-gray-400 mt-1">依商品主分類切換專屬欄位；技術規格留在商品資料裡，前台則轉成更直覺的快速篩選。</p></div>
                             </div>
                             <div id="dynamicProductFields" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                         </div>
@@ -695,27 +697,11 @@
                     '純精油':['單方精油','複方精油']
                 }
             },
-            '香氛蠟燭/融燭燈': {
-                allowRoot:true,
-                subs:['融燭燈'],
-                detailMap:{}
-            },
-            '超音波水氧機': {
-                subs:['150ml以下','151ml-250ml','251ml-400ml','401ml-600ml','601ml-1000ml','1000ml以上'],
-                detailMap:{}
-            },
-            '精油擴香儀': {
-                subs:['可攜式','玻璃'],
-                detailMap:{}
-            },
-            '空氣清淨水洗機': {
-                allowRoot:true,
-                subs:[],
-                detailMap:{}
-            },
-
-            // 玥石之溫自有延伸分類：不是來源站目前的主要分類骨架，先保留供後續商品使用。
-            '香氛': {subs:['空間香氛','織品香氛','其他香氛'], detailMap:{}},
+            '香氛蠟燭/融燭燈': {allowRoot:true, subs:[], detailMap:{}},
+            '超音波水氧機': {allowRoot:true, subs:[], detailMap:{}},
+            '精油擴香儀': {allowRoot:true, subs:[], detailMap:{}},
+            '空氣清淨水洗機': {allowRoot:true, subs:[], detailMap:{}},
+            '香氛': {allowRoot:true, subs:[], detailMap:{}},
             'Gonesh': {subs:['線香','擴香瓶','車用香氛'], detailMap:{}}
         };
         const DETAIL_FIELD_SETS = {
@@ -887,7 +873,45 @@
             }).filter(f=>f.name && Number.isFinite(f.price) && f.price >= 0);
         }
 
-        document.getElementById('uploadForm').addEventListener('submit', async e=>{
+        
+        function buildFrontFilterTags(mainCategory, subCategory, details){
+            const tags=[];
+            if(mainCategory==='超音波水氧機'){
+                const raw=String(details?.capacity||'');
+                const m=raw.match(/([\d.]+)/);
+                const ml=m ? Number(m[1]) : NaN;
+                if(Number.isFinite(ml)){
+                    if(ml<=250) tags.push('輕巧');
+                    else if(ml<=400) tags.push('日常');
+                    else if(ml<=1000) tags.push('長效');
+                    else tags.push('大容量');
+                }
+            }
+            if(mainCategory==='香氛蠟燭/融燭燈'){
+                const t=String(details?.productType||'').trim();
+                if(t) tags.push(t);
+            }
+            if(mainCategory==='精油擴香儀'){
+                const t=String(details?.diffuserType||'').trim();
+                if(t){
+                    if(t.includes('可攜') || t.includes('攜帶')) tags.push('可攜式');
+                    if(t.includes('玻璃')) tags.push('玻璃');
+                    if(!tags.length) tags.push(t);
+                }
+            }
+            if(mainCategory==='香氛'){
+                const t=String(details?.fragranceType||'').trim();
+                if(t){
+                    if(t.includes('空間')) tags.push('空間');
+                    if(t.includes('織品')) tags.push('織品');
+                    if(!tags.length) tags.push(t);
+                }
+            }
+            if(mainCategory==='Gonesh' && subCategory) tags.push(subCategory);
+            return [...new Set(tags)];
+        }
+
+document.getElementById('uploadForm').addEventListener('submit', async e=>{
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             const editId = document.getElementById('editProductId').value;
@@ -930,6 +954,7 @@
                 const mainCategory = document.getElementById('pMainCategory').value;
                 const subCategory = document.getElementById('pSubCategory').value;
                 const detailCategory = document.getElementById('pDetailCategory').value;
+                const productDetails = collectProductDetails();
                 const data = {
                     mainCategory,
                     subCategory,
@@ -937,7 +962,8 @@
                     category: subCategory || mainCategory,
                     name: document.getElementById('pName').value.trim(),
                     description: document.getElementById('pDesc').value.trim(),
-                    details: collectProductDetails(),
+                    details: productDetails,
+                    filterTags: buildFrontFilterTags(mainCategory, subCategory, productDetails),
                     flavors,
                     defaultPrice: flavors.find(f=>f.active)?.price ?? flavors[0].price,
                     imageUrl,
