@@ -172,7 +172,7 @@
                                 <div class="flex items-center justify-between gap-3 mb-2">
                                     <div>
                                         <label class="block text-xs font-black text-forest">📚 已搬移商品快速選擇</label>
-                                        <p id="presetProgress" class="text-[9px] text-gray-400 mt-0.5">純精油／單方精油：已完成 21 / 25</p>
+                                        <p id="presetProgress" class="text-[9px] text-gray-400 mt-0.5">純精油／單方精油：已完成 25 / 25</p>
                                     </div>
                                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="text-[10px] bg-white border px-2.5 py-1.5 rounded-lg text-gray-500">手動新增空白商品</button>
                                 </div>
@@ -209,6 +209,13 @@
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 mb-1">商品主圖</label>
                                 <input type="file" id="pKeyImage" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-clay/10 file:text-clay">
+                                <div id="presetImagePreviewBox" class="mt-3 hidden border border-stone-200 rounded-xl p-3 bg-stone-50">
+                                    <p class="text-xs font-bold text-forest mb-2">目前商品主圖</p>
+                                    <div class="flex items-center gap-3">
+                                        <img id="presetImagePreview" src="" alt="商品主圖預覽" class="w-24 h-24 object-cover rounded-lg border bg-white">
+                                        <div><p id="presetImageStatus" class="text-xs text-gray-500">已帶入來源主圖</p><p class="text-[10px] text-gray-400 mt-1">如要更換，直接重新選擇圖片檔即可。</p></div>
+                                    </div>
+                                </div>
                                 <div id="currentImageHint" class="hidden mt-2 text-[10px] text-gray-400"></div>
                             </div>
                         </div>
@@ -459,6 +466,34 @@
                 description:'柔和甜美的花木香氣，溫潤細緻且自然優雅；高比例芳樟醇使整體香氣柔和有層次，也是常見的溫潤木質基調。',
                 details:{englishName:'Ho Wood',botanicalName:'Cinnamomum camphora',extractionMethod:'蒸餾',extractionPart:'木頭',oilOrigin:'中國',plantOrigin:'中國',appearance:'無色至淡黃色',composition:'Linalool（芳樟醇）約98%，形成柔和、溫潤且具有花木感的主要香氣。',usage:'擴香機：4–6 滴，適合閱讀與居家香氛。\n空間噴霧：營造柔和花木氣息。\n芳香飾品：滴於香氛飾品。\n調香：適合與花香、柑橘、木質精油混合。',pairing:'保加利亞真正薰衣草；有機大西洋雪松；甜橙＋印度乳香。',packaging:'容量：10ml / 60ml 精油玻璃瓶裝',storage:'請置於陰涼乾燥處，避免陽光直射；開封後建議一年內使用完畢。',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\\n請勿內服，避免接觸眼睛、黏膜或傷口部位。\\n初次使用建議先進行敏感測試。\\n孕婦、哺乳期間、嬰幼兒或特殊體質者，使用前請先諮詢專業意見。\\n請妥善保存並避免兒童與寵物誤用。\\n本商品僅供芳香用途，不具醫療功效。'},
                 specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-petitgrain', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2025/10/%E5%96%AE%E6%96%B9%E7%B2%BE%E6%B2%B9-%E8%8B%A6%E6%A9%99%E8%91%89-%E9%A6%96-600x600.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'苦橙葉精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/petitgrain-ess-oil/',
+                description:'苦橙葉精油帶有清新綠葉、草本與淡雅柑橘氣息，香氣介於葉片青綠感與柑橘果皮明亮感之間，層次柔和自然。',
+                details:{englishName:'Petitgrain Oil',botanicalName:'Citrus aurantium',extractionMethod:'蒸餾',extractionPart:'葉片',oilOrigin:'巴拉圭',plantOrigin:'巴拉圭',appearance:'淡黃色至琥珀色液體',composition:'以 Linalyl acetate、Linalool 等芳香成分為主要氣味骨架。',usage:'擴香機：4–6 滴。\n空間噴霧：適合臥室、書房及休息空間。\n芳香飾品：滴於香氛石或擴香木。',pairing:'保加利亞真正薰衣草、佛手柑 FCR、有機大西洋雪松、甜橙、天竺葵。',packaging:'容量：10ml / 60ml 精油玻璃瓶裝',storage:'請置於陰涼乾燥處，避免陽光直射；開封後建議一年內使用完畢。',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，避免接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試。\n孕婦、哺乳期間、嬰幼兒或特殊體質者，使用前請先諮詢專業意見。\n請妥善保存並避免兒童與寵物誤用。\n本商品僅供芳香用途，不具醫療功效。'},
+                specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-tea-tree', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2025/10/%E5%96%AE%E6%96%B9%E7%B2%BE%E6%B2%B9-%E8%8C%B6%E6%A8%B9-%E9%A6%96-600x600.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'茶樹精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/tea-tree-ess-oil/',
+                description:'來自澳洲的茶樹精油，具有濃郁清新的藥草香氣，結合明快草本與柔和樹木香韻。',
+                details:{englishName:'Tea Tree',botanicalName:'Melaleuca alternifolia',extractionMethod:'蒸餾',extractionPart:'枝與葉',oilOrigin:'澳洲',plantOrigin:'澳洲',appearance:'無色至淡黃色',composition:'Terpinen-4-ol 約40.58%；γ-Terpinene 約20.21%；α-Terpinene 約9.81%。',usage:'擴香機：4–6 滴。\n空間噴霧：增加清爽草本氣息。\n芳香飾品：滴於香氛飾品。',pairing:'保加利亞真正薰衣草；胡椒薄荷＋檸檬；桉油醇迷迭香＋有機史密斯尤加利。',packaging:'容量：10ml / 60ml 精油玻璃瓶裝',storage:'請置於陰涼乾燥處，避免陽光直射；開封後建議一年內使用完畢。',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，避免接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試。\n孕婦、哺乳期間、嬰幼兒或特殊體質者，使用前請先諮詢專業意見。\n請妥善保存並避免兒童與寵物誤用。\n本商品僅供芳香用途，不具醫療功效。'},
+                specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-siberian-fir', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2025/10/%E5%96%AE%E6%96%B9%E7%B2%BE%E6%B2%B9-%E8%A5%BF%E4%BC%AF%E5%88%A9%E4%BA%9E%E5%86%B7%E6%9D%89-%E9%A6%96-600x600.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'西伯利亞冷杉精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/pine-needle-ess-oil/',
+                description:'西伯利亞冷杉精油散發清新森林木質與針葉綠意氣息，融合淡淡樹脂感與乾淨空氣感。',
+                details:{englishName:'Pine Needle Oil',botanicalName:'Abies sibirica L.',extractionMethod:'蒸餾',extractionPart:'針葉與枝條',oilOrigin:'俄羅斯',plantOrigin:'俄羅斯',appearance:'無色至淡黃色液體',composition:'以 bornyl acetate、α-pinene、camphene 等針葉與木質芳香成分為主要氣味骨架。',usage:'擴香機：4–6 滴。\n空間噴霧：適合客廳、書房、玄關。\n芳香飾品：滴於香氛石或擴香木。',pairing:'印度乳香、有機大西洋雪松、佛手柑 FCR、檸檬、絲柏。',packaging:'容量：10ml / 60ml 精油玻璃瓶裝',storage:'請置於陰涼乾燥處，避免陽光直射；開封後建議一年內使用完畢。',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，避免接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試。\n孕婦、哺乳期間、嬰幼兒或特殊體質者，使用前請先諮詢專業意見。\n請妥善保存並避免兒童與寵物誤用。\n本商品僅供芳香用途，不具醫療功效。'},
+                specs:['10ml','60ml']
+            },
+            {
+                id:'pure-single-citronella', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2025/10/%E5%96%AE%E6%96%B9%E7%B2%BE%E6%B2%B9-%E9%A6%99%E8%8C%85-%E9%A6%96-600x600.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
+                name:'香茅精油', sourceUrl:'https://www.whaletree.com.tw/shop/all-products/oil/citronella-ess-oil/',
+                description:'香茅精油帶有鮮明清新的檸檬草本氣息，兼具青草、柑橘與微甜層次。',
+                details:{englishName:'Citronella Oil',botanicalName:'Cymbopogon winterianus',extractionMethod:'蒸餾',extractionPart:'葉片',oilOrigin:'印尼',plantOrigin:'印尼',appearance:'淡黃色至黃褐色液體',composition:'以 Citronellal、Geraniol、Citronellol 等芳香成分構成清新檸檬草本氣味。',usage:'擴香機：3–5 滴。\n空間噴霧：適合玄關、陽台及戶外空間。\n芳香飾品：少量滴用。',pairing:'檸檬、甜橙、茶樹、胡椒薄荷、有機大西洋雪松。',packaging:'容量：10ml / 60ml 精油玻璃瓶裝',storage:'請置於陰涼乾燥處，避免陽光直射；開封後建議一年內使用完畢。',warnings:'本產品為純精油，使用前應適當稀釋，避免直接塗抹於皮膚。\n請勿內服，避免接觸眼睛、黏膜或傷口部位。\n初次使用建議先進行敏感測試。\n孕婦、哺乳期間、嬰幼兒或特殊體質者，使用前請先諮詢專業意見。\n請妥善保存並避免兒童與寵物誤用。\n本商品僅供芳香用途，不具醫療功效。'},
+                specs:['10ml','60ml']
             }
         ];
 
@@ -478,6 +513,17 @@
             const p=PRESET_PRODUCTS.find(x=>x.id===id); if(!p) return;
             document.getElementById('editProductId').value='';
             document.getElementById('existingImageUrl').value=p.imageUrl||'';
+            const pb=document.getElementById('presetImagePreviewBox');
+            const pi=document.getElementById('presetImagePreview');
+            const ps=document.getElementById('presetImageStatus');
+            if(pb&&pi){
+                if(p.imageUrl){
+                    pb.classList.remove('hidden');
+                    pi.src=p.imageUrl;
+                    pi.onerror=()=>{ if(ps) ps.textContent='⚠️ 來源圖無法載入，可由小編手動換圖'; pi.style.opacity='.35'; };
+                    pi.onload=()=>{ if(ps) ps.textContent='✅ 已帶入來源主圖'; pi.style.opacity='1'; };
+                }else{ pb.classList.add('hidden'); pi.removeAttribute('src'); }
+            }
             document.getElementById('pMainCategory').value=p.mainCategory;
             refreshSubCategoryOptions(p.subCategory);
             refreshDetailCategoryOptions(p.detailCategory);
