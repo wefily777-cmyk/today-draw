@@ -125,7 +125,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b pb-4 mb-5">
                 <div>
                     <h3 class="text-base font-bold text-forest">🛍️ 商品上架與規格管理</h3>
-                    <p class="text-xs text-gray-400 mt-1">以「主分類 → 細分類 → 商品類型」下拉選單上架；不同品類會自動顯示對應資料欄位，規格價格維持手動輸入。</p>
+                    <p class="text-xs text-gray-400 mt-1">分類骨架依來源站校正：有細分類才顯示細分類；無細分類的商品可直接掛在主分類。水氧機依容量區間分類，規格／顏色／款式仍於商品規格中管理。</p>
                 </div>
                 <div class="flex gap-2">
                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 新增商品</button>
@@ -222,7 +222,7 @@
 
                         <div class="bg-white rounded-xl p-4 border">
                             <div class="flex items-center justify-between mb-3">
-                                <div><h5 class="text-xs font-black text-forest">② 商品詳細資料</h5><p class="text-[9px] text-gray-400 mt-1">依主分類自動切換欄位；精油欄位參考成熟芳療商品頁的資訊結構。</p></div>
+                                <div><h5 class="text-xs font-black text-forest">② 商品詳細資料</h5><p class="text-[9px] text-gray-400 mt-1">依商品主分類切換專屬欄位：精油、蠟燭／融燭燈、水氧機、擴香儀、水洗機各自使用不同資料模板。</p></div>
                             </div>
                             <div id="dynamicProductFields" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                         </div>
@@ -685,14 +685,38 @@
             alert(`✅ 已帶入「${p.name}」資料與來源主圖。\n請填寫價格、庫存；如需換圖可由小編手動選檔後再儲存。`);
         };
 
+        // V15：來源站分類骨架校正版
+        // allowRoot=true 代表該主分類可直接上架商品，不強迫再選一個不存在的細分類。
         const PRODUCT_TAXONOMY = {
-            '精油': {subs:['水氧精油','純精油'], details:['單方精油','複方精油']},
-            '蠟燭': {subs:['融燭燈','香氛蠟燭','薰香燈'], details:[]},
-            '超音波水氧機': {subs:['150ml以下','151ml-250ml','251ml-400ml','401ml-600ml','601ml-1000ml','1000ml以上'], details:[]},
-            '擴香儀': {subs:['可攜式','玻璃','其他擴香儀'], details:[]},
-            '空氣清淨水洗機': {subs:['桌上型','大容量'], details:[]},
-            '香氛': {subs:['空間香氛','織品香氛','其他香氛'], details:[]},
-            'Gonesh': {subs:['線香','擴香瓶','車用香氛'], details:[]}
+            '精油': {
+                subs:['水氧精油','純精油'],
+                detailMap:{
+                    '水氧精油':['單方精油','複方精油'],
+                    '純精油':['單方精油','複方精油']
+                }
+            },
+            '香氛蠟燭/融燭燈': {
+                allowRoot:true,
+                subs:['融燭燈'],
+                detailMap:{}
+            },
+            '超音波水氧機': {
+                subs:['150ml以下','151ml-250ml','251ml-400ml','401ml-600ml','601ml-1000ml','1000ml以上'],
+                detailMap:{}
+            },
+            '精油擴香儀': {
+                subs:['可攜式','玻璃'],
+                detailMap:{}
+            },
+            '空氣清淨水洗機': {
+                allowRoot:true,
+                subs:[],
+                detailMap:{}
+            },
+
+            // 玥石之溫自有延伸分類：不是來源站目前的主要分類骨架，先保留供後續商品使用。
+            '香氛': {subs:['空間香氛','織品香氛','其他香氛'], detailMap:{}},
+            'Gonesh': {subs:['線香','擴香瓶','車用香氛'], detailMap:{}}
         };
         const DETAIL_FIELD_SETS = {
             oil:[
@@ -700,12 +724,31 @@
                 ['oilOrigin','精油產地'],['plantOrigin','植物產地'],['appearance','外觀色澤'],['sourceUrl','授權資料來源網址'],['composition','成分／結構分析','textarea'],
                 ['usage','使用建議','textarea'],['pairing','推薦搭配','textarea'],['packaging','包裝方式','textarea'],['storage','保存方式','textarea'],['warnings','注意事項與警語','textarea']
             ],
-            device:[
-                ['model','型號'],['capacity','容量／水箱容量'],['material','材質'],['dimensions','尺寸'],['power','功率'],['voltage','電壓／供電'],
-                ['mistMode','霧化／擴香模式'],['lighting','燈光功能'],['runtime','運轉時間'],['warranty','保固'],['included','包裝內容','textarea'],['usage','使用方式','textarea'],['warnings','注意事項','textarea']
+            humidifier:[
+                ['model','型號'],['capacity','水箱容量'],['material','主要材質'],['dimensions','產品尺寸'],['weight','重量'],
+                ['coverage','適用坪數／空間'],['runtime','連續／間歇運轉時間'],['mistMode','霧化模式／出霧方式'],['lighting','燈光功能'],
+                ['power','功率'],['voltage','供電方式／電壓'],['features','商品特色','textarea'],['scenes','適用場景','textarea'],
+                ['cleaning','清潔與保養','textarea'],['principle','運作原理','textarea'],['included','包裝內容','textarea'],
+                ['warranty','保固'],['usage','使用方式','textarea'],['warnings','注意事項','textarea'],['sourceUrl','授權資料來源網址']
+            ],
+            diffuser:[
+                ['model','型號'],['diffuserType','擴香方式／類型'],['material','主要材質'],['dimensions','產品尺寸'],['weight','重量'],
+                ['coverage','適用空間'],['runtime','運轉時間'],['power','功率'],['voltage','供電方式／電壓'],
+                ['features','商品特色','textarea'],['included','包裝內容','textarea'],['cleaning','清潔與保養','textarea'],
+                ['warranty','保固'],['usage','使用方式','textarea'],['warnings','注意事項','textarea'],['sourceUrl','授權資料來源網址']
+            ],
+            airwasher:[
+                ['model','型號'],['capacity','水箱容量'],['material','主要材質'],['dimensions','產品尺寸'],['weight','重量'],
+                ['coverage','適用坪數／空間'],['airMode','空氣清淨／水洗模式'],['noise','運轉音量'],['runtime','運轉時間'],
+                ['power','功率'],['voltage','供電方式／電壓'],['features','商品特色','textarea'],['cleaning','清潔與保養','textarea'],
+                ['included','包裝內容','textarea'],['warranty','保固'],['usage','使用方式','textarea'],['warnings','注意事項','textarea'],
+                ['sourceUrl','授權資料來源網址']
             ],
             candle:[
-                ['scent','香調／香味'],['material','材質'],['waxType','蠟材'],['burnTime','燃燒／使用時間'],['dimensions','尺寸'],['included','包裝內容','textarea'],['usage','使用方式','textarea'],['warnings','注意事項','textarea']
+                ['productType','商品類型（香氛蠟燭／融燭燈）'],['scent','香調／香味'],['material','主要材質'],['waxType','蠟材／適用蠟燭'],
+                ['capacity','容量／規格'],['dimensions','尺寸'],['power','功率'],['voltage','供電方式／電壓'],['burnTime','燃燒／使用時間'],
+                ['features','商品特色','textarea'],['included','包裝內容','textarea'],['usage','使用方式','textarea'],
+                ['warnings','注意事項','textarea'],['sourceUrl','授權資料來源網址']
             ],
             fragrance:[
                 ['scent','香調／香味'],['content','容量／數量'],['duration','香氣持續時間'],['usagePlace','適用空間'],['ingredients','主要成分','textarea'],['usage','使用方式','textarea'],['warnings','注意事項','textarea']
@@ -716,8 +759,10 @@
         function currentFieldSet(){
             const main=document.getElementById('pMainCategory')?.value;
             if(main==='精油') return DETAIL_FIELD_SETS.oil;
-            if(main==='蠟燭') return DETAIL_FIELD_SETS.candle;
-            if(['超音波水氧機','擴香儀','空氣清淨水洗機'].includes(main)) return DETAIL_FIELD_SETS.device;
+            if(main==='香氛蠟燭/融燭燈') return DETAIL_FIELD_SETS.candle;
+            if(main==='超音波水氧機') return DETAIL_FIELD_SETS.humidifier;
+            if(main==='精油擴香儀') return DETAIL_FIELD_SETS.diffuser;
+            if(main==='空氣清淨水洗機') return DETAIL_FIELD_SETS.airwasher;
             return DETAIL_FIELD_SETS.fragrance;
         }
         function fillMainCategoryOptions(){
@@ -730,15 +775,19 @@
         window.refreshSubCategoryOptions=function(selected=''){
             const main=document.getElementById('pMainCategory')?.value || Object.keys(PRODUCT_TAXONOMY)[0];
             const el=document.getElementById('pSubCategory'); if(!el) return;
-            const subs=PRODUCT_TAXONOMY[main]?.subs||[];
-            el.innerHTML=subs.map(x=>`<option value="${esc(x)}" ${x===selected?'selected':''}>${esc(x)}</option>`).join('');
+            const cfg=PRODUCT_TAXONOMY[main]||{};
+            const subs=cfg.subs||[];
+            const rootOption=cfg.allowRoot ? `<option value="" ${selected===''?'selected':''}>— 主分類直接上架（無細分類）—</option>` : '';
+            el.innerHTML=rootOption + subs.map(x=>`<option value="${esc(x)}" ${x===selected?'selected':''}>${esc(x)}</option>`).join('');
+            if(!cfg.allowRoot && !subs.length) el.innerHTML='<option value="">— 此分類無細分類 —</option>';
             refreshDetailCategoryOptions();
             refreshPresetOptions();
         };
         window.refreshDetailCategoryOptions=function(selected=''){
             const main=document.getElementById('pMainCategory')?.value;
+            const sub=document.getElementById('pSubCategory')?.value || '';
             const el=document.getElementById('pDetailCategory'); if(!el) return;
-            const details=PRODUCT_TAXONOMY[main]?.details||[];
+            const details=PRODUCT_TAXONOMY[main]?.detailMap?.[sub] || [];
             el.innerHTML='<option value="">— 無額外類型 —</option>'+details.map(x=>`<option value="${esc(x)}" ${x===selected?'selected':''}>${esc(x)}</option>`).join('');
             el.disabled=!details.length;
         };
