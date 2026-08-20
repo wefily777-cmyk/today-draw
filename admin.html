@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PRODUCTION READY｜MASTER CATALOG + SAFE IMPORT -->
+<!-- PRODUCTION READY HOTFIX1｜VISIBLE MASTER IMPORT + CLEAN ADMIN UX -->
 <!-- V82 QA5｜分類圖片自訂＋非精油分類修正 -->
 <!-- V82 QA3｜前後台相容＋分類＋庫存修正版 -->
 <!-- V82 QA2 FIX｜2026-08-20｜訂單/優惠券/預約第二輪除錯 -->
@@ -143,10 +143,11 @@
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b pb-4 mb-5">
                 <div>
                     <h3 class="text-base font-bold text-forest">🛍️ 商品上架與規格管理</h3>
-                    <p class="text-xs text-gray-400 mt-1">新版分類：所有主分類皆依前台結構提供對應細分類；「已搬移商品快速選擇」目前只有精油資料，其他類別請先用「手動新增空白商品」。</p>
+                    <p class="text-xs text-gray-400 mt-1">Master Catalog 已整合全商城來源商品。請先選主分類與細分類，再選來源商品；也可使用「手動新增商品」建立自有商品。</p>
                 </div>
-                <div class="flex gap-2">
-                    <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 新增商品</button>
+                <div class="flex flex-wrap gap-2">
+                    <button id="masterImportBtn" type="button" onclick="batchImportMasterCatalog()" class="bg-clay text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">📦 一次匯入 Master Catalog</button>
+                    <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 手動新增商品</button>
                 </div>
             </div>
 
@@ -186,22 +187,21 @@
                                 </div>
                             </div>
 
-                            <p class="text-[10px] text-gray-400 -mt-2">💡 細分類會依主分類自動切換；精油另有「商品類型（單方／複方）」。其他類別目前尚無搬移預設商品，請手動新增。</p>
+                            <p class="text-[10px] text-gray-400 -mt-2">💡 細分類會依主分類自動切換；精油另有「商品類型（單方／複方）」。來源商品清單會跟著目前分類即時縮小。</p>
 
                             <div class="rounded-xl border border-clay/20 bg-clay/5 p-3">
                                 <div class="flex items-center justify-between gap-3 mb-2">
                                     <div>
-                                        <label class="block text-xs font-black text-forest">📚 已搬移商品快速選擇</label>
-                                        <p id="presetProgress" class="text-[9px] text-gray-400 mt-0.5">純精油／單方精油：已完成 25 / 25　｜　V49｜水氧複方精油 37 款｜純精油複方 51 款</p>
-                    <p class="text-[10px] text-gray-400 mt-1">正式後台不顯示版本施工紀錄；商品對帳與開發進度保留於版本說明檔。</p>
+                                        <label class="block text-xs font-black text-forest">📚 來源商品 Master Catalog</label>
+                                        <p id="presetProgress" class="text-[9px] text-gray-400 mt-0.5">依目前「主分類 → 細分類 → 商品類型」自動篩選來源商品。</p>
 
                                     </div>
                                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="text-[10px] bg-white border px-2.5 py-1.5 rounded-lg text-gray-500">手動新增空白商品</button>
                                 </div>
                                 <select id="presetProductSelect" onchange="applyPresetProduct(this.value)" class="w-full px-3 py-2.5 border rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-clay">
-                                    <option value="">— 從已搬移商品選擇 —</option>
+                                    <option value="">— 選擇來源商品 —</option>
                                 </select>
-                                <p class="text-[9px] text-gray-400 mt-2">不必先選對細分類：直接選擇已搬移商品，系統會自動切換到正確的主分類／細分類／商品類型，並帶入完整資料；價格及庫存仍由你手動填寫。</p>
+                                <p class="text-[9px] text-gray-400 mt-2">選擇來源商品後會自動帶入名稱、分類、來源資料與可用圖片；價格、庫存與你要使用的商品圖片仍可手動調整。</p>
                             </div>
 
                             <div>
@@ -2426,7 +2426,7 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
         window.batchImportMasterCatalog = async function(){
             if(!confirm(`將檢查 ${PRESET_PRODUCTS.length} 筆 Master Catalog，並只建立 Firestore 中尚不存在的商品。\n\n既有商品不會被覆蓋。要繼續嗎？`)) return;
             let created=0, skipped=0, failed=0;
-            const btn=event?.currentTarget;
+            const btn=document.getElementById('masterImportBtn');
             if(btn){ btn.disabled=true; btn.textContent='⏳ 匯入中...'; }
             try{
                 for(const p of PRESET_PRODUCTS){
@@ -2472,7 +2472,7 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
                 alert(`Master Catalog 匯入完成。\n新增：${created}\n已存在略過：${skipped}\n失敗：${failed}\n\n新匯入商品預設為未上架且庫存 0；請補圖片／規格／價格／庫存後再啟用販售。`);
                 await loadAdminProducts();
             }finally{
-                if(btn){ btn.disabled=false; btn.textContent='📦 一次匯入 Master Catalog 到 Firestore'; }
+                if(btn){ btn.disabled=false; btn.textContent='📦 一次匯入 Master Catalog'; }
             }
         };
 
