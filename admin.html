@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- MERCHANT WORKBENCH｜MANUAL PRICE + STOCK OPERATIONS -->
 <!-- SPEC PAYMENT HOTFIX1｜CATALOG IMAGE RULES + AUDIT LOADING UX -->
 <!-- SPEC + PAYMENT PRODUCTION｜MANUAL PRICE + SECURE BANK TRANSFER -->
 <!-- PRODUCTION READY IMAGE SYNC｜SERVER-SIDE SOURCE IMAGE COMPLETION -->
@@ -279,7 +280,52 @@
                 <!-- 商品清單 -->
                 <div class="xl:col-span-3">
                     <div class="flex flex-col sm:flex-row gap-3 justify-between mb-4">
-                        <div>
+                        
+            <div class="bg-white border rounded-3xl p-5 md:p-6 shadow-sm mb-6" id="merchantWorkbench">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-black text-forest">🧭 商品營運工作台</h3>
+                        <p class="text-[11px] text-gray-500 mt-1">集中處理售價、庫存、缺圖與上架狀態；來源網站售價不會自動帶入。</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="refreshMerchantWorkbench()" class="px-3 py-2 rounded-xl border text-xs font-bold text-forest bg-white">重新整理</button>
+                        <button type="button" onclick="saveMerchantWorkbench()" id="workbenchSaveBtn" class="px-4 py-2 rounded-xl bg-forest text-white text-xs font-bold">💾 儲存修改</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-2 mt-4">
+                    <button data-filter="all" onclick="setWorkbenchFilter('all')" class="wb-filter border rounded-xl px-3 py-2 text-left bg-forest text-white"><div class="text-[10px]">全部</div><div id="wbCountAll" class="text-lg font-black">0</div></button>
+                    <button data-filter="needs" onclick="setWorkbenchFilter('needs')" class="wb-filter border rounded-xl px-3 py-2 text-left"><div class="text-[10px] text-gray-500">待處理</div><div id="wbCountNeeds" class="text-lg font-black text-forest">0</div></button>
+                    <button data-filter="price" onclick="setWorkbenchFilter('price')" class="wb-filter border rounded-xl px-3 py-2 text-left"><div class="text-[10px] text-gray-500">缺售價</div><div id="wbCountPrice" class="text-lg font-black text-forest">0</div></button>
+                    <button data-filter="nostock" onclick="setWorkbenchFilter('nostock')" class="wb-filter border rounded-xl px-3 py-2 text-left"><div class="text-[10px] text-gray-500">庫存未填</div><div id="wbCountNoStock" class="text-lg font-black text-forest">0</div></button>
+                    <button data-filter="zero" onclick="setWorkbenchFilter('zero')" class="wb-filter border rounded-xl px-3 py-2 text-left"><div class="text-[10px] text-gray-500">庫存 0</div><div id="wbCountZero" class="text-lg font-black text-forest">0</div></button>
+                    <button data-filter="image" onclick="setWorkbenchFilter('image')" class="wb-filter border rounded-xl px-3 py-2 text-left"><div class="text-[10px] text-gray-500">缺圖片</div><div id="wbCountImage" class="text-lg font-black text-forest">0</div></button>
+                    <button data-filter="ready" onclick="setWorkbenchFilter('ready')" class="wb-filter border rounded-xl px-3 py-2 text-left"><div class="text-[10px] text-gray-500">可販售</div><div id="wbCountReady" class="text-lg font-black text-forest">0</div></button>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-3 mt-4">
+                    <input id="wbSearch" oninput="renderMerchantWorkbench()" class="border rounded-xl px-3 py-2 text-sm" placeholder="搜尋商品名稱 / 分類">
+                    <select id="wbMainCategory" onchange="wbState.page=1;renderMerchantWorkbench()" class="border rounded-xl px-3 py-2 text-sm"><option value="">全部主分類</option></select>
+                    <select id="wbPageSize" onchange="wbState.page=1;renderMerchantWorkbench()" class="border rounded-xl px-3 py-2 text-sm"><option value="20">每頁 20 筆</option><option value="40">每頁 40 筆</option><option value="80">每頁 80 筆</option></select>
+                </div>
+
+                <div id="wbMissingStockNotice" class="hidden mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800"></div>
+
+                <div class="mt-4 overflow-x-auto border rounded-2xl">
+                    <table class="w-full min-w-[980px] text-xs">
+                        <thead class="bg-sand/70 text-forest"><tr><th class="text-left px-3 py-3">商品</th><th class="text-left px-3 py-3">規格</th><th class="text-left px-3 py-3">手動售價</th><th class="text-left px-3 py-3">庫存</th><th class="text-left px-3 py-3">狀態</th><th class="text-left px-3 py-3">圖片</th></tr></thead>
+                        <tbody id="merchantWorkbenchRows"></tbody>
+                    </table>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 mt-4 text-xs">
+                    <button type="button" onclick="changeWorkbenchPage(-1)" class="border rounded-lg px-3 py-2">← 上一頁</button>
+                    <div id="workbenchPageInfo" class="text-gray-500">第 1 頁</div>
+                    <button type="button" onclick="changeWorkbenchPage(1)" class="border rounded-lg px-3 py-2">下一頁 →</button>
+                </div>
+            </div>
+
+<div>
                             <h4 class="font-bold text-forest">📦 已建立商品</h4>
                             <p class="text-[10px] text-gray-400 mt-1">建議用「停售」代替刪除，可保留舊訂單與歷史資料的關聯。</p>
                         </div>
@@ -2403,6 +2449,7 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
                 alert(editId ? '✅ 商品更新完成。' : '🎉 商品已成功建立。');
                 resetForm();
                 await loadAdminProducts();
+                await refreshMerchantWorkbench();
             }catch(err){
                 console.error(err);
                 alert('❌ 儲存商品失敗：' + err.message);
@@ -2623,6 +2670,130 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
             }finally{
                 if(btn){ btn.disabled=false; btn.textContent='📦 一次匯入 Master Catalog'; }
             }
+        };
+
+        const wbState={filter:'all',page:1,dirty:new Map(),items:[]};
+
+        function classifyWorkbenchProduct(p){
+            const fs=Array.isArray(p.flavors)?p.flavors:[];
+            const missingPrice=fs.some(f=>!Number.isFinite(Number(f.price))||Number(f.price)<=0);
+            const missingStock=fs.some(f=>f.stock===undefined||f.stock===null||f.stock==='');
+            const zeroStock=fs.length>0 && fs.every(f=>Number(f.stock||0)<=0);
+            const missingImage=!String(p.imageUrl||'').trim();
+            const ready=!!p.active && !!p.imageUrl && fs.some(f=>f.active!==false && Number(f.price||0)>0 && Number(f.stock||0)>0);
+            return {missingPrice,missingStock,zeroStock,missingImage,ready,needs:missingPrice||missingStock||zeroStock||missingImage||!p.active};
+        }
+
+        window.refreshMerchantWorkbench=async function(){
+            const tbody=document.getElementById('merchantWorkbenchRows');
+            if(tbody) tbody.innerHTML='<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">⏳ 正在讀取商品資料…</td></tr>';
+            const snap=await getDocs(collection(db,'products'));
+            wbState.items=snap.docs.map(ds=>({id:ds.id,...ds.data()}));
+            wbState.dirty.clear();wbState.page=1;
+            const cats=[...new Set(wbState.items.map(p=>p.mainCategory||'未分類'))].sort();
+            const sel=document.getElementById('wbMainCategory');
+            if(sel) sel.innerHTML='<option value="">全部主分類</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+            renderMerchantWorkbench();
+        };
+
+        window.setWorkbenchFilter=function(filter){
+            wbState.filter=filter;wbState.page=1;
+            document.querySelectorAll('.wb-filter').forEach(btn=>{
+                const active=btn.dataset.filter===filter;
+                btn.classList.toggle('bg-forest',active);btn.classList.toggle('text-white',active);
+            });
+            renderMerchantWorkbench();
+        };
+
+        function filteredWorkbenchItems(){
+            const q=String(document.getElementById('wbSearch')?.value||'').trim().toLowerCase();
+            const cat=document.getElementById('wbMainCategory')?.value||'';
+            return wbState.items.filter(p=>{
+                const c=classifyWorkbenchProduct(p);
+                if(cat&&(p.mainCategory||'未分類')!==cat)return false;
+                if(q&&!`${p.name||''} ${p.mainCategory||''} ${p.subCategory||''}`.toLowerCase().includes(q))return false;
+                if(wbState.filter==='price'&&!c.missingPrice)return false;
+                if(wbState.filter==='nostock'&&!c.missingStock)return false;
+                if(wbState.filter==='zero'&&!c.zeroStock)return false;
+                if(wbState.filter==='image'&&!c.missingImage)return false;
+                if(wbState.filter==='ready'&&!c.ready)return false;
+                if(wbState.filter==='needs'&&!c.needs)return false;
+                return true;
+            });
+        }
+
+        window.wbVariantChanged=function(productId,index,field,input){
+            const key=`${productId}::${index}`,old=wbState.dirty.get(key)||{productId,index};
+            let value=input.value;if(field==='price'||field==='stock')value=value===''?'':Number(value);
+            wbState.dirty.set(key,{...old,[field]:value});
+            document.getElementById('workbenchSaveBtn').textContent=`💾 儲存修改（${wbState.dirty.size}）`;
+        };
+
+        window.wbToggleProduct=function(productId,checked){
+            wbState.dirty.set(`product::${productId}`,{productId,productActive:checked});
+            document.getElementById('workbenchSaveBtn').textContent=`💾 儲存修改（${wbState.dirty.size}）`;
+        };
+
+        window.renderMerchantWorkbench=function(){
+            const tbody=document.getElementById('merchantWorkbenchRows');
+            if(!wbState.items.length){if(tbody)tbody.innerHTML='<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">請按「重新整理」載入商品。</td></tr>';return;}
+            const cs=wbState.items.map(classifyWorkbenchProduct),counts={all:wbState.items.length,needs:cs.filter(x=>x.needs).length,price:cs.filter(x=>x.missingPrice).length,nostock:cs.filter(x=>x.missingStock).length,zero:cs.filter(x=>x.zeroStock).length,image:cs.filter(x=>x.missingImage).length,ready:cs.filter(x=>x.ready).length};
+            document.getElementById('wbCountAll').textContent=counts.all;document.getElementById('wbCountNeeds').textContent=counts.needs;document.getElementById('wbCountPrice').textContent=counts.price;document.getElementById('wbCountNoStock').textContent=counts.nostock;document.getElementById('wbCountZero').textContent=counts.zero;document.getElementById('wbCountImage').textContent=counts.image;document.getElementById('wbCountReady').textContent=counts.ready;
+
+            const missing=wbState.items.filter(p=>classifyWorkbenchProduct(p).missingStock),notice=document.getElementById('wbMissingStockNotice');
+            if(missing.length){notice.classList.remove('hidden');notice.innerHTML=`⚠ 庫存尚未填：${missing.map(p=>`<strong>${esc(p.name||p.id)}</strong>`).join('、')}`;}else notice.classList.add('hidden');
+
+            const items=filteredWorkbenchItems(),pageSize=Number(document.getElementById('wbPageSize')?.value||20),totalPages=Math.max(1,Math.ceil(items.length/pageSize));
+            wbState.page=Math.min(Math.max(1,wbState.page),totalPages);
+            const rows=[];
+            items.slice((wbState.page-1)*pageSize,wbState.page*pageSize).forEach(p=>{
+                const fs=Array.isArray(p.flavors)&&p.flavors.length?p.flavors:[{name:'單一規格',scent:p.name||'',size:'',price:'',stock:''}],c=classifyWorkbenchProduct(p);
+                fs.forEach((f,i)=>{
+                    const first=i===0,price=Number(f.price)>0?Number(f.price):'',stock=(f.stock===undefined||f.stock===null||f.stock==='')?'':Number(f.stock);
+                    rows.push(`<tr class="border-t ${c.needs?'bg-amber-50/30':''}">
+                        <td class="px-3 py-3 align-top">${first?`<div class="font-bold text-forest">${esc(p.name||'未命名')}</div><div class="text-[10px] text-gray-400">${esc(p.mainCategory||'未分類')} / ${esc(p.subCategory||'')}</div><label class="mt-2 inline-flex items-center gap-1 text-[10px]"><input type="checkbox" ${p.active?'checked':''} onchange="wbToggleProduct('${esc(p.id)}',this.checked)"> 商品上架</label>`:'↳'}</td>
+                        <td class="px-3 py-3 align-top"><div class="font-semibold">${esc(f.size||f.name||'單一規格')}</div></td>
+                        <td class="px-3 py-3 align-top"><input type="number" min="0" step="1" value="${price}" placeholder="手動填價" oninput="wbVariantChanged('${esc(p.id)}',${i},'price',this)" class="w-28 border rounded-lg px-2 py-2 ${price===''?'border-amber-300 bg-amber-50':''}"></td>
+                        <td class="px-3 py-3 align-top"><input type="number" min="0" step="1" value="${stock}" placeholder="庫存" oninput="wbVariantChanged('${esc(p.id)}',${i},'stock',this)" class="w-24 border rounded-lg px-2 py-2 ${stock===''?'border-red-300 bg-red-50':Number(stock)===0?'border-amber-300 bg-amber-50':''}"></td>
+                        <td class="px-3 py-3 align-top text-[10px]">${c.ready?'<span class="text-emerald-700 font-bold">● 可販售</span>':'<span class="text-amber-700 font-bold">● 待整理</span>'}${!p.active?'<div class="text-gray-400 mt-1">未上架</div>':''}</td>
+                        <td class="px-3 py-3 align-top">${first?(p.imageUrl?`<img src="${esc(p.imageUrl)}" class="w-12 h-12 rounded-lg object-cover border">`:'<span class="text-red-500 text-[10px] font-bold">缺圖片</span>'):'—'}</td>
+                    </tr>`);
+                });
+            });
+            tbody.innerHTML=rows.join('')||'<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">此篩選沒有商品。</td></tr>';
+            document.getElementById('workbenchPageInfo').textContent=`第 ${wbState.page} / ${totalPages} 頁・符合 ${items.length} 筆商品`;
+        };
+
+        window.changeWorkbenchPage=function(delta){wbState.page=Math.max(1,wbState.page+delta);renderMerchantWorkbench();};
+
+        window.saveMerchantWorkbench=async function(){
+            if(!wbState.dirty.size)return alert('目前沒有修改。');
+            const btn=document.getElementById('workbenchSaveBtn');btn.disabled=true;btn.textContent='⏳ 儲存中...';
+            let ok=0,fail=0;
+            try{
+                const grouped=new Map();
+                for(const c of wbState.dirty.values()){
+                    const g=grouped.get(c.productId)||{variants:new Map(),productActive:undefined};
+                    if(c.productActive!==undefined)g.productActive=c.productActive;
+                    if(Number.isInteger(c.index))g.variants.set(c.index,{...(g.variants.get(c.index)||{}),...c});
+                    grouped.set(c.productId,g);
+                }
+                for(const [productId,g] of grouped){
+                    try{
+                        const ref=doc(db,'products',productId),snap=await getDoc(ref);if(!snap.exists)throw new Error('商品不存在');
+                        const p=snap.data()||{},fs=Array.isArray(p.flavors)?p.flavors.map(x=>({...x})):[];
+                        for(const [i,c] of g.variants){
+                            if(!fs[i])continue;
+                            if(c.price!==undefined)fs[i].price=c.price===''?0:Number(c.price);
+                            if(c.stock!==undefined){if(c.stock!==''&&(!Number.isInteger(Number(c.stock))||Number(c.stock)<0))throw new Error('庫存必須為 0 以上整數');fs[i].stock=c.stock===''?'':Number(c.stock);}
+                        }
+                        const payload={flavors:fs,defaultPrice:Number(fs[0]?.price||0),updatedAt:new Date().toISOString()};if(g.productActive!==undefined)payload.active=!!g.productActive;
+                        await updateDoc(ref,payload);ok++;
+                    }catch(e){fail++;console.error(e);}
+                }
+                alert(`商品工作台儲存完成。\n成功：${ok}\n失敗：${fail}\n\n售價仍完全由你手動控制。`);
+                await refreshMerchantWorkbench();await loadAdminProducts();
+            }finally{btn.disabled=false;btn.textContent='💾 儲存修改';}
         };
 
         async function loadAdminProducts(){
