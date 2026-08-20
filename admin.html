@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- V82 QA3｜前後台相容＋分類＋庫存修正版 -->
+<!-- V82 QA2 FIX｜2026-08-20｜訂單/優惠券/預約第二輪除錯 -->
+<!-- V82 QA FIX｜2026-08-20｜功能健檢修正版 -->
 <!-- 玥石之溫 V82 FINAL｜水氧複方搬家封版：59款｜2026-08-20 -->
 <html lang="zh-TW">
 <head>
@@ -1294,10 +1297,19 @@
             if(pb&&pi){
                 if(p.imageUrl){
                     pb.classList.remove('hidden');
-                    pi.src=p.imageUrl;
+                    pi.style.opacity='1';
+                    if(ps) ps.textContent='⏳ 正在載入來源主圖';
                     pi.onerror=()=>{ if(ps) ps.textContent='⚠️ 來源圖無法載入，可由小編手動換圖'; pi.style.opacity='.35'; };
                     pi.onload=()=>{ if(ps) ps.textContent='✅ 已帶入來源主圖'; pi.style.opacity='1'; };
-                }else{ pb.classList.add('hidden'); pi.removeAttribute('src'); }
+                    pi.src=p.imageUrl;
+                }else{
+                    pb.classList.add('hidden');
+                    pi.onload=null;
+                    pi.onerror=null;
+                    pi.style.opacity='1';
+                    pi.removeAttribute('src');
+                    if(ps) ps.textContent='尚無來源主圖';
+                }
             }
             document.getElementById('pMainCategory').value=p.mainCategory;
             refreshSubCategoryOptions(p.subCategory);
@@ -1308,7 +1320,7 @@
             editingDetails={...p.details,sourceUrl:p.sourceUrl};
             renderDynamicFields(editingDetails);
             document.getElementById('flavorContainer').innerHTML='';
-            (p.specs||[]).forEach(spec=>addFlavorRow(spec,'','',true,'',''));
+            (p.specs||[]).forEach(spec=>addFlavorRow('', '', {scent:p.name, size:spec, stock:'', active:true}));
             document.getElementById('pActive').checked=true;
             const preview=document.getElementById('imagePreview');
             if(preview){
@@ -1330,11 +1342,11 @@
                     '純精油':['單方精油','複方精油']
                 }
             },
-            '香氛蠟燭/融燭燈': {allowRoot:true, subs:[], detailMap:{}},
-            '超音波水氧機': {allowRoot:true, subs:[], detailMap:{}},
-            '精油擴香儀': {allowRoot:true, subs:[], detailMap:{}},
-            '空氣清淨水洗機': {allowRoot:true, subs:[], detailMap:{}},
-            '香氛': {allowRoot:true, subs:[], detailMap:{}},
+            '蠟燭': {subs:['融燭燈','香氛蠟燭','薰香燈'], detailMap:{}},
+            '超音波水氧機': {subs:['150ml以下','151ml-250ml','251ml-400ml','401ml-600ml','601ml-1000ml','1000ml以上'], detailMap:{}},
+            '擴香儀': {subs:['可攜式','玻璃','其他擴香儀'], detailMap:{}},
+            '空氣清淨水洗機': {subs:['桌上型','大容量'], detailMap:{}},
+            '香氛': {subs:['空間香氛','織品香氛','其他香氛'], detailMap:{}},
             'Gonesh': {subs:['線香','擴香瓶','車用香氛'], detailMap:{}}
         };
         const DETAIL_FIELD_SETS = {
@@ -1378,9 +1390,9 @@
         function currentFieldSet(){
             const main=document.getElementById('pMainCategory')?.value;
             if(main==='精油') return DETAIL_FIELD_SETS.oil;
-            if(main==='香氛蠟燭/融燭燈') return DETAIL_FIELD_SETS.candle;
+            if(main==='蠟燭') return DETAIL_FIELD_SETS.candle;
             if(main==='超音波水氧機') return DETAIL_FIELD_SETS.humidifier;
-            if(main==='精油擴香儀') return DETAIL_FIELD_SETS.diffuser;
+            if(main==='擴香儀') return DETAIL_FIELD_SETS.diffuser;
             if(main==='空氣清淨水洗機') return DETAIL_FIELD_SETS.airwasher;
             return DETAIL_FIELD_SETS.fragrance;
         }
@@ -1428,15 +1440,21 @@
         window.addFlavorRow = function(name='', price='', options={}){
             const box = document.getElementById('flavorContainer');
             const rowId = `flavorRow_${++flavorRowSerial}`;
+            const scent = String(options.scent ?? '').trim();
+            const size = String(options.size ?? '').trim();
             const compareAtPrice = options.compareAtPrice ?? '';
+            const stock = options.stock ?? '';
             const sku = options.sku ?? '';
             const active = options.active !== false;
+            const legacyName = String(name||'').trim();
+            const inferredSize = size || (/^\d+(\.\d+)?\s*(ml|g|kg|oz|入|枚|支|瓶|包)$/i.test(legacyName) ? legacyName : '');
+            const inferredScent = scent || (inferredSize ? '' : legacyName);
             const card = document.createElement('div');
             card.className = 'flavor-row border rounded-xl p-3 bg-sand/40';
             card.id = rowId;
             card.innerHTML = `
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-[10px] font-black text-forest">香氣規格</span>
+                    <span class="text-[10px] font-black text-forest">商品規格</span>
                     <div class="flex items-center gap-2">
                         <label class="text-[10px] flex items-center gap-1 cursor-pointer">
                             <input type="checkbox" class="flavor-active" ${active ? 'checked' : ''}> 可販售
@@ -1446,19 +1464,27 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <div class="col-span-2">
-                        <label class="text-[9px] text-gray-500">規格／香氣名稱 *</label>
-                        <input type="text" value="${esc(name)}" class="flavor-name w-full px-2.5 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="例如：真正薰衣草" required>
+                    <div>
+                        <label class="text-[9px] text-gray-500">香氣／款式 *</label>
+                        <input type="text" value="${esc(inferredScent)}" class="flavor-scent w-full px-2.5 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="例如：真正薰衣草" required>
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-gray-500">容量／大小 *</label>
+                        <input type="text" value="${esc(inferredSize || options.capacity || '')}" class="flavor-size w-full px-2.5 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="例如：10ml" required>
                     </div>
                     <div>
                         <label class="text-[9px] text-gray-500">售價 *</label>
                         <input type="number" min="0" value="${price !== '' ? Number(price) : ''}" class="flavor-price w-full px-2.5 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="580" required>
                     </div>
                     <div>
-                        <label class="text-[9px] text-gray-500">原價（選填）</label>
-                        <input type="number" min="0" value="${compareAtPrice !== '' ? Number(compareAtPrice) : ''}" class="flavor-compare-price w-full px-2.5 py-2 border rounded-lg text-xs outline-none" placeholder="680">
+                        <label class="text-[9px] text-gray-500">庫存數量 *</label>
+                        <input type="number" min="0" step="1" value="${stock !== '' && stock != null ? Number(stock) : ''}" class="flavor-stock w-full px-2.5 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-clay" placeholder="例如：10" required>
                     </div>
-                    <div class="col-span-2">
+                    <div>
+                        <label class="text-[9px] text-gray-500">原價（選填）</label>
+                        <input type="number" min="0" value="${compareAtPrice !== '' && compareAtPrice != null ? Number(compareAtPrice) : ''}" class="flavor-compare-price w-full px-2.5 py-2 border rounded-lg text-xs outline-none" placeholder="680">
+                    </div>
+                    <div>
                         <label class="text-[9px] text-gray-500">SKU／內部代號（選填）</label>
                         <input type="text" value="${esc(sku)}" class="flavor-sku w-full px-2.5 py-2 border rounded-lg text-xs outline-none" placeholder="例如 LAV-10ML">
                     </div>
@@ -1479,32 +1505,38 @@
         window.duplicateFlavorRow = function(rowId){
             const row = document.getElementById(rowId);
             if(!row) return;
-            addFlavorRow(
-                row.querySelector('.flavor-name')?.value || '',
-                row.querySelector('.flavor-price')?.value || '',
-                {
-                    compareAtPrice: row.querySelector('.flavor-compare-price')?.value || '',
-                    sku: row.querySelector('.flavor-sku')?.value || '',
-                    active: row.querySelector('.flavor-active')?.checked !== false
-                }
-            );
+            addFlavorRow('', row.querySelector('.flavor-price')?.value || '', {
+                scent: row.querySelector('.flavor-scent')?.value || '',
+                size: row.querySelector('.flavor-size')?.value || '',
+                stock: row.querySelector('.flavor-stock')?.value || '',
+                compareAtPrice: row.querySelector('.flavor-compare-price')?.value || '',
+                sku: row.querySelector('.flavor-sku')?.value || '',
+                active: row.querySelector('.flavor-active')?.checked !== false
+            });
         };
 
         function collectFlavors(){
             return [...document.querySelectorAll('.flavor-row')].map((row, index)=>{
-                const name = row.querySelector('.flavor-name').value.trim();
+                const scent = row.querySelector('.flavor-scent').value.trim();
+                const size = row.querySelector('.flavor-size').value.trim();
                 const priceRaw = row.querySelector('.flavor-price').value;
+                const stockRaw = row.querySelector('.flavor-stock').value;
                 const compareRaw = row.querySelector('.flavor-compare-price').value;
+                const name = [scent,size].filter(Boolean).join('｜');
                 return {
                     name,
+                    scent,
+                    size,
                     price: Number(priceRaw),
+                    stock: Number(stockRaw),
                     compareAtPrice: compareRaw === '' ? null : Number(compareRaw),
                     sku: row.querySelector('.flavor-sku').value.trim(),
                     active: row.querySelector('.flavor-active').checked,
                     sortOrder: index
                 };
-            }).filter(f=>f.name && Number.isFinite(f.price) && f.price >= 0);
+            }).filter(f=>f.scent && f.size && Number.isFinite(f.price) && f.price >= 0 && Number.isInteger(f.stock) && f.stock >= 0);
         }
+
 
         function buildFrontFilterTags(mainCategory, subCategory, details){
             const tags=[];
@@ -1519,11 +1551,11 @@
                     else tags.push('大容量');
                 }
             }
-            if(mainCategory==='香氛蠟燭/融燭燈'){
+            if(mainCategory==='蠟燭'){
                 const t=String(details?.productType||'').trim();
                 if(t) tags.push(t);
             }
-            if(mainCategory==='精油擴香儀'){
+            if(mainCategory==='擴香儀'){
                 const t=String(details?.diffuserType||'').trim();
                 if(t){
                     if(t.includes('可攜') || t.includes('攜帶')) tags.push('可攜式');
@@ -1555,16 +1587,16 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
                 alert('請至少建立一個有效的香氣規格與售價。');
                 return;
             }
-            if(!editId && fileInput.files.length===0){
-                alert('新品請先選擇一張商品主圖。');
+            if(!editId && fileInput.files.length===0 && !existingImg){
+                alert('新品請先選擇一張商品主圖，或從已搬移商品帶入來源主圖。');
                 return;
             }
 
             const seen = new Set();
             for(const f of flavors){
-                const key = f.name.toLowerCase();
+                const key = `${f.scent}|${f.size}`.toLowerCase();
                 if(seen.has(key)){
-                    alert(`規格名稱「${f.name}」重複，請調整後再儲存。`);
+                    alert(`香氣／尺寸「${f.scent}｜${f.size}」重複，請調整後再儲存。`);
                     return;
                 }
                 seen.add(key);
@@ -1626,18 +1658,28 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
 
         function normalizeAdminFlavors(p){
             if(Array.isArray(p.flavors) && p.flavors.length){
-                return p.flavors.map((f,index)=>({
-                    name: String(f.name || '').trim() || `規格 ${index+1}`,
-                    price: Number(f.price ?? 0),
-                    compareAtPrice: f.compareAtPrice ?? null,
-                    sku: f.sku || '',
-                    active: f.active !== false,
-                    sortOrder: Number(f.sortOrder ?? index)
-                })).sort((a,b)=>a.sortOrder-b.sortOrder);
+                return p.flavors.map((f,index)=>{
+                    const legacyName=String(f.name||'').trim();
+                    const looksLikeSize=/^\d+(\.\d+)?\s*(ml|g|kg|oz|入|枚|支|瓶|包)$/i.test(legacyName);
+                    return {
+                        name: legacyName || `規格 ${index+1}`,
+                        scent: String(f.scent || (looksLikeSize ? p.name : legacyName) || p.name || '').trim(),
+                        size: String(f.size || f.capacity || (looksLikeSize ? legacyName : '單一規格')).trim(),
+                        price: Number(f.price ?? 0),
+                        stock: f.stock==null ? '' : Number(f.stock),
+                        compareAtPrice: f.compareAtPrice ?? null,
+                        sku: f.sku || '',
+                        active: f.active !== false,
+                        sortOrder: Number(f.sortOrder ?? index)
+                    };
+                }).sort((a,b)=>a.sortOrder-b.sortOrder);
             }
             return [{
                 name: p.codeName || p.code || p.name || '預設規格',
-                price: Number(p.price ?? p.defaultPrice ?? 580),
+                scent: p.name || p.codeName || p.code || '預設',
+                size: '單一規格',
+                price: Number(p.price ?? p.defaultPrice ?? 0),
+                stock: '',
                 compareAtPrice: null,
                 sku: p.code || '',
                 active: true,
@@ -1682,7 +1724,8 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
                             : '';
                         return `<div class="flex items-center justify-between gap-2 border-t first:border-t-0 py-2">
                             <div>
-                                <span class="text-xs font-bold ${f.active===false?'text-gray-400':'text-gray-700'}">${esc(f.name)}</span>
+                                <span class="text-xs font-bold ${f.active===false?'text-gray-400':'text-gray-700'}">${esc(f.scent || f.name)}｜${esc(f.size || '單一規格')}</span>
+                                <span class="block text-[9px] ${Number(f.stock)===0?'text-red-400':'text-gray-400'}">庫存：${f.stock===''?'待填':Number(f.stock)}</span>
                                 ${f.sku ? `<span class="block text-[9px] text-gray-400">${esc(f.sku)}</span>` : ''}
                             </div>
                             <div class="text-right text-[10px]">
@@ -1804,7 +1847,22 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
         let visibleOrdersCache = [];
 
         function money(v){ return '$' + Number(v || 0).toLocaleString('zh-TW'); }
-        function dt(v){ if(!v) return '—'; const d=new Date(v); return Number.isNaN(d.getTime())?'—':d.toLocaleString('zh-TW',{hour12:false}); }
+        function toDateSafe(v){
+            if(!v) return null;
+            if(v instanceof Date) return Number.isNaN(v.getTime()) ? null : v;
+            if(typeof v?.toDate === 'function'){
+                const d=v.toDate();
+                return d instanceof Date && !Number.isNaN(d.getTime()) ? d : null;
+            }
+            if(typeof v === 'object' && Number.isFinite(Number(v.seconds))){
+                const d=new Date(Number(v.seconds)*1000 + Math.floor(Number(v.nanoseconds||0)/1e6));
+                return Number.isNaN(d.getTime()) ? null : d;
+            }
+            const d=new Date(v);
+            return Number.isNaN(d.getTime()) ? null : d;
+        }
+        function toMillisSafe(v){ const d=toDateSafe(v); return d ? d.getTime() : 0; }
+        function dt(v){ const d=toDateSafe(v); return d ? d.toLocaleString('zh-TW',{hour12:false}) : '—'; }
         function statusMeta(status){
             const map={
                 '待核對':{label:'待確認入帳',cls:'bg-amber-50 text-amber-700 border-amber-100',step:'等待核對款項'},
@@ -1830,7 +1888,7 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
             return ordersCache.filter(o=>{
                 if(status!=='all' && (o.status||'待核對')!==status) return false;
                 if(ship!=='all' && !String(o.shipMethod||'').includes(ship)) return false;
-                const ts=o.createdAt?new Date(o.createdAt).getTime():0;
+                const ts=toMillisSafe(o.createdAt);
                 if(fromTs && ts<fromTs) return false;
                 if(toTs && ts>toTs) return false;
                 if(q){ const hay=[orderNo(o),o.customerName,o.phone,o.shipName,o.shipPhone,o.productName,o.lastFiveDigits,o.shipMethod,o.shipStoreName,o.shipStoreId,o.shipStoreAddress,o.shipAddress,o.couponCode,o.paymentMethod,o.abnormalReason].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
@@ -1883,8 +1941,11 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
         }
         function listenRealtimeOrders(){
             onSnapshot(collection(db,'order_reports'),snap=>{
-                ordersCache=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+                ordersCache=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMillisSafe(b.createdAt)-toMillisSafe(a.createdAt));
                 refreshOrderStats(); renderOrders();
+            },err=>{
+                console.error('訂單即時同步失敗',err);
+                document.getElementById('orderListTable').innerHTML='<tr><td colspan="6" class="text-center py-10 text-red-500">訂單同步失敗：'+esc(err.message)+'</td></tr>';
             });
         }
         window.setStatusQuickFilter=function(status){ document.getElementById('orderStatusFilter').value=status; renderOrders(); document.getElementById('orderListTable')?.scrollIntoView({behavior:'smooth',block:'start'}); };
@@ -1934,13 +1995,72 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
         window.exportOrdersCSV=function(){ const rows=exportRows(); if(!rows.length)return alert('目前篩選條件沒有可匯出的訂單。'); const headers=Object.keys(rows[0]); const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"'; const csv='\ufeff'+headers.map(quote).join(',')+'\n'+rows.map(r=>headers.map(h=>quote(r[h])).join(',')).join('\n'); downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8;'}),`玥石之溫_訂單_${new Date().toISOString().slice(0,10)}.csv`); };
         window.exportOrdersExcel=function(){ const rows=exportRows(); if(!rows.length)return alert('目前篩選條件沒有可匯出的訂單。'); if(typeof XLSX==='undefined')return alert('Excel 元件尚未載入，請重新整理頁面後再試。'); const ws=XLSX.utils.json_to_sheet(rows); ws['!cols']=[{wch:16},{wch:20},{wch:16},{wch:12},{wch:14},{wch:12},{wch:14},{wch:30},{wch:10},{wch:10},{wch:12},{wch:12},{wch:16},{wch:10},{wch:20},{wch:14},{wch:18},{wch:12},{wch:32},{wch:32},{wch:20},{wch:30},{wch:30}]; const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'訂單資料'); XLSX.writeFile(wb,`玥石之溫_訂單_${new Date().toISOString().slice(0,10)}.xlsx`); };
 
-        function listenBookings(){ onSnapshot(collection(db,'course_bookings'),snap=>{ let pending=0; const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.bookingDate||'').localeCompare(String(a.bookingDate||''))); rows.forEach(b=>{ if((b.status||'已預約')==='已預約')pending++; }); document.getElementById('statBookings').textContent=pending; document.getElementById('bookingAdminList').innerHTML=rows.length?rows.map(b=>`<div class="bg-sand/50 border rounded-xl p-3"><b>${esc(b.customerName||'會員')}</b>・${esc(b.bookingDate||'未定')}・${Number(b.peopleCount||1)} 人<br><span class="text-clay">${esc(b.drawnOil||'未指定香氣')}</span><br><span>${esc(b.status||'已預約')}</span><div class="mt-2"><button onclick="updateBooking('${b.id}','已確認')" class="bg-forest text-white px-2 py-1 rounded text-[10px]">確認</button> <button onclick="updateBooking('${b.id}','已完成')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]">完成</button> <button onclick="updateBooking('${b.id}','已取消')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px]">取消</button></div></div>`).join(''):'<p class="text-gray-400">目前沒有預約。</p>'; }); }
-        window.updateBooking=async(id,status)=>{try{await updateDoc(doc(db,'course_bookings',id),{status,updatedAt:new Date().toISOString()})}catch(e){alert(e.message)}};
+        function listenBookings(){ onSnapshot(collection(db,'course_bookings'),snap=>{ let pending=0; const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.bookingDate||'').localeCompare(String(a.bookingDate||''))); rows.forEach(b=>{ if((b.status||'已預約')==='已預約')pending++; }); document.getElementById('statBookings').textContent=pending; document.getElementById('bookingAdminList').innerHTML=rows.length?rows.map(b=>`<div class="bg-sand/50 border rounded-xl p-3"><b>${esc(b.customerName||'會員')}</b>・${esc(b.bookingDate||'未定')}・${Number(b.peopleCount||1)} 人<br><span class="text-clay">${esc(b.drawnOil||'未指定香氣')}</span><br><span>${esc(b.status||'已預約')}</span><div class="mt-2"><button onclick="updateBooking('${b.id}','已確認')" class="bg-forest text-white px-2 py-1 rounded text-[10px]">確認</button> <button onclick="updateBooking('${b.id}','已完成')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]">完成</button> <button onclick="updateBooking('${b.id}','已取消')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px]">取消</button></div></div>`).join(''):'<p class="text-gray-400">目前沒有預約。</p>'; },err=>{ console.error('預約同步失敗',err); document.getElementById('bookingAdminList').innerHTML='<p class="text-red-500">預約同步失敗：'+esc(err.message)+'</p>'; }); }
+        window.updateBooking=async(id,status)=>{
+            if(!confirm(`確定要將此預約更新為「${status}」嗎？`)) return;
+            try{
+                await updateDoc(doc(db,'course_bookings',id),{status,updatedAt:new Date().toISOString()});
+            }catch(e){ alert('預約狀態更新失敗：'+e.message); }
+        };
 
-        document.getElementById('couponForm').addEventListener('submit',async e=>{ e.preventDefault(); const code=document.getElementById('couponCodeAdmin').value.trim().toUpperCase(); if(!code)return; try{await setDoc(doc(db,'coupons',code),{code,discountType:document.getElementById('couponTypeAdmin').value,value:Number(document.getElementById('couponValueAdmin').value),minSpend:Number(document.getElementById('couponMinSpendAdmin').value||0),scope:document.getElementById('couponScopeAdmin').value,active:document.getElementById('couponActiveAdmin').checked,updatedAt:new Date().toISOString()},{merge:true}); alert('優惠券已儲存'); document.getElementById('couponForm').reset(); document.getElementById('couponActiveAdmin').checked=true; loadCoupons();}catch(e){alert(e.message)} });
+        let editingCouponCode='';
+        document.getElementById('couponForm').addEventListener('submit',async e=>{
+            e.preventDefault();
+            const code=document.getElementById('couponCodeAdmin').value.trim().toUpperCase();
+            const type=document.getElementById('couponTypeAdmin').value;
+            const value=Number(document.getElementById('couponValueAdmin').value);
+            const minSpend=Number(document.getElementById('couponMinSpendAdmin').value||0);
+            if(!/^[A-Z0-9_-]{2,30}$/.test(code)) return alert('優惠碼僅可使用 2–30 碼英文字母、數字、底線或連字號。');
+            if(editingCouponCode && code!==editingCouponCode) return alert('編輯既有優惠券時不可直接更改代碼，以免產生重複優惠券。若要換代碼，請新增新券後再刪除舊券。');
+            if(!Number.isFinite(value) || value<=0) return alert('折扣值必須大於 0。');
+            if(type==='percent' && value>100) return alert('百分比折扣不可超過 100%。');
+            if(!Number.isFinite(minSpend) || minSpend<0) return alert('最低消費不可小於 0。');
+            try{
+                await setDoc(doc(db,'coupons',code),{
+                    code,discountType:type,value,minSpend,
+                    scope:document.getElementById('couponScopeAdmin').value,
+                    active:document.getElementById('couponActiveAdmin').checked,
+                    updatedAt:new Date().toISOString()
+                },{merge:true});
+                alert('優惠券已儲存');
+                editingCouponCode='';
+                document.getElementById('couponForm').reset();
+                document.getElementById('couponCodeAdmin').readOnly=false;
+                document.getElementById('couponActiveAdmin').checked=true;
+                loadCoupons();
+            }catch(e){ alert('優惠券儲存失敗：'+e.message); }
+        });
         async function loadCoupons(){ const snap=await getDocs(collection(db,'coupons')); document.getElementById('couponList').innerHTML=snap.empty?'<p class="text-gray-400">目前沒有優惠券。</p>':snap.docs.map(ds=>{const c=ds.data(); return `<div class="border rounded-xl p-3 bg-sand/40"><b class="text-forest">${esc(ds.id)}</b>・${c.discountType==='percent'?Number(c.value)+'%':'$'+Number(c.value)}<br><span>最低 $${Number(c.minSpend||0)}・${c.scope==='birthday'?'壽星限定':'所有會員'}・${c.active===false?'停用':'啟用'}</span><div class="mt-2"><button onclick="editCoupon('${ds.id}')" class="bg-forest/10 text-forest px-2 py-1 rounded text-[10px]">編輯</button> <button onclick="deleteCoupon('${ds.id}')" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px]">刪除</button></div></div>`}).join(''); }
-        window.editCoupon=async code=>{const s=await getDoc(doc(db,'coupons',code)); if(!s.exists())return; const c=s.data(); document.getElementById('couponCodeAdmin').value=code; document.getElementById('couponTypeAdmin').value=c.discountType||'fixed'; document.getElementById('couponValueAdmin').value=c.value||0; document.getElementById('couponMinSpendAdmin').value=c.minSpend||0; document.getElementById('couponScopeAdmin').value=c.scope||'all'; document.getElementById('couponActiveAdmin').checked=c.active!==false;};
-        window.deleteCoupon=async code=>{if(confirm(`刪除優惠券 ${code}？`)){await deleteDoc(doc(db,'coupons',code)); loadCoupons()}};
+        window.editCoupon=async code=>{
+            try{
+                const s=await getDoc(doc(db,'coupons',code));
+                if(!s.exists()) return alert('找不到此優惠券。');
+                const c=s.data();
+                editingCouponCode=code;
+                const codeEl=document.getElementById('couponCodeAdmin');
+                codeEl.value=code;
+                codeEl.readOnly=true;
+                document.getElementById('couponTypeAdmin').value=c.discountType||'fixed';
+                document.getElementById('couponValueAdmin').value=c.value||0;
+                document.getElementById('couponMinSpendAdmin').value=c.minSpend||0;
+                document.getElementById('couponScopeAdmin').value=c.scope||'all';
+                document.getElementById('couponActiveAdmin').checked=c.active!==false;
+                codeEl.scrollIntoView({behavior:'smooth',block:'center'});
+            }catch(e){ alert('優惠券讀取失敗：'+e.message); }
+        };
+        window.deleteCoupon=async code=>{
+            if(!confirm(`刪除優惠券 ${code}？`)) return;
+            try{
+                await deleteDoc(doc(db,'coupons',code));
+                if(editingCouponCode===code){
+                    editingCouponCode='';
+                    document.getElementById('couponForm').reset();
+                    document.getElementById('couponCodeAdmin').readOnly=false;
+                    document.getElementById('couponActiveAdmin').checked=true;
+                }
+                await loadCoupons();
+            }catch(e){ alert('優惠券刪除失敗：'+e.message); }
+        };
         window.seedDefaultCoupons=async()=>{ const defaults={STAR88:{discountType:'percent',value:12,minSpend:0,scope:'all'},BIRTHDAY100:{discountType:'fixed',value:100,minSpend:0,scope:'birthday'},FREE60:{discountType:'fixed',value:60,minSpend:60,scope:'all'}}; for(const [code,c] of Object.entries(defaults)) await setDoc(doc(db,'coupons',code),{code,...c,active:true,updatedAt:new Date().toISOString()},{merge:true}); alert('預設優惠券已建立'); loadCoupons(); };
     </script>
 

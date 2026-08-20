@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- V82 QA4｜推薦碼後端安全化 -->
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -90,7 +91,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, increment, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-functions.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c",
@@ -104,8 +106,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const functions = getFunctions(app, 'asia-east1');
+        const claimReferral = httpsCallable(functions, 'claimReferral');
         const SIGNUP_POINTS = 50;
-        const REFERRER_REWARD = 50;
 
         window.switchTab = function(type) {
             const loginForm = document.getElementById('loginForm');
@@ -124,22 +127,6 @@
             }
         };
 
-        async function findMemberByCode(code) {
-            const normalized = code.trim().toUpperCase();
-            if (!normalized) return null;
-            const snap = await getDocs(query(collection(db, 'members'), where('memberCode', '==', normalized)));
-            if (snap.empty) return null;
-            const first = snap.docs[0];
-            return { id:first.id, ...first.data() };
-        }
-
-        async function generateUniqueMemberCode() {
-            for (let i=0; i<12; i++) {
-                const code = 'YS' + Math.floor(100000 + Math.random() * 900000);
-                if (!await findMemberByCode(code)) return code;
-            }
-            return 'YS' + Date.now().toString().slice(-8);
-        }
 
         document.getElementById('loginForm').addEventListener('submit', async e => {
             e.preventDefault();
@@ -172,30 +159,31 @@
             if (password !== passwordConfirm) return alert('⚠️ 兩次輸入的密碼不一致。');
             btn.disabled = true; btn.textContent = '⏳ 正在驗證推薦碼並建立會員...';
             try {
-                let inviter = null;
-                if (inviteCode) {
-                    inviter = await findMemberByCode(inviteCode);
-                    if (!inviter) throw new Error('推薦碼不存在，請確認後再試；若沒有推薦人可留白。');
-                }
-                const myMemberCode = await generateUniqueMemberCode();
                 const credential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = credential.user;
+
+                // 會員碼改由 UID 衍生，不需掃描 members 集合，也不會碰撞。
+                const myMemberCode = 'YS' + user.uid.replace(/[^A-Za-z0-9]/g,'').slice(0,8).toUpperCase();
+
                 await setDoc(doc(db, 'members', user.uid), {
                     uid:user.uid, fullName:name, phone, birthday, email,
-                    memberCode:myMemberCode, usedInviteCode:inviteCode || '',
+                    memberCode:myMemberCode, usedInviteCode:'',
                     points:SIGNUP_POINTS, role:'member', createdAt:new Date().toISOString()
                 });
-                if (inviter) {
+
+                let referralMessage = '';
+                if (inviteCode) {
                     try {
-                        await updateDoc(doc(db, 'members', inviter.id), { points: increment(REFERRER_REWARD) });
-                        await addDoc(collection(db, 'referrals'), {
-                            inviterUid:inviter.id, inviterCode:inviteCode,
-                            invitedUid:user.uid, invitedName:name, invitedEmail:email,
-                            rewardPoints:REFERRER_REWARD, createdAt:new Date().toISOString()
-                        });
-                    } catch (refErr) { console.error('推薦獎勵寫入失敗', refErr); }
+                        const result = await claimReferral({ inviteCode });
+                        const reward = Number(result?.data?.rewardPoints || 0);
+                        referralMessage = reward > 0 ? `，推薦碼已驗證，推薦人獲得 ${reward} 點` : '';
+                    } catch (refErr) {
+                        // 帳號已建立，不因推薦碼錯誤而留下半建立狀態。
+                        console.error('推薦碼處理失敗', refErr);
+                        referralMessage = '；但推薦碼無效或已使用，因此未發送推薦獎勵';
+                    }
                 }
-                alert(`🎉 註冊成功！獲得首訪養份 ${SIGNUP_POINTS} 點${inviter ? `，並已為推薦人送出 ${REFERRER_REWARD} 點獎勵` : ''}。`);
+                alert(`🎉 註冊成功！獲得首訪養份 ${SIGNUP_POINTS} 點${referralMessage}。`);
                 location.href = 'home.html';
             } catch (e) { alert('❌ 註冊失敗：' + e.message); }
             finally { btn.disabled = false; btn.textContent = '註冊並開啟療癒之旅'; }
