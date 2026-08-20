@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- V82 QA5｜分類圖片自訂＋非精油分類修正 -->
 <!-- V82 QA3｜前後台相容＋分類＋庫存修正版 -->
 <!-- V82 QA2 FIX｜2026-08-20｜訂單/優惠券/預約第二輪除錯 -->
 <!-- V82 QA FIX｜2026-08-20｜功能健檢修正版 -->
@@ -124,12 +125,24 @@
             </div>
         </div>
 
+        <!-- 🖼️ 商品專區分類圖片管理 -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b pb-4 mb-5">
+                <div>
+                    <h3 class="text-base font-bold text-forest">🖼️ 商品專區分類圖片</h3>
+                    <p class="text-xs text-gray-400 mt-1">可直接更換首頁「商品專區」7 個主分類圖片。上傳後前台會自動同步，不需要再改 home.html。</p>
+                </div>
+                <button type="button" onclick="loadCatalogImagesAdmin()" class="text-xs border px-3 py-2 rounded-xl">重新載入</button>
+            </div>
+            <div id="catalogImageAdminGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+        </section>
+
         <!-- 🛍️ 商品管理 v2 -->
         <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b pb-4 mb-5">
                 <div>
                     <h3 class="text-base font-bold text-forest">🛍️ 商品上架與規格管理</h3>
-                    <p class="text-xs text-gray-400 mt-1">V16 簡化：只有「精油」與「Gonesh」需要細分類；水氧機、擴香儀、水洗機、蠟燭與香氛直接選主分類即可。</p>
+                    <p class="text-xs text-gray-400 mt-1">新版分類：所有主分類皆依前台結構提供對應細分類；「已搬移商品快速選擇」目前只有精油資料，其他類別請先用「手動新增空白商品」。</p>
                 </div>
                 <div class="flex gap-2">
                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 新增商品</button>
@@ -172,7 +185,7 @@
                                 </div>
                             </div>
 
-                            <p class="text-[10px] text-gray-400 -mt-2">💡 水氧機、擴香儀、水洗機、蠟燭與香氛不需要選細分類；直接填商品屬性即可，前台會自動產生篩選。</p>
+                            <p class="text-[10px] text-gray-400 -mt-2">💡 細分類會依主分類自動切換；精油另有「商品類型（單方／複方）」。其他類別目前尚無搬移預設商品，請手動新增。</p>
 
                             <div class="rounded-xl border border-clay/20 bg-clay/5 p-3">
                                 <div class="flex items-center justify-between gap-3 mb-2">
@@ -320,7 +333,7 @@
 
         onAuthStateChanged(auth, async user => {
             if (!user || !ADMIN_EMAILS.includes(user.email)) { alert('🔒 本頁面為主理人專屬。'); location.href='home.html'; return; }
-            resetForm(); loadAdminProducts(); listenRealtimeOrders(); listenBookings(); loadCoupons();
+            resetForm(); loadAdminProducts(); listenRealtimeOrders(); listenBookings(); loadCoupons(); loadCatalogImagesAdmin();
         });
 
         let flavorRowSerial = 0;
@@ -1334,6 +1347,59 @@
 
         // V15：來源站分類骨架校正版
         // allowRoot=true 代表該主分類可直接上架商品，不強迫再選一個不存在的細分類。
+        const CATALOG_MAIN_NAMES = ['精油','蠟燭','超音波水氧機','擴香儀','空氣清淨水洗機','香氛','Gonesh'];
+        let catalogImagesCache = {};
+
+        window.loadCatalogImagesAdmin = async function(){
+            const grid=document.getElementById('catalogImageAdminGrid');
+            if(!grid) return;
+            grid.innerHTML='<p class="text-xs text-gray-400 col-span-full">正在讀取分類圖片...</p>';
+            try{
+                const snap=await getDoc(doc(db,'catalog_settings','main'));
+                catalogImagesCache=snap.exists() ? (snap.data().images||{}) : {};
+                grid.innerHTML=CATALOG_MAIN_NAMES.map((name,index)=>{
+                    const current=catalogImagesCache[name]||'';
+                    const safeId='catalogImg_'+index;
+                    return `<div class="border rounded-2xl p-3 bg-sand/30">
+                        <div class="aspect-[4/3] bg-white border rounded-xl overflow-hidden mb-3 flex items-center justify-center">
+                            ${current?`<img src="${esc(current)}" class="w-full h-full object-cover" alt="${esc(name)}">`:'<span class="text-xs text-gray-400">尚未自訂<br>目前使用前台預設圖</span>'}
+                        </div>
+                        <p class="text-sm font-bold text-forest mb-2">${esc(name)}</p>
+                        <input id="${safeId}" type="file" accept="image/*" class="block w-full text-[10px] mb-2">
+                        <button type="button" onclick="uploadCatalogImage('${esc(name)}','${safeId}')" class="w-full bg-forest text-white py-2 rounded-lg text-xs">上傳並套用</button>
+                        ${current?`<button type="button" onclick="clearCatalogImage('${esc(name)}')" class="w-full mt-2 border border-red-200 text-red-500 py-2 rounded-lg text-xs">恢復預設圖</button>`:''}
+                    </div>`;
+                }).join('');
+            }catch(e){ grid.innerHTML=`<p class="text-xs text-red-500 col-span-full">分類圖片讀取失敗：${esc(e.message)}</p>`; }
+        };
+
+        window.uploadCatalogImage = async function(name,inputId){
+            const input=document.getElementById(inputId);
+            const file=input?.files?.[0];
+            if(!file) return alert('請先選擇圖片。');
+            if(!file.type.startsWith('image/')) return alert('請選擇圖片檔。');
+            if(file.size>5*1024*1024) return alert('圖片請控制在 5MB 以下。');
+            try{
+                const safeName=name.replace(/[^A-Za-z0-9一-鿿_-]/g,'_');
+                const storageRef=ref(storage,`catalog-categories/${safeName}_${Date.now()}_${file.name}`);
+                const up=await uploadBytes(storageRef,file);
+                const url=await getDownloadURL(up.ref);
+                catalogImagesCache[name]=url;
+                await setDoc(doc(db,'catalog_settings','main'),{images:catalogImagesCache,updatedAt:new Date().toISOString()},{merge:true});
+                alert(`✅ ${name} 分類圖片已更新`);
+                await loadCatalogImagesAdmin();
+            }catch(e){ alert('分類圖片上傳失敗：'+e.message); }
+        };
+
+        window.clearCatalogImage = async function(name){
+            if(!confirm(`恢復「${name}」的前台預設圖片？`)) return;
+            try{
+                delete catalogImagesCache[name];
+                await setDoc(doc(db,'catalog_settings','main'),{images:catalogImagesCache,updatedAt:new Date().toISOString()},{merge:true});
+                await loadCatalogImagesAdmin();
+            }catch(e){ alert('恢復預設圖失敗：'+e.message); }
+        };
+
         const PRODUCT_TAXONOMY = {
             '精油': {
                 subs:['水氧精油','純精油'],

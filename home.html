@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- V82 QA5｜商品專區分類圖片雲端覆寫 -->
 <!-- V82 QA3｜前台相容＋日期＋付款狀態修正版 -->
 <html lang="zh-TW">
 <head>
@@ -486,6 +487,14 @@
             </button>`;
         }
 
+        async function loadCatalogImageOverrides(){
+            try{
+                const snap=await getDoc(doc(db,'catalog_settings','main'));
+                const images=snap.exists() ? (snap.data().images||{}) : {};
+                CATALOG_TAXONOMY.forEach(item=>{ if(images[item.name]) item.image=images[item.name]; });
+            }catch(e){ console.warn('分類圖片設定讀取失敗，使用前台預設圖片',e); }
+        }
+
         function renderCatalogMain(){
             const grid = document.getElementById('catalogMainGrid');
             if(!grid) return;
@@ -565,7 +574,8 @@
                     productsCache[p.id] = p;
                     if(p.mainCategory==='精油') p.flavors.filter(f=>f.active&&f.stock!==0).forEach(f => drawPool.push({productId:p.id,variantId:f.id,productName:p.name,category:p.subCategory||p.category,flavorName:f.scent||f.name,size:f.size||'',price:f.price,stock:f.stock,description:p.description,imageUrl:p.imageUrl}));
                 });
-                renderCatalogMain();
+                await loadCatalogImageOverrides();
+            renderCatalogMain();
                 prepareDrawCards();
             } catch (error) {
                 console.error(error);
