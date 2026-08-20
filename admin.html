@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- SPEC + PAYMENT PRODUCTION｜MANUAL PRICE + SECURE BANK TRANSFER -->
 <!-- PRODUCTION READY IMAGE SYNC｜SERVER-SIDE SOURCE IMAGE COMPLETION -->
 <!-- V82 QA5｜分類圖片自訂＋非精油分類修正 -->
 <!-- V82 QA3｜前後台相容＋分類＋庫存修正版 -->
@@ -148,6 +149,8 @@
                 <div class="flex flex-wrap gap-2">
                     <button id="masterImportBtn" type="button" onclick="batchImportMasterCatalog()" class="bg-clay text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">📦 一次匯入 Master Catalog</button>
                     <button id="masterImageSyncBtn" type="button" onclick="syncMasterCatalogImages()" class="bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">🖼️ 自動補來源商品圖</button>
+                    <button id="oilSpecNormalizeBtn" type="button" onclick="normalizeOilSpecs()" class="bg-sky-700 text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">🧪 校正精油 10ml / 60ml</button>
+                    <button type="button" onclick="auditProductSpecs()" class="bg-white border px-4 py-2 rounded-xl text-xs font-bold text-forest hover:bg-sand">🔎 規格完整度稽核</button>
                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 手動新增商品</button>
                 </div>
             </div>
@@ -330,6 +333,8 @@
 
         const firebaseConfig = { apiKey:"AIzaSyDO3zBEE275PfxNash3-HsjPRWXGYluI-c", authDomain:"poetry-ai-5dd52.firebaseapp.com", projectId:"poetry-ai-5dd52", storageBucket:"poetry-ai-5dd52.firebasestorage.app", messagingSenderId:"433041548580", appId:"1:433041548580:web:43808e3a99ea9fbd123fb1", measurementId:"G-D3LY5HJLZG" };
         const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app), storage=getStorage(app);
+        const functions=getFunctions(app,'asia-east1');
+        const updateBankTransferOrderStatusCall=httpsCallable(functions,'updateBankTransferOrderStatus');
         const ADMIN_EMAILS=["qoojude@hotmail.com","a0937034596@gmail.com"];
         let productsCache={};
         const esc=(v='')=>String(v).replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
@@ -342,7 +347,7 @@
         let flavorRowSerial = 0;
 
         // 授權來源商品搬移資料庫：每一批核對後再加入，避免一次大量搬移造成欄位錯置。
-        // 售價與庫存刻意不預填，管理員上架時自行設定。
+        // 售價固定由管理員手動設定；來源網站價格不得自動覆寫正式售價。庫存也由管理員維護。
         const PRESET_PRODUCTS = [
             {
                 id:'pure-single-bergamot-fcr', imageUrl:'https://www.whaletree.com.tw/wp-content/uploads/2025/10/%E5%96%AE%E6%96%B9%E7%B2%BE%E6%B2%B9-%E4%BD%9B%E6%89%8B%E6%9F%91FCR-%E9%A6%96-600x600.jpg', mainCategory:'精油', subCategory:'純精油', detailCategory:'單方精油',
@@ -2426,6 +2431,88 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
         }
 
 
+
+        window.auditProductSpecs = async function(){
+            try{
+                const snap=await getDocs(collection(db,'products'));
+                let total=0,oils=0,oilOk=0,oilNeed=0,single=0,multi=0,missingStock=0,zeroStock=0,missingPrice=0,missingImage=0;
+                const needs=[];
+                snap.forEach(ds=>{
+                    const p={id:ds.id,...ds.data()}, fs=Array.isArray(p.flavors)?p.flavors:[];
+                    total++; if(!p.imageUrl) missingImage++;
+                    if(fs.length<=1) single++; else multi++;
+                    fs.forEach(f=>{
+                        if(f.stock===undefined||f.stock===null||f.stock==='') missingStock++;
+                        else if(Number(f.stock)===0) zeroStock++;
+                        if(!Number.isFinite(Number(f.price))||Number(f.price)<=0) missingPrice++;
+                    });
+                    if(p.mainCategory==='精油'){
+                        oils++;
+                        const sizes=new Set(fs.map(f=>String(f.size||'').trim().toLowerCase()));
+                        if(sizes.has('10ml')&&sizes.has('60ml')&&fs.length>=2) oilOk++;
+                        else { oilNeed++; needs.push(p.name||p.id); }
+                    }
+                });
+                alert(`規格完整度稽核完成
+
+商品總數：${total}
+精油商品：${oils}
+精油 10ml / 60ml 完整：${oilOk}
+精油待校正：${oilNeed}
+
+單一規格商品：${single}
+多規格商品：${multi}
+庫存尚未填：${missingStock}
+庫存為 0：${zeroStock}
+售價尚未手動設定：${missingPrice}
+缺商品圖片：${missingImage}
+
+售價只列為待人工設定，系統不會同步來源價格。`+(needs.length?`\n\n待校正精油前 20 筆：\n${needs.slice(0,20).join('\n')}`:''));
+            }catch(e){ alert('規格稽核失敗：'+e.message); }
+        };
+
+        window.normalizeOilSpecs = async function(){
+            if(!confirm('只校正 Master Catalog 精油為 10ml / 60ml。\n\n既有對應規格的售價、庫存、SKU 會保留；缺少規格才新增，新增售價=0、庫存=0。\n\n不會同步來源網站售價。要繼續嗎？')) return;
+            const btn=document.getElementById('oilSpecNormalizeBtn');
+            if(btn){btn.disabled=true;btn.textContent='⏳ 精油規格校正中...';}
+            let updated=0,skipped=0,failed=0;
+            try{
+                const snap=await getDocs(collection(db,'products'));
+                for(const ds of snap.docs){
+                    const p=ds.data()||{};
+                    if(p.sourceType!=='master-catalog'||p.mainCategory!=='精油') continue;
+                    try{
+                        const old=Array.isArray(p.flavors)?p.flavors:[];
+                        const bySize=new Map(old.map(f=>[String(f.size||'').trim().toLowerCase(),f]));
+                        const make=(size,index)=>{
+                            const ex=bySize.get(size.toLowerCase())||{};
+                            return {
+                                name:`${p.name||'精油'}｜${size}`, scent:String(ex.scent||p.name||'精油'), size,
+                                price:Number.isFinite(Number(ex.price))?Number(ex.price):0,
+                                stock:Number.isInteger(Number(ex.stock))&&Number(ex.stock)>=0?Number(ex.stock):0,
+                                compareAtPrice:ex.compareAtPrice??null, sku:String(ex.sku||''),
+                                active:ex.active!==false, sortOrder:index
+                            };
+                        };
+                        const next=[make('10ml',0),make('60ml',1)];
+                        const ok=old.length===2 &&
+                            String(old[0]?.size||'').toLowerCase()==='10ml' &&
+                            String(old[1]?.size||'').toLowerCase()==='60ml';
+                        if(ok){skipped++;continue;}
+                        await updateDoc(doc(db,'products',ds.id),{
+                            flavors:next, defaultPrice:Number(next[0].price||0),
+                            specNormalizedAt:new Date().toISOString(), updatedAt:new Date().toISOString()
+                        });
+                        updated++;
+                    }catch(err){failed++;console.error('normalize spec failed',ds.id,err);}
+                }
+                alert(`精油規格校正完成。\n更新：${updated}\n原本正確略過：${skipped}\n失敗：${failed}\n\n售價沒有從來源網站同步。`);
+                await loadAdminProducts();
+            }finally{
+                if(btn){btn.disabled=false;btn.textContent='🧪 校正精油 10ml / 60ml';}
+            }
+        };
+
         window.syncMasterCatalogImages = async function(){
             const btn=document.getElementById('masterImageSyncBtn');
             if(!confirm('系統會從來源網站逐頁尋找商品頁主圖，只補目前沒有 imageUrl 的 Master Catalog 商品。\n\n不會覆蓋你手動上傳的商品圖片。要繼續嗎？')) return;
@@ -2776,29 +2863,14 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
         window.markOrderAbnormal=function(orderId){ const reason=prompt('請輸入異常原因（例如：款項未入帳、金額不符、後五碼不符、顧客要求取消）：'); if(reason===null)return; if(!reason.trim())return alert('異常訂單必須填寫原因。'); updateOrderStatus(orderId,'帳款異常',reason.trim()); };
         window.cancelOrder=function(orderId){ const reason=prompt('請輸入取消原因：'); if(reason===null)return; if(!reason.trim())return alert('取消訂單必須填寫原因。'); if(!confirm('確定要將此訂單標記為「已取消」嗎？訂單資料仍會永久保留。'))return; updateOrderStatus(orderId,'已取消',reason.trim()); };
         window.updateOrderStatus=async function(orderId,newStatus,reason=''){
-            const current=ordersCache.find(o=>o.id===orderId); if(!current)return alert('找不到訂單。');
+            const current=ordersCache.find(o=>o.id===orderId);if(!current)return alert('找不到訂單。');
             const oldStatus=current.status||'待核對';
-            const allowed={
-                '待核對':['已核對/待出貨','帳款異常'],
-                '已核對/待出貨':['已完成出貨','帳款異常'],
-                '帳款異常':['待核對','已取消'],
-                '已完成出貨':[], '已取消':[]
-            };
-            if(!(allowed[oldStatus]||[]).includes(newStatus)) return alert(`目前狀態「${statusMeta(oldStatus).label}」不能直接變更為「${statusMeta(newStatus).label}」。`);
-            const confirmText=newStatus==='已核對/待出貨'?'確認款項已實際入帳？確認後會發放會員消費點數。':newStatus==='已完成出貨'?'確認商品已完成交寄／出貨？':null;
-            if(confirmText&&!confirm(confirmText))return;
-            try{
-                await runTransaction(db,async tx=>{
-                    const orderRef=doc(db,'order_reports',orderId); const orderSnap=await tx.get(orderRef); if(!orderSnap.exists())throw new Error('訂單不存在'); const o=orderSnap.data();
-                    const now=new Date().toISOString(); const changes={status:newStatus,updatedAt:now};
-                    if(newStatus==='已核對/待出貨'){ changes.paidAt=now; changes.abnormalReason=''; if(!o.pointsAwarded&&o.uid){ const memberRef=doc(db,'members',o.uid); const memberSnap=await tx.get(memberRef); const earned=Math.round(Number(o.finalPrice||0)*0.1); if(memberSnap.exists()&&earned>0){tx.update(memberRef,{points:increment(earned)}); changes.pointsAwarded=true; changes.pointsEarned=earned; changes.pointsAwardedAt=now;} } }
-                    if(newStatus==='已完成出貨') changes.shippedAt=now;
-                    if(newStatus==='帳款異常'){ changes.abnormalReason=reason; changes.abnormalAt=now; if(o.pointsAwarded&&o.uid&&Number(o.pointsEarned||0)>0){ const memberRef=doc(db,'members',o.uid); const memberSnap=await tx.get(memberRef); if(memberSnap.exists()) tx.update(memberRef,{points:increment(-Number(o.pointsEarned||0))}); changes.pointsAwarded=false; changes.pointsRevokedAt=now; } }
-                    if(newStatus==='待核對'){ changes.abnormalReason=''; changes.reopenedAt=now; }
-                    if(newStatus==='已取消'){ changes.cancelReason=reason; changes.cancelledAt=now; }
-                    tx.update(orderRef,changes);
-                });
-            }catch(e){alert('修改失敗：'+e.message)}
+            const allowed={'待核對':['已核對/待出貨','帳款異常'],'已核對/待出貨':['已完成出貨','帳款異常'],'帳款異常':['待核對','已取消'],'已完成出貨':[],'已取消':[]};
+            if(!(allowed[oldStatus]||[]).includes(newStatus)) return alert('此訂單狀態不能直接這樣變更。');
+            const msg=newStatus==='已核對/待出貨'?'確認款項已實際入帳？系統會再次核對庫存、扣庫存並發放會員點數。':newStatus==='已完成出貨'?'確認商品已完成交寄／出貨？':null;
+            if(msg&&!confirm(msg))return;
+            try{await updateBankTransferOrderStatusCall({orderId,newStatus,reason});}
+            catch(err){console.error(err);alert('修改失敗：'+(err?.message||err));}
         };
         window.openOrderDetail=function(id){
             const o=ordersCache.find(x=>x.id===id); if(!o)return;
