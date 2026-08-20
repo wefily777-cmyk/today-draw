@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PRODUCTION READY HOTFIX1｜VISIBLE MASTER IMPORT + CLEAN ADMIN UX -->
+<!-- PRODUCTION READY IMAGE SYNC｜SERVER-SIDE SOURCE IMAGE COMPLETION -->
 <!-- V82 QA5｜分類圖片自訂＋非精油分類修正 -->
 <!-- V82 QA3｜前後台相容＋分類＋庫存修正版 -->
 <!-- V82 QA2 FIX｜2026-08-20｜訂單/優惠券/預約第二輪除錯 -->
@@ -147,6 +147,7 @@
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button id="masterImportBtn" type="button" onclick="batchImportMasterCatalog()" class="bg-clay text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">📦 一次匯入 Master Catalog</button>
+                    <button id="masterImageSyncBtn" type="button" onclick="syncMasterCatalogImages()" class="bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">🖼️ 自動補來源商品圖</button>
                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 手動新增商品</button>
                 </div>
             </div>
@@ -2422,6 +2423,36 @@ document.getElementById('uploadForm').addEventListener('submit', async e=>{
                 sortOrder: 0
             }];
         }
+
+
+        window.syncMasterCatalogImages = async function(){
+            const btn=document.getElementById('masterImageSyncBtn');
+            if(!confirm('系統會從來源網站逐頁尋找商品頁主圖，只補目前沒有 imageUrl 的 Master Catalog 商品。\n\n不會覆蓋你手動上傳的商品圖片。要繼續嗎？')) return;
+            if(btn){ btn.disabled=true; btn.textContent='⏳ 正在補來源圖...'; }
+            try{
+                let totalUpdated=0,totalSkipped=0,totalFailed=0,totalRemaining=0;
+                let cursor='';
+                let round=0;
+                do{
+                    round++;
+                    if(btn) btn.textContent=`⏳ 補圖中…第 ${round} 批`;
+                    const result=await syncCatalogImagesCall({limit:25,cursor});
+                    const d=result?.data||{};
+                    totalUpdated+=Number(d.updated||0);
+                    totalSkipped+=Number(d.skipped||0);
+                    totalFailed+=Number(d.failed||0);
+                    totalRemaining=Number(d.remaining||0);
+                    cursor=String(d.nextCursor||'');
+                }while(cursor && round<20);
+                alert(`來源商品圖同步完成。\n新增圖片：${totalUpdated}\n已有圖片略過：${totalSkipped}\n本輪失敗：${totalFailed}\n仍缺圖片：${totalRemaining}\n\n系統不會覆蓋你手動設定的圖片。`);
+                await loadAdminProducts();
+            }catch(e){
+                console.error('syncCatalogImages failed',e);
+                alert('來源商品圖同步失敗：'+(e?.message||e));
+            }finally{
+                if(btn){ btn.disabled=false; btn.textContent='🖼️ 自動補來源商品圖'; }
+            }
+        };
 
         window.batchImportMasterCatalog = async function(){
             if(!confirm(`將檢查 ${PRESET_PRODUCTS.length} 筆 Master Catalog，並只建立 Firestore 中尚不存在的商品。\n\n既有商品不會被覆蓋。要繼續嗎？`)) return;
