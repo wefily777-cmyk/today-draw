@@ -24,7 +24,7 @@
     </style>
 </head>
 <body class="bg-cream text-gray-700 min-h-screen">
-    <div class="bg-forest text-white text-[11px] sm:text-xs text-center py-2 tracking-wide">全館滿 NT$1,500 免運 ｜ 加入會員享專屬優惠與香氣推薦</div>
+    <div class="bg-forest text-white text-[11px] sm:text-xs text-center py-2 tracking-wide">全館滿 NT$1,000 免運 ｜ 一般運費 NT$130 ｜ 加入會員享專屬優惠與香氣推薦</div>
 
     <header class="bg-white/95 sticky top-0 z-40 border-b border-stone-100 backdrop-blur">
         <div class="max-w-7xl mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
@@ -227,6 +227,10 @@
                 <div id="discountRow" class="text-xs text-clay hidden flex justify-between px-4 mt-1">
                     <span>折扣折抵：</span><span id="discountText">-$0</span>
                 </div>
+                <div class="text-xs text-gray-500 flex justify-between px-4 mt-1">
+                    <span>運費：</span><span id="shippingFeeText">NT$130</span>
+                </div>
+                <div id="freeShippingHint" class="text-[10px] text-gray-400 text-right px-4 mt-1"></div>
                 <div class="text-2xl font-black text-forest mt-2 border-t pt-2 flex justify-between px-4">
                     <span class="text-xs font-normal text-gray-500 self-center">最終應付金額：</span>
                     <span>$<span id="finalPriceText">580</span> <span class="text-xs font-normal text-gray-400">TWD</span></span>
@@ -385,6 +389,12 @@
         const functions = getFunctions(app, 'asia-east1');
         const createBankTransferOrder = httpsCallable(functions, 'createBankTransferOrder');
         const ADMIN_EMAILS = ["qoojude@hotmail.com", "a0937034596@gmail.com"];
+        const STORE_CONFIG = Object.freeze({
+            shippingFee: 130,
+            freeShippingThreshold: 1000,
+            freeShippingBasis: 'afterDiscount'
+        });
+
 
         let currentUserData = null;
         let productsCache = {};
@@ -475,11 +485,11 @@
                 size:String(f.size || f.capacity || '單一規格').trim(),
                 price:Number(f.price ?? 0),
                 compareAtPrice:f.compareAtPrice==null?null:Number(f.compareAtPrice),
-                stock:f.stock==null?999999:Number(f.stock),
+                stock:f.stock==null?null:Number(f.stock),
                 sku:String(f.sku||''), active:f.active!==false, sortOrder:Number(f.sortOrder??index)
             })).filter(f=>f.name).sort((a,b)=>a.sortOrder-b.sortOrder);
             if(!flavors.length){
-                flavors=[{id:`${id}_0`,name:data.codeName||data.name||'預設',scent:data.codeName||data.name||'預設',size:'單一規格',price:Number(data.price??data.defaultPrice??0),compareAtPrice:null,stock:999999,sku:String(data.code||''),active:true,sortOrder:0}];
+                flavors=[{id:`${id}_0`,name:data.codeName||data.name||'預設',scent:data.codeName||data.name||'預設',size:'單一規格',price:Number(data.price??data.defaultPrice??0),compareAtPrice:null,stock:null,sku:String(data.code||''),active:true,sortOrder:0}];
             }
 
             const details=data.details||{};
@@ -625,7 +635,7 @@
                     const p = normalizeProduct(ds.id, ds.data());
                     if (!p.active) return;
                     productsCache[p.id] = p;
-                    if(p.mainCategory==='精油') p.flavors.filter(f=>f.active&&f.stock!==0).forEach(f => drawPool.push({productId:p.id,variantId:f.id,productName:p.name,category:p.subCategory||p.category,flavorName:f.scent||f.name,size:f.size||'',price:f.price,stock:f.stock,description:p.description,imageUrl:p.imageUrl}));
+                    if(p.mainCategory==='精油') p.flavors.filter(f=>f.active&&Number(f.price)>0&&Number.isFinite(Number(f.stock))&&Number(f.stock)>0).forEach(f => drawPool.push({productId:p.id,variantId:f.id,productName:p.name,category:p.subCategory||p.category,flavorName:f.scent||f.name,size:f.size||'',price:f.price,stock:f.stock,description:p.description,imageUrl:p.imageUrl}));
                 });
                 await loadCatalogImageOverrides();
             renderCatalogMain();
@@ -787,7 +797,32 @@
             localStorage.setItem('warmCrystalCart', JSON.stringify(cart));
             renderCart();
         }
-        window.openCart=function(){ document.getElementById('cartModal')?.classList.remove('hidden'); renderCart(); };
+        async function revalidateCart({notify=true}={}){
+            if(!cart.length) return {changed:false, removed:0, repriced:0};
+            let changed=false, removed=0, repriced=0;
+            const next=[];
+            for(const item of cart){
+                const p=productsCache[item.productId];
+                if(!p || !p.active){ changed=true; removed++; continue; }
+                const v=p.flavors.find(x=>x.id===item.variantId);
+                if(!v || !v.active || !(Number(v.price)>0) || !Number.isFinite(Number(v.stock)) || Number(v.stock)<=0){
+                    changed=true; removed++; continue;
+                }
+                const fresh={...item,productName:p.name,scent:v.scent||v.name,size:v.size||'',price:Number(v.price),stock:Number(v.stock)};
+                if(Number(item.price)!==fresh.price){ changed=true; repriced++; }
+                if(Number(fresh.qty)>fresh.stock){ fresh.qty=fresh.stock; changed=true; }
+                next.push(fresh);
+            }
+            if(changed){ cart=next; saveCart(); }
+            if(notify && changed){
+                const parts=[];
+                if(repriced) parts.push(`${repriced} 個品項售價已更新`);
+                if(removed) parts.push(`${removed} 個無法販售／缺貨品項已移除`);
+                alert('購物車已同步最新商品資料：\n'+parts.join('、'));
+            }
+            return {changed,removed,repriced};
+        }
+        window.openCart=async function(){ await revalidateCart(); document.getElementById('cartModal')?.classList.remove('hidden'); renderCart(); };
         window.closeCart=function(){ document.getElementById('cartModal')?.classList.add('hidden'); };
         window.renderCart=function(){
             const box=document.getElementById('cartItems'), count=document.getElementById('cartCount'), subtotalEl=document.getElementById('cartSubtotal');
@@ -817,7 +852,7 @@
             const details=p.details||{};
             const labels={englishName:'英文名稱',botanicalName:'拉丁學名',extractionMethod:'萃取方式',extractionPart:'萃取部位',oilOrigin:'精油產地',plantOrigin:'植物產地',appearance:'外觀',composition:'成分／結構',usage:'使用建議',pairing:'推薦搭配',packaging:'包裝',storage:'保存',warnings:'注意事項'};
             document.getElementById('productDetailSpecs').innerHTML=Object.entries(labels).filter(([k])=>details[k]).map(([k,l])=>`<div><b class="text-forest">${l}</b><p class="whitespace-pre-line leading-6 mt-1">${escapeHtml(details[k])}</p></div>`).join('');
-            const scents=[...new Set(p.flavors.filter(v=>v.active&&v.stock!==0).map(v=>v.scent||v.name))];
+            const scents=[...new Set(p.flavors.filter(v=>v.active&&Number(v.price)>0&&Number.isFinite(Number(v.stock))&&Number(v.stock)>0).map(v=>v.scent||v.name))];
             document.getElementById('detailScent').innerHTML=scents.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
             document.getElementById('detailQty').value=1;
             refreshDetailSizes();
@@ -862,7 +897,7 @@
         window.refreshDetailSizes=function(){
             const p=productsCache[detailProductId]; if(!p) return;
             const scent=document.getElementById('detailScent').value;
-            const vars=p.flavors.filter(v=>v.active&&v.stock!==0&&(v.scent||v.name)===scent);
+            const vars=p.flavors.filter(v=>v.active&&Number(v.price)>0&&Number.isFinite(Number(v.stock))&&Number(v.stock)>0&&(v.scent||v.name)===scent);
             document.getElementById('detailSize').innerHTML=vars.map(v=>`<option value="${escapeHtml(v.id)}">${escapeHtml(v.size||v.name)}</option>`).join('');
             refreshDetailPrice();
         };
@@ -870,22 +905,25 @@
             const p=productsCache[detailProductId]; if(!p) return;
             const id=document.getElementById('detailSize').value, v=p.flavors.find(x=>x.id===id);
             document.getElementById('detailPrice').textContent=Number(v?.price||0).toLocaleString('zh-TW');
-            document.getElementById('detailStock').textContent=v ? (Number(v.stock)>=999999?'現貨供應':`庫存 ${Math.max(0,Number(v.stock||0))}`) : '目前無可選規格';
-            const qty=document.getElementById('detailQty'); if(v&&qty) qty.max=Math.max(1,Number(v.stock||999999));
+            document.getElementById('detailStock').textContent=v ? `庫存 ${Math.max(0,Number(v.stock||0))}` : '目前無可選規格';
+            const qty=document.getElementById('detailQty'); if(v&&qty) qty.max=Math.max(1,Number(v.stock||0));
         };
         window.addDetailToCart=function(){
             const p=productsCache[detailProductId]; if(!p) return;
             const id=document.getElementById('detailSize').value, v=p.flavors.find(x=>x.id===id); if(!v) return alert('請先選擇可購買的規格。');
             const qty=Math.max(1,Number(document.getElementById('detailQty').value||1));
-            if(v.stock===0) return alert('此規格目前沒有庫存。');
+            if(!(Number(v.price)>0)) return alert('此規格售價尚未完成，暫時無法購買。');
+            if(!Number.isFinite(Number(v.stock)) || Number(v.stock)<=0) return alert('此規格庫存尚未設定或目前缺貨。');
             const key=`${p.id}|${v.id}`, existing=cart.find(x=>x.key===key);
-            if(existing) existing.qty=Math.min(Number(v.stock||999999),existing.qty+qty);
-            else cart.push({key,productId:p.id,variantId:v.id,productName:p.name,scent:v.scent||v.name,size:v.size||'',price:Number(v.price||0),stock:Number(v.stock??999999),qty});
+            if(existing) existing.qty=Math.min(Number(v.stock),existing.qty+qty);
+            else cart.push({key,productId:p.id,variantId:v.id,productName:p.name,scent:v.scent||v.name,size:v.size||'',price:Number(v.price||0),stock:Number(v.stock),qty});
             saveCart(); closeProductDetail(); openCart();
         };
-        window.checkoutCart=function(){
+        window.checkoutCart=async function(){
             if(!cart.length) return alert('購物車目前是空的。');
             if(!auth.currentUser){ localStorage.setItem('pendingAction','cartCheckout'); alert('結帳前請先登入會員，購物車會為你保留。'); location.href='login.html'; return; }
+            await revalidateCart();
+            if(!cart.length) return alert('購物車中的商品目前皆無法販售，請重新選購。');
             const subtotal=cart.reduce((s,x)=>s+Number(x.price||0)*Number(x.qty||0),0);
             const summary=cart.map(x=>`${x.productName}・${x.scent}${x.size?' '+x.size:''} ×${x.qty}`).join(' / ');
             closeCart(); triggerProductBuy(summary,subtotal);
@@ -948,9 +986,15 @@
         };
 
         function updatePriceUI() {
-            finalPayPrice = Math.max(0, currentProductPrice - activeDiscount);
+            const discountedSubtotal = Math.max(0, currentProductPrice - activeDiscount);
+            const shippingFee = discountedSubtotal >= STORE_CONFIG.freeShippingThreshold ? 0 : STORE_CONFIG.shippingFee;
+            finalPayPrice = discountedSubtotal + shippingFee;
             document.getElementById('originalPriceText').textContent = `$${currentProductPrice}`;
             document.getElementById('finalPriceText').textContent = finalPayPrice;
+            const shippingEl=document.getElementById('shippingFeeText');
+            if(shippingEl) shippingEl.textContent=shippingFee===0?'免運':`NT$${shippingFee}`;
+            const hint=document.getElementById('freeShippingHint');
+            if(hint) hint.textContent=shippingFee===0?'✓ 已達免運門檻':`折扣後商品金額再差 NT$${Math.max(0,STORE_CONFIG.freeShippingThreshold-discountedSubtotal)} 免運`;
             const row = document.getElementById('discountRow');
             if (activeDiscount > 0) {
                 row.classList.remove('hidden');
@@ -1014,7 +1058,7 @@
                 html:`<h4 class="font-black text-forest text-base mb-2">付款</h4>
                 <p>目前付款方式為銀行／郵局轉帳。網站僅要求轉帳帳號後五碼供對帳；客服不會要求提款卡密碼、網銀密碼、OTP 驗證碼或遠端操作裝置。</p>
                 <h4 class="font-black text-forest text-base mt-5 mb-2">配送</h4>
-                <p>配送方式：7-11、全家、宅配。一般運費 NT$130；單筆商品金額滿 NT$1,000 免運。付款確認後原則上 3–5 個工作天出貨；例假日、預購、客製或不可抗力情況可能順延，若有重大延誤將另行通知。</p>`
+                <p>配送方式：7-11、全家、宅配。一般運費 NT$130；優惠折扣後之商品金額滿 NT$1,000 免運。付款確認後原則上 3–5 個工作天出貨；例假日、預購、客製或不可抗力情況可能順延，若有重大延誤將另行通知。</p>`
             },
             returns: {
                 title:'退換貨與退款政策',
@@ -1121,7 +1165,7 @@
                     lastFiveDigits:fiveCode, shipping
                 });
                 const data=result?.data||{};
-                alert(`🎉 對帳單已送出！\n訂單金額：$${Number(data.finalPrice||0)}\n\n主理人確認實際入帳後才會扣庫存、進入出貨流程並發放點數。`);
+                alert(`🎉 訂單已建立！\n訂單編號：${data.orderNumber||data.orderId||'已建立'}\n應付金額：NT$${Number(data.finalPrice||0).toLocaleString('zh-TW')}\n付款狀態：等待對帳\n\n主理人確認實際入帳後才會扣庫存、進入出貨流程並發放點數。`);
                 cart=[];saveCart();closePaymentModal();
                 document.getElementById('orderReportForm').reset();toggleShipInput();
                 await refreshMemberCenter();
