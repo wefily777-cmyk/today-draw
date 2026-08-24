@@ -2,6 +2,7 @@
 <!-- POLICY CENTER v1｜消費者政策＋結帳同意機制 -->
 <!-- PAYMENT PRODUCTION｜BANK TRANSFER ONLY + SERVER VERIFIED ORDER -->
 <!-- PRODUCTION READY｜MASTER CATALOG FRONTEND -->
+<!-- NAV-HOTFIX v1｜商品詳情返回邏輯：瀏覽器上一頁關閉詳情並保留商品列表位置 -->
 <!-- V82 QA5｜商品專區分類圖片雲端覆寫 -->
 <!-- V82 QA3｜前台相容＋日期＋付款狀態修正版 -->
 <html lang="zh-TW">
@@ -167,10 +168,11 @@
     <!-- 商品詳情 / 規格選擇 -->
     <div id="productDetailModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
       <div class="bg-white max-w-5xl w-full max-h-[92vh] overflow-y-auto relative shadow-2xl">
-        <button onclick="closeProductDetail()" class="absolute top-4 right-4 z-10 text-2xl text-gray-500 bg-white/90 w-9 h-9 rounded-full">&times;</button>
+        <button onclick="closeProductDetail()" aria-label="關閉商品詳情" class="absolute top-4 right-4 z-10 text-2xl text-gray-500 bg-white/90 w-9 h-9 rounded-full">&times;</button>
         <div class="grid md:grid-cols-2">
           <div id="productDetailImage" class="bg-sand min-h-[380px] flex items-center justify-center"></div>
           <div class="p-7 md:p-10">
+            <button type="button" onclick="closeProductDetail()" class="mb-5 text-xs text-gray-500 hover:text-forest inline-flex items-center gap-1">← 返回商品列表</button>
             <div id="productDetailTags" class="flex flex-wrap gap-1 mb-3"></div>
             <h2 id="productDetailName" class="serif text-3xl text-forest"></h2>
             <p id="productDetailDesc" class="text-sm text-gray-500 leading-7 mt-4"></p>
@@ -435,6 +437,8 @@
         ];
         let activeCatalogMain = '';
         let activeCatalogSub = '';
+        let productDetailHistoryActive = false;
+        let productDetailScrollY = 0;
 
         const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
         const toDateSafe = (value) => {
@@ -817,9 +821,44 @@
             document.getElementById('detailScent').innerHTML=scents.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
             document.getElementById('detailQty').value=1;
             refreshDetailSizes();
+            productDetailScrollY = window.scrollY;
             modal?.classList.remove('hidden'); modal?.classList.add('flex');
+            document.body.style.overflow='hidden';
+
+            // 商品詳情屬於站內覆蓋層：建立一筆 history，讓手機／瀏覽器「上一頁」先關閉詳情，
+            // 而不是直接離開商城。返回後仍停在原商品列表與原捲動位置。
+            if(!productDetailHistoryActive){
+                history.pushState({...(history.state||{}), productDetail:true, productId}, '', location.href);
+                productDetailHistoryActive = true;
+            }else{
+                history.replaceState({...(history.state||{}), productDetail:true, productId}, '', location.href);
+            }
         };
-        window.closeProductDetail=function(){ const m=document.getElementById('productDetailModal'); m?.classList.add('hidden'); m?.classList.remove('flex'); };
+
+        function hideProductDetailModal(){
+            const m=document.getElementById('productDetailModal');
+            m?.classList.add('hidden'); m?.classList.remove('flex');
+            document.body.style.overflow='';
+            detailProductId='';
+            productDetailHistoryActive=false;
+            requestAnimationFrame(()=>window.scrollTo({top:productDetailScrollY,behavior:'auto'}));
+        }
+
+        window.closeProductDetail=function(){
+            // 由商品卡正常開啟時，用 history.back() 消耗剛才建立的商品詳情紀錄。
+            // 若不是由本站建立的 history（例如特殊直接開啟情境），則只關閉視窗，不離站。
+            if(productDetailHistoryActive && history.state?.productDetail){
+                history.back();
+            }else{
+                hideProductDetailModal();
+            }
+        };
+
+        window.addEventListener('popstate', ()=>{
+            const modal=document.getElementById('productDetailModal');
+            const isOpen=modal && !modal.classList.contains('hidden');
+            if(isOpen) hideProductDetailModal();
+        });
         window.refreshDetailSizes=function(){
             const p=productsCache[detailProductId]; if(!p) return;
             const scent=document.getElementById('detailScent').value;
