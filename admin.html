@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- FLAT-CATEGORIES v1｜後台保留分類編輯，前台主分類直達商品 -->
+<!-- ADD-CRYSTAL v1｜新增水晶主分類與水晶商品欄位 -->
 <!-- MERCHANT WORKBENCH｜MANUAL PRICE + STOCK OPERATIONS -->
 <!-- SPEC PAYMENT HOTFIX1｜CATALOG IMAGE RULES + AUDIT LOADING UX -->
 <!-- SPEC + PAYMENT PRODUCTION｜MANUAL PRICE + SECURE BANK TRANSFER -->
@@ -2173,6 +2173,7 @@
             '擴香儀': {subs:['可攜式','玻璃','其他擴香儀'], detailMap:{}},
             '空氣清淨水洗機': {subs:['全部水洗機'], detailMap:{}},
             '香氛': {subs:['空間香氛','織品香氛','其他香氛'], detailMap:{}},
+            '水晶': {subs:['天然水晶','水晶手鍊','客製水晶手鍊','水晶飾品'], detailMap:{}},
             'Gonesh': {subs:['線香','擴香瓶','車用香氛'], detailMap:{}}
         };
         const DETAIL_FIELD_SETS = {
@@ -2209,6 +2210,9 @@
             ],
             fragrance:[
                 ['scent','香調／香味'],['content','容量／數量'],['duration','香氣持續時間'],['usagePlace','適用空間'],['ingredients','主要成分','textarea'],['usage','使用方式','textarea'],['warnings','注意事項','textarea']
+            ],
+            crystal:[
+                ['crystalType','水晶種類'],['beadSize','珠徑／尺寸'],['wristSize','手圍／尺寸'],['material','材質／配件'],['origin','產地／來源'],['meaning','特色／寓意','textarea'],['customNotes','客製說明','textarea'],['care','保養方式','textarea'],['sourceUrl','資料來源網址']
             ]
         };
         let editingDetails = {};
@@ -2220,6 +2224,7 @@
             if(main==='超音波水氧機') return DETAIL_FIELD_SETS.humidifier;
             if(main==='擴香儀') return DETAIL_FIELD_SETS.diffuser;
             if(main==='空氣清淨水洗機') return DETAIL_FIELD_SETS.airwasher;
+            if(main==='水晶') return DETAIL_FIELD_SETS.crystal;
             return DETAIL_FIELD_SETS.fragrance;
         }
         function fillMainCategoryOptions(){
