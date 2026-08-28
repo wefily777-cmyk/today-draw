@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- NAV-ADMIN-SIMPLIFY v1｜完整商城返回階層 -->
+<!-- FLAT-CATEGORIES v1｜首頁主分類直達商品，不再顯示細分類層 -->
 <!-- POLICY CENTER v1｜消費者政策＋結帳同意機制 -->
 <!-- PAYMENT PRODUCTION｜BANK TRANSFER ONLY + SERVER VERIFIED ORDER -->
 <!-- PRODUCTION READY｜MASTER CATALOG FRONTEND -->
@@ -81,7 +81,7 @@
         <div class="text-center mb-10">
             <p class="text-[11px] tracking-[.25em] text-clay font-bold uppercase">Product Categories</p>
             <h2 class="serif text-3xl text-forest mt-2">商品專區</h2>
-            <p class="text-sm text-gray-500 mt-3">先選擇主題，再進入細分類與商品。分類與商品會由後台資料自動對應。</p>
+            <p class="text-sm text-gray-500 mt-3">選擇商品分類後，直接瀏覽該分類的所有商品。</p>
         </div>
 
         <div id="catalogMainGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5"></div>
@@ -101,7 +101,7 @@
         <div id="catalogProductSection" class="hidden mt-14">
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7">
                 <div>
-                    <button type="button" onclick="goCatalogBack('sub')" class="text-xs text-gray-400 hover:text-forest">← 上一頁・細分類</button>
+                    <button type="button" onclick="goCatalogBack('main')" class="text-xs text-gray-400 hover:text-forest">← 上一頁・商品分類</button>
                     <p id="catalogBreadcrumb" class="text-[10px] tracking-[.18em] text-clay font-bold uppercase mt-3">PRODUCTS</p>
                     <h3 id="catalogProductTitle" class="serif text-3xl text-forest mt-1">商品</h3>
                     <p class="text-sm text-gray-500 mt-2">商品規格、價格與上架狀態均由後台即時載入。</p>
@@ -644,7 +644,16 @@
 
         window.openCatalogMain=function(index){
             ensureCatalogHistory();
-            if(applyCatalogCategoryView(index)) pushShopNav({view:'category',mainIndex:index});
+            const main=CATALOG_TAXONOMY[index]; if(!main) return;
+            activeCatalogMain=main.name; activeCatalogSub='';
+            document.getElementById('catalogMainGrid')?.classList.add('hidden');
+            document.getElementById('catalogSubSection')?.classList.add('hidden');
+            document.getElementById('catalogProductSection')?.classList.remove('hidden');
+            document.getElementById('catalogBreadcrumb').textContent=main.name;
+            document.getElementById('catalogProductTitle').textContent=main.name;
+            renderCatalogProducts();
+            document.getElementById('catalogProductSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+            pushShopNav({view:'mainProducts',mainIndex:index});
         };
 
         window.openCatalogSub=function(mainIndex,subIndex){
@@ -958,7 +967,18 @@
             // 先關閉詳情，再依上一筆 history 還原分類層級。
             if(isOpen) hideProductDetailModal({restoreScroll:false});
 
-            if(nav.view==='category'){
+            if(nav.view==='mainProducts'){
+                const main=CATALOG_TAXONOMY[Number(nav.mainIndex)];
+                if(main){
+                    activeCatalogMain=main.name; activeCatalogSub='';
+                    document.getElementById('catalogMainGrid')?.classList.add('hidden');
+                    document.getElementById('catalogSubSection')?.classList.add('hidden');
+                    document.getElementById('catalogProductSection')?.classList.remove('hidden');
+                    document.getElementById('catalogBreadcrumb').textContent=main.name;
+                    document.getElementById('catalogProductTitle').textContent=main.name;
+                    renderCatalogProducts();
+                }else applyCatalogMainView({scroll:false});
+            }else if(nav.view==='category'){
                 applyCatalogCategoryView(Number(nav.mainIndex),{scroll:false});
             }else if(nav.view==='products'){
                 applyCatalogProductView(Number(nav.mainIndex),Number(nav.subIndex),{scroll:false});
