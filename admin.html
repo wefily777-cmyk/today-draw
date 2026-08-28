@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- ADMIN-SIMPLIFY v1｜日常營運主功能＋低頻系統工具收納 -->
 <!-- MERCHANT WORKBENCH｜MANUAL PRICE + STOCK OPERATIONS -->
 <!-- SPEC PAYMENT HOTFIX1｜CATALOG IMAGE RULES + AUDIT LOADING UX -->
 <!-- SPEC + PAYMENT PRODUCTION｜MANUAL PRICE + SECURE BANK TRANSFER -->
@@ -44,10 +45,13 @@
                     <h2 class="text-lg font-black text-forest">📦 訂單作戰中心</h2>
                     <p class="text-xs text-gray-400 mt-1">先看卡在哪裡，再處理下一步；所有歷史訂單都保留在 Firestore。</p>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="exportOrdersCSV()" class="bg-white border px-3 py-2 rounded-xl text-xs font-bold text-forest hover:bg-sand">⬇️ 匯出 CSV</button>
-                    <button onclick="exportOrdersExcel()" class="bg-forest text-white px-3 py-2 rounded-xl text-xs font-bold hover:opacity-90">📊 匯出 Excel</button>
-                </div>
+                <details class="relative">
+                    <summary class="list-none cursor-pointer bg-white border px-3 py-2 rounded-xl text-xs font-bold text-forest hover:bg-sand">⋯ 匯出資料</summary>
+                    <div class="mt-2 flex flex-wrap gap-2 bg-white border rounded-xl p-2 shadow-sm">
+                        <button onclick="exportOrdersCSV()" class="bg-white border px-3 py-2 rounded-lg text-xs font-bold text-forest hover:bg-sand">⬇️ CSV</button>
+                        <button onclick="exportOrdersExcel()" class="bg-forest text-white px-3 py-2 rounded-lg text-xs font-bold hover:opacity-90">📊 Excel</button>
+                    </div>
+                </details>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -148,13 +152,19 @@
                     <h3 class="text-base font-bold text-forest">🛍️ 商品上架與規格管理</h3>
                     <p class="text-xs text-gray-400 mt-1">Master Catalog 已整合全商城來源商品。請先選主分類與細分類，再選來源商品；也可使用「手動新增商品」建立自有商品。</p>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <button id="masterImportBtn" type="button" onclick="batchImportMasterCatalog()" class="bg-clay text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">📦 一次匯入 Master Catalog</button>
-                    <button id="masterImageSyncBtn" type="button" onclick="syncMasterCatalogImages()" class="bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">🖼️ 自動補來源商品圖</button>
-                    <button id="oilSpecNormalizeBtn" type="button" onclick="normalizeOilSpecs()" class="bg-sky-700 text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">🧪 校正精油 10ml / 60ml</button>
-                    <button id="specAuditBtn" type="button" onclick="auditProductSpecs()" class="bg-white border px-4 py-2 rounded-xl text-xs font-bold text-forest hover:bg-sand">🔎 規格完整度稽核</button>
-                    <span id="specAuditStatus" class="hidden text-[10px] text-sky-700 font-bold self-center">正在讀取商品規格…</span>
+                <div class="flex flex-wrap items-start gap-2">
                     <button type="button" onclick="resetForm(); scrollToProductForm()" class="bg-forest text-white px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90">＋ 手動新增商品</button>
+                    <details class="group border rounded-xl bg-white">
+                        <summary class="list-none cursor-pointer px-4 py-2 text-xs font-bold text-gray-600 hover:bg-sand rounded-xl">⚙️ 系統維護工具</summary>
+                        <div class="p-3 border-t min-w-[280px] max-w-md space-y-2">
+                            <p class="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2">低頻工具：只在初次搬家、新增來源商品、缺圖或資料異常時使用。日常上架不需要操作。</p>
+                            <button id="masterImportBtn" type="button" onclick="if(confirm('此功能會批次建立 Master Catalog 中尚未存在的商品。確定執行？')) batchImportMasterCatalog()" class="w-full text-left bg-white border px-3 py-2 rounded-lg text-xs font-bold text-gray-600 hover:bg-sand">📦 匯入 Master Catalog</button>
+                            <button id="masterImageSyncBtn" type="button" onclick="syncMasterCatalogImages()" class="w-full text-left bg-white border px-3 py-2 rounded-lg text-xs font-bold text-gray-600 hover:bg-sand">🖼️ 補來源商品圖</button>
+                            <button id="oilSpecNormalizeBtn" type="button" onclick="if(confirm('只在精油規格異常時使用。確定校正 10ml / 60ml？')) normalizeOilSpecs()" class="w-full text-left bg-white border px-3 py-2 rounded-lg text-xs font-bold text-gray-600 hover:bg-sand">🧪 校正精油 10ml / 60ml</button>
+                            <button id="specAuditBtn" type="button" onclick="auditProductSpecs()" class="w-full text-left bg-white border px-3 py-2 rounded-lg text-xs font-bold text-gray-600 hover:bg-sand">🔎 規格完整度稽核</button>
+                            <span id="specAuditStatus" class="hidden block text-[10px] text-sky-700 font-bold">正在讀取商品規格…</span>
+                        </div>
+                    </details>
                 </div>
             </div>
 
@@ -203,7 +213,7 @@
                                         <p id="presetProgress" class="text-[9px] text-gray-400 mt-0.5">依目前「主分類 → 細分類 → 商品類型」自動篩選來源商品。</p>
 
                                     </div>
-                                    <button type="button" onclick="resetForm(); scrollToProductForm()" class="text-[10px] bg-white border px-2.5 py-1.5 rounded-lg text-gray-500">手動新增空白商品</button>
+                                    <span class="text-[10px] text-gray-400">自有商品請使用上方「＋ 手動新增商品」</span>
                                 </div>
                                 <select id="presetProductSelect" onchange="applyPresetProduct(this.value)" class="w-full px-3 py-2.5 border rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-clay">
                                     <option value="">— 選擇來源商品 —</option>
@@ -288,7 +298,7 @@
                         <p class="text-[11px] text-gray-500 mt-1">集中處理售價、庫存、缺圖與上架狀態；來源網站售價不會自動帶入。</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <button type="button" onclick="refreshMerchantWorkbench()" class="px-3 py-2 rounded-xl border text-xs font-bold text-forest bg-white">重新整理</button>
+                        <button type="button" onclick="refreshMerchantWorkbench()" title="重新讀取最新商品資料" class="px-3 py-2 rounded-xl border text-xs font-bold text-gray-500 bg-white">↻</button>
                         <button type="button" onclick="saveMerchantWorkbench()" id="workbenchSaveBtn" class="px-4 py-2 rounded-xl bg-forest text-white text-xs font-bold">💾 儲存修改</button>
                     </div>
                 </div>

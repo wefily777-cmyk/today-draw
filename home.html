@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- NAV-ADMIN-SIMPLIFY v1｜完整商城返回階層 -->
 <!-- POLICY CENTER v1｜消費者政策＋結帳同意機制 -->
 <!-- PAYMENT PRODUCTION｜BANK TRANSFER ONLY + SERVER VERIFIED ORDER -->
 <!-- PRODUCTION READY｜MASTER CATALOG FRONTEND -->
@@ -88,7 +89,7 @@
         <div id="catalogSubSection" class="hidden mt-14">
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7">
                 <div>
-                    <button type="button" onclick="showCatalogMain()" class="text-xs text-gray-400 hover:text-forest">← 回全部分類</button>
+                    <button type="button" onclick="goCatalogBack('main')" class="text-xs text-gray-400 hover:text-forest">← 上一頁・全部分類</button>
                     <p id="catalogMainEyebrow" class="text-[10px] tracking-[.22em] text-clay font-bold uppercase mt-3">Category</p>
                     <h3 id="catalogMainTitle" class="serif text-3xl text-forest mt-1">分類</h3>
                     <p id="catalogMainDesc" class="text-sm text-gray-500 mt-2"></p>
@@ -100,7 +101,7 @@
         <div id="catalogProductSection" class="hidden mt-14">
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7">
                 <div>
-                    <button type="button" onclick="backToCatalogSub()" class="text-xs text-gray-400 hover:text-forest">← 回細分類</button>
+                    <button type="button" onclick="goCatalogBack('sub')" class="text-xs text-gray-400 hover:text-forest">← 上一頁・細分類</button>
                     <p id="catalogBreadcrumb" class="text-[10px] tracking-[.18em] text-clay font-bold uppercase mt-3">PRODUCTS</p>
                     <h3 id="catalogProductTitle" class="serif text-3xl text-forest mt-1">商品</h3>
                     <p class="text-sm text-gray-500 mt-2">商品規格、價格與上架狀態均由後台即時載入。</p>
@@ -172,7 +173,7 @@
         <div class="grid md:grid-cols-2">
           <div id="productDetailImage" class="bg-sand min-h-[380px] flex items-center justify-center"></div>
           <div class="p-7 md:p-10">
-            <button type="button" onclick="closeProductDetail()" class="mb-5 text-xs text-gray-500 hover:text-forest inline-flex items-center gap-1">← 返回商品列表</button>
+            <button type="button" onclick="closeProductDetail()" class="mb-5 text-xs text-gray-500 hover:text-forest inline-flex items-center gap-1">← 上一頁・商品列表</button>
             <div id="productDetailTags" class="flex flex-wrap gap-1 mb-3"></div>
             <h2 id="productDetailName" class="serif text-3xl text-forest"></h2>
             <p id="productDetailDesc" class="text-sm text-gray-500 leading-7 mt-4"></p>
@@ -449,6 +450,32 @@
         let activeCatalogSub = '';
         let productDetailHistoryActive = false;
         let productDetailScrollY = 0;
+        let catalogHistoryReady = false;
+
+        function captureShopScroll(){
+            const state=history.state||{};
+            const shopNav=state.shopNav||{view:'main'};
+            history.replaceState({...state,shopNav:{...shopNav,scrollY:window.scrollY}},'',location.href);
+        }
+        function pushShopNav(nav){
+            captureShopScroll();
+            history.pushState({...history.state,shopNav:{...nav,scrollY:null}},'',location.href);
+        }
+        function ensureCatalogHistory(){
+            if(catalogHistoryReady) return;
+            const state=history.state||{};
+            if(!state.shopNav){
+                history.replaceState({...state,shopNav:{view:'main',scrollY:window.scrollY}},'',location.href);
+            }
+            catalogHistoryReady=true;
+        }
+        function restoreShopScroll(state, fallbackElId='shop'){
+            const y=Number(state?.scrollY);
+            requestAnimationFrame(()=>{
+                if(Number.isFinite(y)) window.scrollTo({top:y,behavior:'auto'});
+                else document.getElementById(fallbackElId)?.scrollIntoView({behavior:'auto',block:'start'});
+            });
+        }
 
         const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
         const toDateSafe = (value) => {
@@ -564,16 +591,16 @@
             grid.innerHTML = CATALOG_TAXONOMY.map((item,index)=>catalogCard(item, `openCatalogMain(${index})`, true)).join('');
         }
 
-        window.showCatalogMain = function(){
+        function applyCatalogMainView({scroll=true}={}){
             activeCatalogMain=''; activeCatalogSub='';
             document.getElementById('catalogMainGrid')?.classList.remove('hidden');
             document.getElementById('catalogSubSection')?.classList.add('hidden');
             document.getElementById('catalogProductSection')?.classList.add('hidden');
-            document.getElementById('shop')?.scrollIntoView({behavior:'smooth',block:'start'});
-        };
+            if(scroll) document.getElementById('shop')?.scrollIntoView({behavior:'smooth',block:'start'});
+        }
 
-        window.openCatalogMain = function(index){
-            const item = CATALOG_TAXONOMY[index]; if(!item) return;
+        function applyCatalogCategoryView(index,{scroll=true}={}){
+            const item = CATALOG_TAXONOMY[index]; if(!item) return false;
             activeCatalogMain=item.name; activeCatalogSub='';
             document.getElementById('catalogMainGrid')?.classList.add('hidden');
             document.getElementById('catalogProductSection')?.classList.add('hidden');
@@ -581,26 +608,24 @@
             document.getElementById('catalogMainTitle').textContent=item.name;
             document.getElementById('catalogMainDesc').textContent=item.desc||'';
             document.getElementById('catalogSubGrid').innerHTML=item.subs.map((sub,subIndex)=>catalogCard(sub,`openCatalogSub(${index},${subIndex})`)).join('');
-            document.getElementById('catalogSubSection')?.scrollIntoView({behavior:'smooth',block:'start'});
-        };
+            if(scroll) document.getElementById('catalogSubSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+            return true;
+        }
 
-        window.openCatalogSub = function(mainIndex,subIndex){
-            const main = CATALOG_TAXONOMY[mainIndex], sub = main?.subs?.[subIndex]; if(!main||!sub) return;
+        function applyCatalogProductView(mainIndex,subIndex,{scroll=true}={}){
+            const main=CATALOG_TAXONOMY[mainIndex],sub=main?.subs?.[subIndex]; if(!main||!sub) return false;
             activeCatalogMain=main.name; activeCatalogSub=sub.name;
+            document.getElementById('catalogMainGrid')?.classList.add('hidden');
             document.getElementById('catalogSubSection')?.classList.add('hidden');
             document.getElementById('catalogProductSection')?.classList.remove('hidden');
             document.getElementById('catalogBreadcrumb').textContent=`${main.name} / ${sub.name}`;
             document.getElementById('catalogProductTitle').textContent=sub.name;
             renderCatalogProducts();
-            document.getElementById('catalogProductSection')?.scrollIntoView({behavior:'smooth',block:'start'});
-        };
+            if(scroll) document.getElementById('catalogProductSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+            return true;
+        }
 
-        window.backToCatalogSub = function(){
-            const idx = CATALOG_TAXONOMY.findIndex(x=>x.name===activeCatalogMain);
-            if(idx>=0) openCatalogMain(idx); else showCatalogMain();
-        };
-
-        window.showAllCatalogProducts = function(){
+        function applyAllProductsView({scroll=true}={}){
             activeCatalogMain=''; activeCatalogSub='';
             document.getElementById('catalogMainGrid')?.classList.add('hidden');
             document.getElementById('catalogSubSection')?.classList.add('hidden');
@@ -608,6 +633,39 @@
             document.getElementById('catalogBreadcrumb').textContent='ALL PRODUCTS';
             document.getElementById('catalogProductTitle').textContent='全部商品';
             renderCatalogProducts();
+            if(scroll) document.getElementById('catalogProductSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+        }
+
+        window.showCatalogMain=function(){
+            ensureCatalogHistory();
+            applyCatalogMainView();
+            pushShopNav({view:'main'});
+        };
+
+        window.openCatalogMain=function(index){
+            ensureCatalogHistory();
+            if(applyCatalogCategoryView(index)) pushShopNav({view:'category',mainIndex:index});
+        };
+
+        window.openCatalogSub=function(mainIndex,subIndex){
+            ensureCatalogHistory();
+            if(applyCatalogProductView(mainIndex,subIndex)) pushShopNav({view:'products',mainIndex,subIndex});
+        };
+
+        window.backToCatalogSub=function(){ goCatalogBack('sub'); };
+
+        window.goCatalogBack=function(fallback='main'){
+            if(history.state?.shopNav) history.back();
+            else if(fallback==='sub'){
+                const idx=CATALOG_TAXONOMY.findIndex(x=>x.name===activeCatalogMain);
+                if(idx>=0) applyCatalogCategoryView(idx); else applyCatalogMainView();
+            }else applyCatalogMainView();
+        };
+
+        window.showAllCatalogProducts=function(){
+            ensureCatalogHistory();
+            applyAllProductsView();
+            pushShopNav({view:'all'});
         };
 
         function productCard(p){
@@ -638,7 +696,8 @@
                     if(p.mainCategory==='精油') p.flavors.filter(f=>f.active&&Number(f.price)>0&&Number.isFinite(Number(f.stock))&&Number(f.stock)>0).forEach(f => drawPool.push({productId:p.id,variantId:f.id,productName:p.name,category:p.subCategory||p.category,flavorName:f.scent||f.name,size:f.size||'',price:f.price,stock:f.stock,description:p.description,imageUrl:p.imageUrl}));
                 });
                 await loadCatalogImageOverrides();
-            renderCatalogMain();
+                renderCatalogMain();
+                ensureCatalogHistory();
                 prepareDrawCards();
             } catch (error) {
                 console.error(error);
@@ -856,27 +915,28 @@
             document.getElementById('detailScent').innerHTML=scents.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
             document.getElementById('detailQty').value=1;
             refreshDetailSizes();
+            ensureCatalogHistory();
             productDetailScrollY = window.scrollY;
+            captureShopScroll();
             modal?.classList.remove('hidden'); modal?.classList.add('flex');
             document.body.style.overflow='hidden';
 
-            // 商品詳情屬於站內覆蓋層：建立一筆 history，讓手機／瀏覽器「上一頁」先關閉詳情，
-            // 而不是直接離開商城。返回後仍停在原商品列表與原捲動位置。
+            // 詳情頁建立獨立 history：瀏覽器上一頁 = 回到剛才的商品列表狀態與位置。
             if(!productDetailHistoryActive){
-                history.pushState({...(history.state||{}), productDetail:true, productId}, '', location.href);
-                productDetailHistoryActive = true;
+                history.pushState({...history.state,productDetail:true,productId,shopNav:{...(history.state?.shopNav||{view:'main'}),view:'detail'}},'',location.href);
+                productDetailHistoryActive=true;
             }else{
-                history.replaceState({...(history.state||{}), productDetail:true, productId}, '', location.href);
+                history.replaceState({...history.state,productDetail:true,productId},'',location.href);
             }
         };
 
-        function hideProductDetailModal(){
+        function hideProductDetailModal({restoreScroll=true}={}){
             const m=document.getElementById('productDetailModal');
             m?.classList.add('hidden'); m?.classList.remove('flex');
             document.body.style.overflow='';
             detailProductId='';
             productDetailHistoryActive=false;
-            requestAnimationFrame(()=>window.scrollTo({top:productDetailScrollY,behavior:'auto'}));
+            if(restoreScroll) requestAnimationFrame(()=>window.scrollTo({top:productDetailScrollY,behavior:'auto'}));
         }
 
         window.closeProductDetail=function(){
@@ -889,10 +949,31 @@
             }
         };
 
-        window.addEventListener('popstate', ()=>{
+        window.addEventListener('popstate', (event)=>{
+            const state=event.state||{};
+            const nav=state.shopNav||{view:'main'};
             const modal=document.getElementById('productDetailModal');
             const isOpen=modal && !modal.classList.contains('hidden');
-            if(isOpen) hideProductDetailModal();
+
+            // 先關閉詳情，再依上一筆 history 還原分類層級。
+            if(isOpen) hideProductDetailModal({restoreScroll:false});
+
+            if(nav.view==='category'){
+                applyCatalogCategoryView(Number(nav.mainIndex),{scroll:false});
+            }else if(nav.view==='products'){
+                applyCatalogProductView(Number(nav.mainIndex),Number(nav.subIndex),{scroll:false});
+            }else if(nav.view==='all'){
+                applyAllProductsView({scroll:false});
+            }else if(nav.view==='detail'){
+                // 某些瀏覽器前進到 detail 狀態時，不重新開 Modal，安全回到商品列表。
+                const fallback=history.state?.shopNav||{};
+                if(Number.isInteger(Number(fallback.mainIndex)) && Number.isInteger(Number(fallback.subIndex))){
+                    applyCatalogProductView(Number(fallback.mainIndex),Number(fallback.subIndex),{scroll:false});
+                }
+            }else{
+                applyCatalogMainView({scroll:false});
+            }
+            restoreShopScroll(nav);
         });
         window.refreshDetailSizes=function(){
             const p=productsCache[detailProductId]; if(!p) return;
